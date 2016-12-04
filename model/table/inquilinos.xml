@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : inquilinos.xml
+    Description:
+        Estructura de la tabla inquilinos.
+-->
+<tabla>
+   <columna>
+      <nombre>id</nombre>
+      <tipo>serial</tipo>
+      <nulo>NO</nulo>
+      <defecto>nextval('inquilinos_id_seq'::regclass)</defecto>
+   </columna>
+   <columna>
+      <nombre>codcliente</nombre>
+      <tipo>character varying(6)</tipo>
+      <nulo>NO</nulo>
+   </columna>
+   <columna>
+      <nombre>fechaalta</nombre>
+      <tipo>date</tipo>
+      <nulo>YES</nulo>
+   </columna>
+   <columna>
+      <nombre>fechaagua</nombre>
+      <tipo>date</tipo>
+      <nulo>YES</nulo>
+   </columna>
+   <columna>
+      <nombre>fechagas</nombre>
+      <tipo>date</tipo>
+      <nulo>YES</nulo>
+   </columna>
+   <columna>
+      <nombre>nombre</nombre>
+      <tipo>character varying(100)</tipo>
+      <nulo>NO</nulo>
+   </columna>
+   <columna>
+      <nombre>piso</nombre>
+      <tipo>character varying(100)</tipo>
+      <nulo>NO</nulo>
+   </columna>
+   <columna>
+      <nombre>bloque</nombre>
+      <tipo>character varying(100)</tipo>
+      <nulo>NO</nulo>
+   </columna>
+   <columna>
+      <nombre>mensualidad</nombre>
+      <tipo>double precision</tipo>
+      <nulo>NO</nulo>
+      <defecto>0</defecto>
+   </columna>
+   <columna>
+      <nombre>agua</nombre>
+      <tipo>double precision</tipo>
+      <nulo>NO</nulo>
+      <defecto>0</defecto>
+   </columna>
+   <columna>
+      <nombre>gas</nombre>
+      <tipo>double precision</tipo>
+      <nulo>NO</nulo>
+      <defecto>0</defecto>
+   </columna>
+   <columna>
+      <nombre>observaciones</nombre>
+      <tipo>text</tipo>
+      <nulo>YES</nulo>
+   </columna>
+   <columna>
+      <nombre>deudas</nombre>
+      <tipo>double precision</tipo>
+      <nulo>NO</nulo>
+      <defecto>0</defecto>
+   </columna>
+   <restriccion>
+      <nombre>inquilinos_pkey</nombre>
+      <consulta>PRIMARY KEY (id)</consulta>
+   </restriccion>
+</tabla>
