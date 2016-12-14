@@ -1,8 +1,8 @@
 <?php
-
 /**
  * @author Carlos García Gómez      neorazorx@gmail.com
- * @copyright 2015, Carlos García Gómez. All Rights Reserved. 
+ * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
+ * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
 
 require_model('cliente.php');
@@ -20,24 +20,24 @@ class lista_inquilinos extends fs_controller
    public $inquilino;
    public $offset;
    public $resultados;
-   
+
    public function __construct()
    {
       parent::__construct(__CLASS__, 'Inquilinos', 'ventas', FALSE, TRUE);
    }
-   
+
    protected function private_core()
    {
       $this->bloque = '';
       $this->cliente = new cliente();
       $this->inquilino = new inquilino();
-      
+
       $this->offset = 0;
       if( isset($_REQUEST['offset']) )
       {
          $this->offset = intval($_REQUEST['offset']);
       }
-      
+
       if( isset($_REQUEST['buscar_cliente']) )
       {
          $this->buscar_cliente();
@@ -77,7 +77,7 @@ class lista_inquilinos extends fs_controller
          else
             $this->new_error_msg('Inquilino no encontrado.');
       }
-      
+
       if( isset($_GET['cliente']) )
       {
          $this->resultados = $this->inquilino->all_from_cliente($_GET['cliente']);
@@ -97,26 +97,26 @@ class lista_inquilinos extends fs_controller
       else
          $this->resultados = $this->inquilino->all($this->offset);
    }
-   
+
    private function buscar_cliente()
    {
       /// desactivamos la plantilla HTML
       $this->template = FALSE;
-      
+
       $json = array();
       foreach($this->cliente->search($_REQUEST['buscar_cliente']) as $cli)
       {
          $json[] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
       }
-      
+
       header('Content-Type: application/json');
       echo json_encode( array('query' => $_REQUEST['buscar_cliente'], 'suggestions' => $json) );
    }
-   
+
    public function bloques()
    {
       $blist = array();
-      
+
       $data = $this->db->select("SELECT DISTINCT bloque FROM inquilinos ORDER BY bloque ASC;");
       if($data)
       {
@@ -125,31 +125,31 @@ class lista_inquilinos extends fs_controller
             $blist[] = $d['bloque'];
          }
       }
-      
+
       return $blist;
    }
-   
+
    public function anterior_url()
    {
       $url = '';
-      
+
       if($this->offset > '0')
       {
          $url = $this->url()."&offset=".($this->offset-FS_ITEM_LIMIT);
       }
-      
+
       return $url;
    }
-   
+
    public function siguiente_url()
    {
       $url = '';
-      
+
       if(count($this->resultados) == FS_ITEM_LIMIT)
       {
          $url = $this->url()."&offset=".($this->offset+FS_ITEM_LIMIT);
       }
-      
+
       return $url;
    }
 }

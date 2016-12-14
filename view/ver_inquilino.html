@@ -1,5 +1,4 @@
 {include="header"}
-
 {if="$fsc->inquilino"}
 <script type="text/javascript">
    var medicion_agua = {$fsc->inquilino->agua};
@@ -7,15 +6,15 @@
    function recalcular()
    {
       var total = 0;
-      
+
       total += parseFloat(document.f_nueva_factura.mensualidad.value);
-      
+
       total += parseFloat(document.f_nueva_factura.consumo_agua.value) * parseFloat(document.f_nueva_factura.precio_agua.value);
       total += parseFloat(document.f_nueva_factura.consumo_gas.value) * parseFloat(document.f_nueva_factura.precio_gas.value);
-      
+
       total += parseFloat(document.f_nueva_factura.otro.value);
       total += parseFloat(document.f_nueva_factura.otro2.value);
-      
+
       document.f_nueva_factura.total.value = total;
    }
    function get_consumo_agua()
@@ -80,11 +79,11 @@
             <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
                <span class="glyphicon glyphicon-refresh"></span>
             </a>
-            
+
             <a class="btn btn-sm btn-default" href="index.php?page=lista_inquilinos">
                <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Inquilinos
             </a>
-            
+
             <div class="btn-group">
                <a class="btn btn-sm btn-default" href="index.php?page=lista_inquilinos&cliente={$fsc->inquilino->codcliente}">
                   <span class="glyphicon glyphicon-zoom-in"></span> &nbsp; Más del cliente

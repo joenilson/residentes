@@ -2,9 +2,9 @@
 
 /**
  * @author Carlos García Gómez      neorazorx@gmail.com
+ * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-
 require_model('inquilino.php');
 
 /**

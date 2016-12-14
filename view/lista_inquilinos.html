@@ -1,5 +1,4 @@
 {include="header"}
-
 <script type="text/javascript">
    $(document).ready(function() {
       $("#b_nuevo_inquilino").click(function(event) {
@@ -22,7 +21,6 @@
       });
    });
 </script>
-
 <div class="container-fluid" style="margin-top: 10px;">
    <div class="row">
       <div class="col-sm-6">
@@ -40,7 +38,7 @@
             </a>
             {/if}
          </div>
-         
+
          <div class="btn-group">
             <a id="b_nuevo_inquilino" class="btn btn-sm btn-success" href="#">
                <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
@@ -113,7 +111,7 @@
       </a>
    </li>
    {/if}
-   
+
    {if="$fsc->siguiente_url()!=''"}
    <li class="next">
       <a href="{$fsc->siguiente_url()}">

@@ -1,8 +1,8 @@
 <?php
-
 /**
  * @author Carlos García Gómez      neorazorx@gmail.com
- * @copyright 2015, Carlos García Gómez. All Rights Reserved.
+ * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
+ *  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
 
 require_model('articulo.php');

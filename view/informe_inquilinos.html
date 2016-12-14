@@ -1,5 +1,4 @@
 {include="header"}
-
 {if="$fsc->bloque"}
 <form action="{$fsc->url()}&tipo={$fsc->tipo}" method="post" class="form">
    <div class="container-fluid hidden-print" style="margin-top: 10px;">
@@ -8,7 +7,7 @@
             <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
                <span class="glyphicon glyphicon-refresh"></span>
             </a>
-               
+
             <button type="button" class="btn btn-sm btn-default" onclick="window.print();">
                <span class="glyphicon glyphicon-print"></span> &nbsp; Imprimir
             </button>
