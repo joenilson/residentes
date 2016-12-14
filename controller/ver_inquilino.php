@@ -29,7 +29,7 @@ class ver_inquilino extends fs_controller
 
    public function __construct()
    {
-      parent::__construct(__CLASS__, 'Inquilino', 'ventas', FALSE, FALSE);
+      parent::__construct(__CLASS__, 'Inquilino', 'residentes', FALSE, FALSE);
    }
 
    protected function private_core()

@@ -23,7 +23,7 @@ class lista_inquilinos extends fs_controller
 
    public function __construct()
    {
-      parent::__construct(__CLASS__, 'Inquilinos', 'ventas', FALSE, TRUE);
+      parent::__construct(__CLASS__, 'Inquilinos', 'residentes', FALSE, TRUE);
    }
 
    protected function private_core()
