@@ -1,10 +1,10 @@
 {include="header"}
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#b_nuevo_inquilino").click(function (event) {
+        $("#b_nuevo_residente").click(function (event) {
             event.preventDefault();
             $("#modal_cliente").modal('show');
-            document.f_nuevo_inquilino.ac_cliente.focus();
+            document.f_nuevo_residente.ac_cliente.focus();
         });
         $("#ac_cliente").autocomplete({
             serviceUrl: '{$fsc->url()}',
@@ -12,9 +12,9 @@
             onSelect: function (suggestion) {
                 if (suggestion)
                 {
-                    if (document.f_nuevo_inquilino.cliente.value != suggestion.data)
+                    if (document.f_nuevo_residente.cliente.value != suggestion.data)
                     {
-                        document.f_nuevo_inquilino.cliente.value = suggestion.data;
+                        document.f_nuevo_residente.cliente.value = suggestion.data;
                     }
                 }
             }
@@ -40,7 +40,7 @@
             </div>
 
             <div class="btn-group">
-                <a id="b_nuevo_inquilino" class="btn btn-sm btn-success" href="#">
+                <a id="b_nuevo_residente" class="btn btn-sm btn-success" href="#">
                     <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
                 </a>
                 {loop="$fsc->extensions"}
@@ -67,7 +67,7 @@
             </div>
             {if="$fsc->bloque"}
             <div class="col-md-2">
-                <a href="index.php?page=informe_inquilinos&bloque={$fsc->bloque}" class="btn btn-sm btn-default">
+                <a href="index.php?page=informe_residentes&bloque={$fsc->bloque}" class="btn btn-sm btn-default">
                     <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &nbsp; Informes
                 </a>
             </div>
@@ -121,14 +121,14 @@
     {/if}
 </ul>
 
-<form name="f_nuevo_inquilino" class="form" action="{$fsc->url()}" method="post">
+<form name="f_nuevo_residente" class="form" action="{$fsc->url()}" method="post">
     <input type="hidden" name="cliente"/>
     <div class="modal" id="modal_cliente">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">Nuevo inquilino</h4>
+                    <h4 class="modal-title">Nuevo residente</h4>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">

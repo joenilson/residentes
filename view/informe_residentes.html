@@ -32,7 +32,7 @@
             </div>
          </div>
          <div class="col-sm-4 text-right">
-            <h2 style="margin-top: 0px;">Inquilinos {$fsc->bloque}</h2>
+            <h2 style="margin-top: 0px;">Residentes {$fsc->bloque}</h2>
          </div>
       </div>
    </div>
@@ -67,7 +67,7 @@
       {loop="$fsc->resultados"}
       <tr{if="!$value['pagada']"} class="bg-danger"{/if}>
          <td>
-            <a href="index.php?page=ver_inquilino&id={$value['inquilino']}" class="hidden-print">{$value['piso']}</a>
+            <a href="index.php?page=ver_residente&id={$value['residente']}" class="hidden-print">{$value['piso']}</a>
             <span class="visible-print">{$value['piso']}</span>
          </td>
          <td>{$value['nombre']}</td>
@@ -109,7 +109,7 @@
       {loop="$fsc->resultados"}
       <tr{if="!$value['pagada']"} class="bg-danger"{/if}>
          <td>
-            <a href="index.php?page=ver_inquilino&id={$value['inquilino']}" class="hidden-print">{$value['piso']}</a>
+            <a href="index.php?page=ver_residente&id={$value['residente']}" class="hidden-print">{$value['piso']}</a>
             <span class="visible-print">{$value['piso']}</span>
          </td>
          <td>{$value['nombre']}</td>
@@ -152,7 +152,7 @@
       {loop="$fsc->resultados"}
       <tr{if="!$value['pagada']"} class="bg-danger"{/if}>
          <td>
-            <a href="index.php?page=ver_inquilino&id={$value['inquilino']}" class="hidden-print">{$value['piso']}</a>
+            <a href="index.php?page=ver_residente&id={$value['residente']}" class="hidden-print">{$value['piso']}</a>
             <span class="visible-print">{$value['piso']}</span>
          </td>
          <td>{$value['nombre']}</td>
@@ -200,7 +200,7 @@
          </a>
       </div>
       <div class="col-sm-11 text-right">
-         <h2 style="margin-top: 0px;">Informes de bloques de inquilinos</h2>
+         <h2 style="margin-top: 0px;">Informes de bloques de residentes</h2>
       </div>
    </div>
    <div class="row">

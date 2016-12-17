@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : residentes_edificaciones_tipo.xml
+    Description:
+        Estructura de la tabla residentes_edificaciones_tipo.
+-->
+<tabla>
+    <columna>
+        <nombre>descripcion</nombre>
+        <tipo>character varying(64)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('residentes_edificaciones_tipo_id_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>padre</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+        <defecto>0</defecto>
+    </columna>
+    <restriccion>
+        <nombre>residentes_edificaciones_tipo_ik</nombre>
+        <consulta>PRIMARY KEY (id)</consulta>
+    </restriccion>
+</tabla>

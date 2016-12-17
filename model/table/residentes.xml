@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Document   : inquilinos.xml
-    Description: 
-        Estructura de la tabla inquilinos.
+    Document   : residentes.xml
+    Description:
+        Estructura de la tabla residentes.
 -->
 <tabla>
    <columna>
       <nombre>id</nombre>
       <tipo>serial</tipo>
       <nulo>NO</nulo>
-      <defecto>nextval('inquilinos_id_seq'::regclass)</defecto>
+      <defecto>nextval('residentes_id_seq'::regclass)</defecto>
    </columna>
    <columna>
       <nombre>codcliente</nombre>
@@ -76,7 +76,7 @@
       <defecto>0</defecto>
    </columna>
    <restriccion>
-      <nombre>inquilinos_pkey</nombre>
+      <nombre>residentes_pkey</nombre>
       <consulta>PRIMARY KEY (id)</consulta>
    </restriccion>
 </tabla>

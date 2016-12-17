@@ -9,13 +9,13 @@ require_model('articulo.php');
 require_model('cliente.php');
 require_model('factura_cliente.php');
 require_model('impuesto.php');
-require_model('inquilino.php');
+require_model('residente.php');
 /**
- * Description of ver_inquilino
+ * Description of ver_residente
  *
  * @author carlos
  */
-class ver_inquilino extends fs_controller
+class ver_residente extends fs_controller
 {
    public $cliente;
    public $facturas;
@@ -23,13 +23,13 @@ class ver_inquilino extends fs_controller
    public $impuesto_a;
    public $impuesto_g;
    public $impuesto_m;
-   public $inquilino;
+   public $residente;
    public $precio_agua;
    public $precio_gas;
 
    public function __construct()
    {
-      parent::__construct(__CLASS__, 'Inquilino', 'residentes', FALSE, FALSE);
+      parent::__construct(__CLASS__, 'Residente', 'residentes', FALSE, FALSE);
    }
 
    protected function private_core()
@@ -40,7 +40,7 @@ class ver_inquilino extends fs_controller
       $this->impuesto_a = NULL;
       $this->impuesto_g = NULL;
       $this->impuesto_m = NULL;
-      $this->inquilino = FALSE;
+      $this->residente = FALSE;
       $this->precio_agua = 0;
       $this->precio_gas = 0;
 
@@ -71,11 +71,11 @@ class ver_inquilino extends fs_controller
 
       if( isset($_REQUEST['id']) )
       {
-         $inq0 = new inquilino();
-         $this->inquilino = $inq0->get($_REQUEST['id']);
+         $inq0 = new residente();
+         $this->residente = $inq0->get($_REQUEST['id']);
       }
 
-      if($this->inquilino)
+      if($this->residente)
       {
          if( isset($_REQUEST['buscar_referencia']) )
          {
@@ -83,18 +83,18 @@ class ver_inquilino extends fs_controller
          }
          else if( isset($_POST['cliente']) )
          {
-            /// modificar el inquilino
+            /// modificar el residente
             $cliente = $this->cliente->get($_POST['cliente']);
             if($cliente)
             {
-               $this->inquilino->codcliente = $cliente->codcliente;
-               $this->inquilino->nombre = $cliente->nombre;
-               $this->inquilino->piso = $_POST['piso'];
-               $this->inquilino->bloque = $_POST['bloque'];
-               $this->inquilino->fechaalta = $_POST['fechaalta'];
-               $this->inquilino->observaciones = $_POST['observaciones'];
+               $this->residente->codcliente = $cliente->codcliente;
+               $this->residente->nombre = $cliente->nombre;
+               $this->residente->piso = $_POST['piso'];
+               $this->residente->bloque = $_POST['bloque'];
+               $this->residente->fechaalta = $_POST['fechaalta'];
+               $this->residente->observaciones = $_POST['observaciones'];
 
-               if( $this->inquilino->save() )
+               if( $this->residente->save() )
                {
                   $this->new_message('Datos guardados correctamente');
                }
@@ -107,12 +107,12 @@ class ver_inquilino extends fs_controller
          else if( isset($_POST['mensualidad']) )
          {
             /// nueva factura
-            $this->inquilino->mensualidad = floatval($_POST['mensualidad']);
-            $this->inquilino->agua = floatval($_POST['agua']);
-            $this->inquilino->fechaagua = date('d-m-Y');
-            $this->inquilino->gas = floatval($_POST['gas']);
-            $this->inquilino->fechagas = date('d-m-Y');
-            if( $this->inquilino->save() )
+            $this->residente->mensualidad = floatval($_POST['mensualidad']);
+            $this->residente->agua = floatval($_POST['agua']);
+            $this->residente->fechaagua = date('d-m-Y');
+            $this->residente->gas = floatval($_POST['gas']);
+            $this->residente->fechagas = date('d-m-Y');
+            if( $this->residente->save() )
             {
                $this->impuesto_a = $_POST['impuesto_a'];
                setcookie('impuesto_a', $this->impuesto_a);
@@ -131,20 +131,20 @@ class ver_inquilino extends fs_controller
                $this->new_error_msg('Error al guardar los datos.');
          }
 
-         $this->page->title = 'Inquilino '.$this->inquilino->nombre;
+         $this->page->title = 'Residente '.$this->residente->nombre;
 
          $factura = new factura_cliente();
-         $this->facturas = $factura->all_from_cliente($this->inquilino->codcliente);
+         $this->facturas = $factura->all_from_cliente($this->residente->codcliente);
       }
       else
-         $this->new_error_msg('Inquilino no encontrado.');
+         $this->new_error_msg('Residente no encontrado.');
    }
 
    public function url()
    {
       if( isset($_REQUEST['id']) )
       {
-         return $this->inquilino->url();
+         return $this->residente->url();
       }
       else
          return parent::url();
@@ -152,7 +152,7 @@ class ver_inquilino extends fs_controller
 
    private function nueva_factura()
    {
-      $cliente = $this->cliente->get($this->inquilino->codcliente);
+      $cliente = $this->cliente->get($this->residente->codcliente);
       if($cliente)
       {
          $factura = new factura_cliente();

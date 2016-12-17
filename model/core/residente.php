@@ -4,14 +4,14 @@
  * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-
+namespace FacturaScripts\model;
 /**
- * Description of inquilino
+ * Description of residente
  *
  * @author carlos
  */
 
-class inquilino extends fs_model
+class residente extends \fs_model
 {
    public $id;
    public $codcliente;
@@ -29,7 +29,7 @@ class inquilino extends fs_model
 
    public function __construct($i = FALSE)
    {
-      parent::__construct('inquilinos', 'plugins/inquilinos/');
+      parent::__construct('residentes', 'plugins/residentes/');
       if($i)
       {
          $this->id = $this->intval($i['id']);
@@ -86,7 +86,7 @@ class inquilino extends fs_model
 
    public function url()
    {
-      return 'index.php?page=ver_inquilino&id='.$this->id;
+      return 'index.php?page=ver_residente&id='.$this->id;
    }
 
    public function observaciones()
@@ -105,10 +105,10 @@ class inquilino extends fs_model
 
    public function get($id)
    {
-      $data = $this->db->select("SELECT * FROM inquilinos WHERE id = ".$this->var2str($id).";");
+      $data = $this->db->select("SELECT * FROM residentes WHERE id = ".$this->var2str($id).";");
       if($data)
       {
-         return new inquilino($data[0]);
+         return new residente($data[0]);
       }
       else
          return FALSE;
@@ -121,14 +121,14 @@ class inquilino extends fs_model
          return FALSE;
       }
       else
-         return $this->db->select("SELECT * FROM inquilinos WHERE id = ".$this->var2str($this->id).";");
+         return $this->db->select("SELECT * FROM residentes WHERE id = ".$this->var2str($this->id).";");
    }
 
    public function save()
    {
       if( $this->exists() )
       {
-         $sql = "UPDATE inquilinos SET codcliente = ".$this->var2str($this->codcliente).",
+         $sql = "UPDATE residentes SET codcliente = ".$this->var2str($this->codcliente).",
             nombre = ".$this->var2str($this->nombre).", fechaalta = ".$this->var2str($this->fechaalta).",
             piso = ".$this->var2str($this->piso).", bloque = ".$this->var2str($this->bloque).",
             mensualidad = ".$this->var2str($this->mensualidad).", agua = ".$this->var2str($this->agua).",
@@ -140,7 +140,7 @@ class inquilino extends fs_model
       }
       else
       {
-         $sql = "INSERT INTO inquilinos (codcliente,nombre,fechaalta,piso,bloque,mensualidad,agua,gas,observaciones,fechaagua,fechagas,deudas) "
+         $sql = "INSERT INTO residentes (codcliente,nombre,fechaalta,piso,bloque,mensualidad,agua,gas,observaciones,fechaagua,fechagas,deudas) "
                  . "VALUES (".$this->var2str($this->codcliente).",".$this->var2str($this->nombre).",".$this->var2str($this->fechaalta).","
                  .$this->var2str($this->piso).",".$this->var2str($this->bloque).",".$this->var2str($this->mensualidad).","
                  .$this->var2str($this->agua).",".$this->var2str($this->gas).",".$this->var2str($this->observaciones).","
@@ -158,18 +158,18 @@ class inquilino extends fs_model
 
    public function delete()
    {
-      return $this->db->exec("DELETE FROM inquilinos WHERE id = ".$this->var2str($this->id).";");
+      return $this->db->exec("DELETE FROM residentes WHERE id = ".$this->var2str($this->id).";");
    }
 
    public function all($offset = 0)
    {
       $ilist = array();
 
-      $data = $this->db->select_limit("SELECT * FROM inquilinos ORDER BY fechaalta DESC", FS_ITEM_LIMIT, $offset);
+      $data = $this->db->select_limit("SELECT * FROM residentes ORDER BY fechaalta DESC", FS_ITEM_LIMIT, $offset);
       if($data)
       {
          foreach($data as $d)
-            $ilist[] = new inquilino($d);
+            $ilist[] = new residente($d);
       }
 
       return $ilist;
@@ -179,11 +179,11 @@ class inquilino extends fs_model
    {
       $ilist = array();
 
-      $data = $this->db->select("SELECT * FROM inquilinos WHERE codcliente = ".$this->var2str($cod)." ORDER BY fechaalta DESC;");
+      $data = $this->db->select("SELECT * FROM residentes WHERE codcliente = ".$this->var2str($cod)." ORDER BY fechaalta DESC;");
       if($data)
       {
          foreach($data as $d)
-            $ilist[] = new inquilino($d);
+            $ilist[] = new residente($d);
       }
 
       return $ilist;
@@ -193,11 +193,11 @@ class inquilino extends fs_model
    {
       $ilist = array();
 
-      $data = $this->db->select("SELECT * FROM inquilinos WHERE bloque = ".$this->var2str($blo)." ORDER BY piso ASC;");
+      $data = $this->db->select("SELECT * FROM residentes WHERE bloque = ".$this->var2str($blo)." ORDER BY piso ASC;");
       if($data)
       {
          foreach($data as $d)
-            $ilist[] = new inquilino($d);
+            $ilist[] = new residente($d);
       }
 
       return $ilist;

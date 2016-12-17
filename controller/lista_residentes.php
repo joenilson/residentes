@@ -6,31 +6,32 @@
  */
 
 require_model('cliente.php');
-require_model('inquilino.php');
+require_model('residente.php');
 
 /**
- * Description of lista_inquilinos
+ * Description of lista_residentes
  *
- * @author carlos
+ * @author carlos <neorazorx@gmail.com>
+ * @author Joe Nilson <joenilson at gmail.com>
  */
-class lista_inquilinos extends fs_controller
+class lista_residentes extends fs_controller
 {
    public $bloque;
    public $cliente;
-   public $inquilino;
+   public $residente;
    public $offset;
    public $resultados;
 
    public function __construct()
    {
-      parent::__construct(__CLASS__, 'Inquilinos', 'residentes', FALSE, TRUE);
+      parent::__construct(__CLASS__, 'Residentes', 'residentes', FALSE, TRUE);
    }
 
    protected function private_core()
    {
       $this->bloque = '';
       $this->cliente = new cliente();
-      $this->inquilino = new inquilino();
+      $this->residente = new residente();
 
       $this->offset = 0;
       if( isset($_REQUEST['offset']) )
@@ -47,14 +48,14 @@ class lista_inquilinos extends fs_controller
          $cliente = $this->cliente->get($_POST['cliente']);
          if($cliente)
          {
-            $this->inquilino->codcliente = $cliente->codcliente;
-            $this->inquilino->nombre = $cliente->nombre;
-            $this->inquilino->bloque = $_POST['bloque'];
-            $this->inquilino->piso = $_POST['piso'];
-            if( $this->inquilino->save() )
+            $this->residente->codcliente = $cliente->codcliente;
+            $this->residente->nombre = $cliente->nombre;
+            $this->residente->bloque = $_POST['bloque'];
+            $this->residente->piso = $_POST['piso'];
+            if( $this->residente->save() )
             {
                $this->new_message('Inquilino guardado correctamente.');
-               header('Location: '.$this->inquilino->url());
+               header('Location: '.$this->residente->url());
             }
             else
                $this->new_error_msg('Error al guardar el inquilino.');
@@ -64,7 +65,7 @@ class lista_inquilinos extends fs_controller
       }
       else if( isset($_GET['delete']) )
       {
-         $inq = $this->inquilino->get($_GET['delete']);
+         $inq = $this->residente->get($_GET['delete']);
          if($inq)
          {
             if( $inq->delete() )
@@ -80,22 +81,22 @@ class lista_inquilinos extends fs_controller
 
       if( isset($_GET['cliente']) )
       {
-         $this->resultados = $this->inquilino->all_from_cliente($_GET['cliente']);
+         $this->resultados = $this->residente->all_from_cliente($_GET['cliente']);
       }
       else if( isset($_POST['bloque']) )
       {
          if($_POST['bloque'] != '')
          {
             $this->bloque = $_POST['bloque'];
-            $this->resultados = $this->inquilino->all_from_bloque($_POST['bloque']);
+            $this->resultados = $this->residente->all_from_bloque($_POST['bloque']);
          }
          else
          {
-            $this->resultados = $this->inquilino->all($this->offset);
+            $this->resultados = $this->residente->all($this->offset);
          }
       }
       else
-         $this->resultados = $this->inquilino->all($this->offset);
+         $this->resultados = $this->residente->all($this->offset);
    }
 
    private function buscar_cliente()
@@ -117,7 +118,7 @@ class lista_inquilinos extends fs_controller
    {
       $blist = array();
 
-      $data = $this->db->select("SELECT DISTINCT bloque FROM inquilinos ORDER BY bloque ASC;");
+      $data = $this->db->select("SELECT DISTINCT bloque FROM residentes ORDER BY bloque ASC;");
       if($data)
       {
          foreach($data as $d)

@@ -1,8 +1,8 @@
 {include="header"}
-{if="$fsc->inquilino"}
+{if="$fsc->residente"}
 <script type="text/javascript">
-   var medicion_agua = {$fsc->inquilino->agua};
-   var medicion_gas = {$fsc->inquilino->gas};
+   var medicion_agua = {$fsc->residente->agua};
+   var medicion_gas = {$fsc->residente->gas};
    function recalcular()
    {
       var total = 0;
@@ -31,8 +31,8 @@
       recalcular();
       $("#b_eliminar").click(function(event) {
          event.preventDefault();
-         if( confirm("¿Realmente desea eliminar este inquilino?") )
-            window.location.href = 'index.php?page=lista_inquilinos&delete={$fsc->inquilino->id}';
+         if( confirm("¿Realmente desea eliminar este residente?") )
+            window.location.href = 'index.php?page=lista_residentes&delete={$fsc->residente->id}';
       });
       $("#ac_referencia").autocomplete({
          serviceUrl: '{$fsc->url()}',
@@ -71,8 +71,8 @@
    });
 </script>
 
-<form name="f_inquilino" action="{$fsc->url()}" method="post" class="form">
-   <input type="hidden" name="cliente" value="{$fsc->inquilino->codcliente}"/>
+<form name="f_residente" action="{$fsc->url()}" method="post" class="form">
+   <input type="hidden" name="cliente" value="{$fsc->residente->codcliente}"/>
    <div class="container-fluid">
       <div class="row" style="margin-top: 10px; margin-bottom: 10px;">
          <div class="col-sm-6">
@@ -80,12 +80,12 @@
                <span class="glyphicon glyphicon-refresh"></span>
             </a>
 
-            <a class="btn btn-sm btn-default" href="index.php?page=lista_inquilinos">
+            <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes">
                <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Inquilinos
             </a>
 
             <div class="btn-group">
-               <a class="btn btn-sm btn-default" href="index.php?page=lista_inquilinos&cliente={$fsc->inquilino->codcliente}">
+               <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes&cliente={$fsc->residente->codcliente}">
                   <span class="glyphicon glyphicon-zoom-in"></span> &nbsp; Más del cliente
                </a>
                {loop="$fsc->extensions"}
@@ -111,9 +111,9 @@
             <div class="form-group">
                Cliente:
                <div class="input-group">
-                  <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" value="{$fsc->inquilino->nombre}" placeholder="Buscar" autocomplete="off"/>
+                  <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" value="{$fsc->residente->nombre}" placeholder="Buscar" autocomplete="off"/>
                   <span class="input-group-btn">
-                     <button class="btn btn-default" type="button" onclick="document.f_inquilino.ac_cliente.value='';document.f_inquilino.ac_cliente.focus();">
+                     <button class="btn btn-default" type="button" onclick="document.f_residente.ac_cliente.value='';document.f_residente.ac_cliente.focus();">
                         <span class="glyphicon glyphicon-edit"></span>
                      </button>
                   </span>
@@ -124,19 +124,19 @@
          <div class="col-sm-2">
             <div class="form-group">
                Dpto:
-               <input class="form-control" type="text" name="piso" value="{$fsc->inquilino->piso}" autocomplete="off"/>
+               <input class="form-control" type="text" name="piso" value="{$fsc->residente->piso}" autocomplete="off"/>
             </div>
          </div>
          <div class="col-sm-3">
             <div class="form-group">
                Bloque:
-               <input class="form-control" type="text" name="bloque" value="{$fsc->inquilino->bloque}" autocomplete="off"/>
+               <input class="form-control" type="text" name="bloque" value="{$fsc->residente->bloque}" autocomplete="off"/>
             </div>
          </div>
          <div class="col-sm-2">
             <div class="form-group">
                Fecha de alta:
-               <input class="form-control datepicker" type="text" name="fechaalta" value="{$fsc->inquilino->fechaalta}" autocomplete="off"/>
+               <input class="form-control datepicker" type="text" name="fechaalta" value="{$fsc->residente->fechaalta}" autocomplete="off"/>
             </div>
          </div>
       </div>
@@ -144,7 +144,7 @@
          <div class="col-sm-12">
             <div class="form-group">
                Observaciones:
-               <textarea name="observaciones" class="form-control" rows="4">{$fsc->inquilino->observaciones}</textarea>
+               <textarea name="observaciones" class="form-control" rows="4">{$fsc->residente->observaciones}</textarea>
             </div>
          </div>
       </div>
@@ -241,7 +241,7 @@
                   <div class="col-sm-3">
                      <div class="form-group">
                         Importe:
-                        <input class="form-control" type="text" name="mensualidad" value="{$fsc->inquilino->mensualidad}" autocomplete="off" onkeyup="recalcular()"/>
+                        <input class="form-control" type="text" name="mensualidad" value="{$fsc->residente->mensualidad}" autocomplete="off" onkeyup="recalcular()"/>
                      </div>
                   </div>
                </div>
@@ -249,8 +249,8 @@
                   <div class="col-sm-3">
                      <div class="form-group">
                         Medición agua m<sup>3</sup>:
-                        <input class="form-control" type="text" name="agua" value="{$fsc->inquilino->agua}" autocomplete="off" onkeyup="get_consumo_agua()"/>
-                        <p class="help-block">última medición de {$fsc->inquilino->agua} m<sup>3</sup> el {$fsc->inquilino->fechaagua}</p>
+                        <input class="form-control" type="text" name="agua" value="{$fsc->residente->agua}" autocomplete="off" onkeyup="get_consumo_agua()"/>
+                        <p class="help-block">última medición de {$fsc->residente->agua} m<sup>3</sup> el {$fsc->residente->fechaagua}</p>
                      </div>
                   </div>
                   <div class="col-sm-3">
@@ -280,8 +280,8 @@
                   <div class="col-sm-3">
                      <div class="form-group">
                         Medición gas m<sup>3</sup>:
-                        <input class="form-control" type="text" name="gas" value="{$fsc->inquilino->gas}" autocomplete="off" onkeyup="get_consumo_gas()"/>
-                        <p class="help-block">última medición de {$fsc->inquilino->gas} m<sup>3</sup> el {$fsc->inquilino->fechagas}</p>
+                        <input class="form-control" type="text" name="gas" value="{$fsc->residente->gas}" autocomplete="off" onkeyup="get_consumo_gas()"/>
+                        <p class="help-block">última medición de {$fsc->residente->gas} m<sup>3</sup> el {$fsc->residente->fechagas}</p>
                      </div>
                   </div>
                   <div class="col-sm-3">

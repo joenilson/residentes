@@ -5,14 +5,15 @@
  * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-require_model('inquilino.php');
+require_model('residente.php');
 
 /**
- * Description of informe_inquilinos
+ * Description of informe_residentes
  *
- * @author carlos
+ * @author carlos <neorazorx@gmail.com>
+ * @author Joe Nilson <joenilson at gmail.com>
  */
-class informe_inquilinos extends fs_controller
+class informe_residentes extends fs_controller
 {
    public $bloque;
    public $desde;
@@ -22,13 +23,13 @@ class informe_inquilinos extends fs_controller
 
    public function __construct()
    {
-      parent::__construct(__CLASS__, 'Inquilinos', 'informes', FALSE, TRUE);
+      parent::__construct(__CLASS__, 'Residentes', 'informes', FALSE, TRUE);
    }
 
    protected function private_core()
    {
-      /// forzamos la comprobación de la tabla inquilinos
-      $inquilino = new inquilino();
+      /// forzamos la comprobación de la tabla residentes
+      $residente = new residente();
 
       $this->bloque = NULL;
       if( isset($_GET['bloque']) )
@@ -70,7 +71,7 @@ class informe_inquilinos extends fs_controller
    {
       if( isset($_REQUEST['bloque']) )
       {
-         return 'index.php?page=informe_inquilinos&bloque='.$_REQUEST['bloque'];
+         return 'index.php?page=informe_residentes&bloque='.$_REQUEST['bloque'];
       }
       else
          return parent::url();
@@ -80,7 +81,7 @@ class informe_inquilinos extends fs_controller
    {
       $blist = array();
 
-      $data = $this->db->select("SELECT DISTINCT bloque FROM inquilinos ORDER BY bloque ASC;");
+      $data = $this->db->select("SELECT DISTINCT bloque FROM residentes ORDER BY bloque ASC;");
       if($data)
       {
          foreach($data as $d)
@@ -97,7 +98,7 @@ class informe_inquilinos extends fs_controller
       $dlist = array();
 
       $data = $this->db->select("SELECT l.pvptotal,l.iva,l.idfactura,f.fecha,f.pagada,f.codcliente,f.nombrecliente,i.id,i.piso
-         FROM lineasfacturascli l, facturascli f, inquilinos i
+         FROM lineasfacturascli l, facturascli f, residentes i
          WHERE l.descripcion LIKE 'Mensualidad%' AND l.idfactura = f.idfactura AND f.codcliente = i.codcliente
          AND fecha >= ".$this->empresa->var2str($this->desde)." AND fecha <= ".$this->empresa->var2str($this->hasta)."
          AND bloque = ".$this->empresa->var2str($this->bloque)." ORDER BY piso ASC;");
@@ -106,7 +107,7 @@ class informe_inquilinos extends fs_controller
          foreach($data as $d)
          {
             $aux = array(
-                'inquilino' => $d['id'],
+                'residente' => $d['id'],
                 'piso' => $d['piso'],
                 'nombre' => $d['nombrecliente'],
                 'idfactura' => $d['idfactura'],
@@ -127,7 +128,7 @@ class informe_inquilinos extends fs_controller
       $dlist = array();
 
       $data = $this->db->select("SELECT l.cantidad,l.pvptotal,l.iva,l.idfactura,f.fecha,f.pagada,f.codcliente,f.nombrecliente,i.id,i.piso
-         FROM lineasfacturascli l, facturascli f, inquilinos i
+         FROM lineasfacturascli l, facturascli f, residentes i
          WHERE l.descripcion LIKE 'Consumo de agua%' AND l.idfactura = f.idfactura AND f.codcliente = i.codcliente
          AND fecha >= ".$this->empresa->var2str($this->desde)." AND fecha <= ".$this->empresa->var2str($this->hasta)."
          AND bloque = ".$this->empresa->var2str($this->bloque)." ORDER BY piso ASC;");
@@ -136,7 +137,7 @@ class informe_inquilinos extends fs_controller
          foreach($data as $d)
          {
             $aux = array(
-                'inquilino' => $d['id'],
+                'residente' => $d['id'],
                 'piso' => $d['piso'],
                 'nombre' => $d['nombrecliente'],
                 'idfactura' => $d['idfactura'],
@@ -158,7 +159,7 @@ class informe_inquilinos extends fs_controller
       $dlist = array();
 
       $data = $this->db->select("SELECT l.cantidad,l.pvptotal,l.iva,l.idfactura,f.fecha,f.pagada,f.codcliente,f.nombrecliente,i.id,i.piso
-         FROM lineasfacturascli l, facturascli f, inquilinos i
+         FROM lineasfacturascli l, facturascli f, residentes i
          WHERE l.descripcion LIKE 'Consumo de gas%' AND l.idfactura = f.idfactura AND f.codcliente = i.codcliente
          AND fecha >= ".$this->empresa->var2str($this->desde)." AND fecha <= ".$this->empresa->var2str($this->hasta)."
          AND bloque = ".$this->empresa->var2str($this->bloque)." ORDER BY piso ASC;");
@@ -167,7 +168,7 @@ class informe_inquilinos extends fs_controller
          foreach($data as $d)
          {
             $aux = array(
-                'inquilino' => $d['id'],
+                'residente' => $d['id'],
                 'piso' => $d['piso'],
                 'nombre' => $d['nombrecliente'],
                 'idfactura' => $d['idfactura'],
