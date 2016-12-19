@@ -52,7 +52,7 @@ class residentes_edificaciones_tipo extends \fs_model{
     }
 
     public function install(){
-        return '';
+        return "insert into residentes_edificaciones_tipo (descripcion) VALUES ('Bloque');";
     }
 
     public function all(){
@@ -115,12 +115,36 @@ class residentes_edificaciones_tipo extends \fs_model{
             $sql = "INSERT INTO ".$this->table_name." (descripcion, padre) VALUES (".
                     $this->var2str($this->descripcion).", ".
                     $this->intval($this->padre).");";
-            return $this->db->lastval();
+            if($this->db->exec($sql)){
+                return $this->db->lastval();
+            }else{
+                return false;
+            }
         }
     }
-
     public function delete() {
         $sql = "DELETE FROM ".$this->table_name." WHERE id = ".$this->intval($this->id).";";
         return $this->db->exec($sql);
+    }
+
+    public function jerarquia(){
+        $lista = $this->all();
+        return ($lista)?$this->estructura($lista):null;
+    }
+
+    public function estructura($lista, $raiz = 0){
+        $estructura = array();
+        foreach($lista as $key=>$item){
+            if($item->padre == $raiz){
+                unset($lista[$key]);
+                $estructura[]=array(
+                    'id'=>$item->id,
+                    'text'=>$item->descripcion,
+                    'padre'=>$item->padre,
+                    'nodes'=>$this->estructura($lista,$item->id)
+                );
+            }
+        }
+        return empty($estructura)?null:$estructura;
     }
 }

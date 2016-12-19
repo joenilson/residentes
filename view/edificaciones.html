@@ -16,17 +16,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <script type="text/javascript">
+    var url_tipo_edificaciones = '{$fsc->url()}';
     $(document).ready(function () {
         $("#b_nueva_edificacion").click(function (event) {
             event.preventDefault();
             $("#modal_edificacion").modal('show');
             document.f_nuevo_inquilino.ac_cliente.focus();
         });
+
         $("#b_opciones").click(function (event) {
             event.preventDefault();
             $("#modal_opciones").modal('show');
-            document.f_nuevo_inquilino.ac_cliente.focus();
+            //document.f_opciones.ac_cliente.focus();
         });
+
         $("#ac_cliente").autocomplete({
             serviceUrl: '{$fsc->url()}',
             paramName: 'buscar_cliente',
@@ -40,6 +43,59 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 }
             }
         });
+
+        $('#btn-edit-selected').attr('disabled', true);
+        $('#tree').treeview({
+            highlightSelected: true,
+            showTags: true,
+            showLabels: true,
+            data: cargarTipoEdificaciones(),
+            onNodeSelected: function (event, node) {
+                $('#node-id').val(node.nodeId);
+                $('#btn-edit-selected').attr('disabled', false);
+            },
+            onNodeUnselected: function (event, node) {
+                $('#node-id').val('');
+                $('#btn-edit-selected').attr('disabled', true);
+            }
+        });
+
+        $('#btn-expand-all').on('click', function (e) {
+            $('#tree').treeview('expandAll', {levels: 3, silent: true});
+        });
+
+        $('#btn-collapse-all').on('click', function (e) {
+            $('#tree').treeview('collapseAll', {silent: true});
+        });
+
+        $('#btn-edit-selected').on('click', function (e) {
+            var nodeId = $('#node-id').val();
+            var nodo = $('#tree').treeview('getNode', nodeId);
+            f_nuevo_tipo_edificacion.id.value = nodo.id;
+            f_nuevo_tipo_edificacion.descripcion.value = nodo.text;
+            f_nuevo_tipo_edificacion.padre.value = nodo.padre;
+            if(nodo.en_uso !== '0'){
+                $('#btn-eliminar-uo').hide();
+                $('#span-qdad-empleados').html(nodo.en_uso);
+                $('#btn-bloqueo-uo').show();
+            }else{
+                $('#btn-eliminar-uo').show();
+                $('#btn-bloqueo-uo').hide();
+            }
+
+            $('#modal_tipo_edificacion').modal('show');
+        });
+
+        $('#btn-add-tipo').on('click', function (e){
+            $('#btn-eliminar-uo').hide();
+            $('#btn-bloqueo-uo').hide();
+            $('#modal_tipo_edificacion').modal('show');
+        });
+
+        $('#modal_tipo_edificacion').on('hidden.bs.modal', function () {
+            document.f_nuevo_tipo_edificacion.reset();
+        });
+
     });
 </script>
 <div class="container-fluid" style="margin-top: 10px;">
@@ -80,7 +136,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
 </div>
 
-<form name="f_nueva_edificacion" class="form" action="{$fsc->url()}" method="post">
+<form name="f_nueva_edificacion" class="form-horizontal" action="{$fsc->url()}" method="post">
     <input type="hidden" name="edificacion"/>
     <div class="modal" id="modal_edificacion">
         <div class="modal-dialog">
@@ -90,23 +146,106 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <h4 class="modal-title">Nueva Edificación</h4>
                 </div>
                 <div class="modal-body">
+                        {loop="$fsc->edificaciones_tipo->all()"}
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="campo_{$value->id}">{$value->descripcion}:</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="campo_{$value->id}" id="campo_{$value->id}" class="form-control input-sm" autocomplete="off"/>
+                            </div>
+                        </div>
+                        {/loop}
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="numero_edificacion">{$fsc->nombre_edificacion}:</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="numero_edificacion" id="numero_edificacion" class="form-control input-sm" value="" autocomplete="off" aria-describedby="helpBlockInmueble"/>
+                                <span id="helpBlockInmueble" class="help-block">Aquí va el número del Inmueble 101 por ejemplo.</span>
+                            </div>
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-primary" type="submit" name="accion" value="agregar" onclick="return confirm('Está seguro que la información a ingresar está correcta?');">
+                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form name="f_opciones" class="form" action="{$fsc->url()}" method="post">
+    <input type="hidden" name="edificacion"/>
+    <div class="modal" id="modal_opciones">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Configuración de las Edificaciones</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="help-block text-justify"><span class="fa fa-info-circle"></span>&nbsp;Aquí debes agregar la estructura de control de las edificaciones, Si están agrupadas por
+                        Manzanas, bloques, Grupos, Etapas, etc y luego si dentro de estas tienen otra agrupación y así hasta llegar al {$fsc->nombre_edificacion}.</span>
                     <div class="row">
-                        <div class="form-group col-sm-4">
-                            <label class="control-label">Manzana:</label>
-                            <input type="text" name="manzana" class="form-control" autocomplete="off"/>
+                        <input type="hidden" id="node-id" value="">
+                        <div class="col-sm-6" id="tree">
+
                         </div>
-                        <div class="form-group col-sm-4">
-                            <label class="control-label">Edificio:</label>
-                            <input type="text" name="edificio" class="form-control" autocomplete="off"/>
-                        </div>
-                        <div class="form-group col-sm-4">
-                            <label class="control-label">Departamento:</label>
-                            <input type="text" name="departamento" class="form-control"/>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-success" id="btn-expand-all" data-title="Expandir" title="Expandir"><span class="fa fa-expand"></span><span class="sr-only">&nbsp;Expandir Todo</span></button>
+                                <button type="button" class="btn btn-sm btn-danger" id="btn-collapse-all" data-title="Contraer" title="Contraer"><span class="fa fa-compress"></span><span class="sr-only">&nbsp;Contraer Todo</span</button>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-info" id="btn-edit-selected">
+                                    <span class="fa fa-edit"></span>
+                                    Editar Seleccionado
+                                </button>
+                                <button type="button" id="btn-add-tipo" class="btn btn-sm btn-primary">
+                                    <span class="fa fa-plus"></span>
+                                    Agregar Tipo de Edificación
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();">
+                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form name="f_nuevo_tipo_edificacion" class="form" action="{$fsc->url()}" method="post">
+    <input type="hidden" name="tipo_edificacion"/>
+    <div class="modal" id="modal_tipo_edificacion">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Tipo de Edificación</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="form-group col-sm-6">
+                            <input type="hidden" name="id" value=""/>
+                            <label class="control-label">Descripción:</label>
+                            <input type="text" name="descripcion" class="form-control" autocomplete="off"/>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label class="control-label">Padre:</label>
+                            <select name="padre" class="form-control input-sm">
+                                <option value="0">Principal</option>
+                                {loop="$fsc->edificaciones_tipo->all()"}
+                                <option value="{$value->id}">{$value->descripcion}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-primary" name="accion" value="tratar_tipo" type="submit" onclick="return confirm('¿Está seguro que ingresó la información correcta?')">
                         <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
                     </button>
                 </div>

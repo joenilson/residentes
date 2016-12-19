@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : residentes_edificaciones.xml
+    Description:
+        Estructura de la tabla residentes_edificaciones.
+-->
+<tabla>
+    <columna>
+        <nombre>codcliente</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>codigo</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codigo_interno</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('residentes_edificaciones_id_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>numero</nombre>
+        <tipo>character varying(16)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupado</nombre>
+        <tipo>boolean</tipo>
+        <nulo>NO</nulo>
+        <defecto>false</defecto>
+    </columna>
+    <columna>
+        <nombre>ubicacion</nombre>
+        <tipo>character varying(64)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <restriccion>
+        <nombre>residentes_edificaciones_ik</nombre>
+        <consulta>PRIMARY KEY (id)</consulta>
+    </restriccion>
+</tabla>
