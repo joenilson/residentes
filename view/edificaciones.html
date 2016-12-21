@@ -134,6 +134,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <h2 style="margin-top: 0px;"><span class="fa fa-building-o"></span>&nbsp;Edificaciones</h2>
         </div>
     </div>
+    <!-- INICIO Listado de Edificaciones !-->
+    <div class="row">
+        <div class="col-sm-12">
+            {loop="$fsc->edificaciones->all()"}
+            <div class="col-sm-2">
+                <ul class="list-group">
+                    <li class="list-group-item active">{$value->codigo} - {$value->numero}</li>
+                    {loop="$value1->pertenencia"}
+                    <li class="list-group-item">{$key} {$value2}</li>
+                    {/loop}
+                    {if="$value->ocupado"}
+                    <li class="list-group-item list-group-item-danger">
+                        <span class="fa fa-ban"></span>&nbsp;Ocupado
+                    </li>
+                    <li class="list-group-item">
+                        <button class="btn btn-sm btn-danger"><span class="fa fa-user-times"></span>&nbsp;Eliminar Residente</button>
+                    </li>
+                    {else}
+                    <li class="list-group-item list-group-item-danger">
+                        <span class="fa fa-building-o"></span>&nbsp;Disponible&nbsp;
+                    </li>
+                    <li class="list-group-item">
+                        <button class="btn btn-sm btn-primary"><span class="fa fa-user-plus"></span>&nbsp;Agregar Residente</button>
+                    </li>
+                    {/if}
+                </ul>
+            </div>
+            {/loop}
+        </div>
+    </div>
+    <!-- FIN Listado de Edificaciones !-->
 </div>
 
 <form name="f_nueva_edificacion" class="form-horizontal" action="{$fsc->url()}" method="post">

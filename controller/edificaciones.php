@@ -101,7 +101,7 @@ class edificaciones extends fs_controller{
                     $item->delete();
                     $this->new_message('Edificación eliminada con exito.');
                 } catch (Exception $exc) {
-                    $this->new_error_msg('Ocurrió un error al querer eliminar la Edificación. '.$e->getTraceAsString());
+                    $this->new_error_msg('Ocurrió un error al querer eliminar la Edificación. '.$exc->getTraceAsString());
                 }
             } else{
                 $this->new_error_msg('¡No se puede eliminar una edificación que está ocupada!');

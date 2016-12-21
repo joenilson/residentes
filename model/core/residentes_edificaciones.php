@@ -95,7 +95,9 @@ class residentes_edificaciones extends \fs_model{
         if($data){
             $lista = array();
             foreach($data as $d){
-                $lista[] = new residentes_edificaciones($d);
+                $item = new residentes_edificaciones($d);
+                $item->pertenencia = $this->pertenencia($item);
+                $lista[] = $item;
             }
             return $lista;
         }else{
@@ -168,6 +170,17 @@ class residentes_edificaciones extends \fs_model{
     public function delete() {
         $sql = "DELETE FROM ".$this->table_name." WHERE id = ".$this->intval($this->id).";";
         return $this->db->exec($sql);
+    }
+
+    private function pertenencia($d){
+        $codigo_interno = $d->codigo_interno;
+        $piezas = explode("_", $codigo_interno);
+        $lista_ids = array();
+        foreach($piezas as $pieza){
+            $data = explode(":", $pieza);
+            $lista_ids[$data[0]]=$data[1];
+        }
+        return $lista_ids;
     }
 
 }
