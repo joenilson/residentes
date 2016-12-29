@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace FacturaScripts\model;
+use FacturaScripts\model\residentes_edificaciones_tipo;
 /**
  * Description of residentes_edificaciones
  *
@@ -64,6 +65,8 @@ class residentes_edificaciones extends \fs_model{
      * @var type boolean
      */
     public $ocupado;
+
+    public $edificaciones_tipo;
     public function __construct($t = FALSE) {
         parent::__construct('residentes_edificaciones','plugins/residentes');
         if($t){
@@ -83,6 +86,7 @@ class residentes_edificaciones extends \fs_model{
             $this->codcliente = null;
             $this->ocupado = null;
         }
+        $this->edificaciones_tipo = new \residentes_edificaciones_tipo();
     }
 
     public function install(){
@@ -174,13 +178,48 @@ class residentes_edificaciones extends \fs_model{
 
     private function pertenencia($d){
         $codigo_interno = $d->codigo_interno;
-        $piezas = explode("_", $codigo_interno);
-        $lista_ids = array();
-        foreach($piezas as $pieza){
-            $data = explode(":", $pieza);
-            $lista_ids[$data[0]]=$data[1];
+        $piezas = \json_decode($codigo_interno);
+        $lista = array();
+        foreach($piezas as $id=>$data){
+            $pertenencia = new \stdClass();
+            $pertenencia->id = $id;
+            $pertenencia->desc_id = $this->edificaciones_tipo->get($id)->descripcion;
+            $pertenencia->padre = $this->edificaciones_tipo->get($id)->padre;
+            $pertenencia->valor = $data;
+            $lista[] = $pertenencia;
         }
-        return $lista_ids;
+        return $lista;
+    }
+
+    public function buscar_ubicacion_inmueble($id,$linea){
+        $inicio_busqueda = ($linea==0)?"{\"":"{%\"";
+        $sql = "SELECT * FROM ".$this->table_name." WHERE codigo_interno LIKE '".$inicio_busqueda.$id."\":%}' ORDER BY codigo;";
+        $data = $this->db->select($sql);
+        if($data){
+            $lista = array();
+            foreach($data as $d){
+                $l = new residentes_edificaciones($d);
+                $lista[] = $this->pertenencia($l);
+            }
+            return $lista;
+        }else{
+            return false;
+        }
+    }
+
+    public function generar_mapa(){
+        $linea = 0;
+        $mapa = array();
+        foreach($this->edificaciones_tipo->jerarquia() as $data){
+            $items = $this->buscar_ubicacion_inmueble($data['id'],$linea);
+            foreach($items as $inmueble){
+                foreach($inmueble as $ubicacion){
+                    $mapa[$ubicacion->padre]['hijos'][] = $ubicacion->valor;
+                }
+            }
+            $linea++;
+        }
+        return $mapa;
     }
 
 }

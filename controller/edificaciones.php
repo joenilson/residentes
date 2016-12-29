@@ -78,17 +78,17 @@ class edificaciones extends fs_controller{
     public function tratar_edificaciones(){
         $id = filter_input(INPUT_POST, 'id');
         $precodigo = "";
-        $precodigo_interno = "";
+        $precodigo_interno = array();
         foreach($this->edificaciones_tipo->all() as $i){
             $campo = "campo_".$i->id;
             $linea = filter_input(INPUT_POST, $campo);
             $precodigo .= $linea;
-            $precodigo_interno .= "_".$i->id.":".$linea;
+            $precodigo_interno[$i->id]=$linea;
         }
         $codigo_p = filter_input(INPUT_POST, 'codigo');
         $codigo_interno_p = filter_input(INPUT_POST, 'codigo_interno');
         $codigo = ($codigo_p)?$codigo_p:$precodigo;
-        $codigo_interno = ($codigo_interno_p)?$codigo_interno_p:substr($precodigo_interno, 1);
+        $codigo_interno = ($codigo_interno_p)?$codigo_interno_p:\json_encode($precodigo_interno);
         $numero = filter_input(INPUT_POST, 'numero_edificacion');
         $ubicacion = filter_input(INPUT_POST, 'ubicacion');
         $codcliente = filter_input(INPUT_POST, 'codcliente');

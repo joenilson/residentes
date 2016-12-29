@@ -137,12 +137,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <!-- INICIO Listado de Edificaciones !-->
     <div class="row">
         <div class="col-sm-12">
+            {loop="$fsc->edificaciones->generar_mapa()"}
+                <div class="col-sm-2">
+                    <ul class="list-group">
+                        {loop="$value"}
+                        <li class="list-group-item">{$value2}</li>
+                            {loop="$value2"}
+                            <li class="list-group-item">{$value3}</li>
+                            {/loop}
+                        {/loop}
+                    </ul>
+                </div>
+            {/loop}
             {loop="$fsc->edificaciones->all()"}
             <div class="col-sm-2">
                 <ul class="list-group">
                     <li class="list-group-item active">{$value->codigo} - {$value->numero}</li>
                     {loop="$value1->pertenencia"}
-                    <li class="list-group-item">{$key} {$value2}</li>
+                    <li class="list-group-item">{$value->desc_id} {$value->valor}</li>
                     {/loop}
                     {if="$value->ocupado"}
                     <li class="list-group-item list-group-item-danger">
