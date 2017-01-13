@@ -130,7 +130,13 @@ class residentes_edificaciones extends \fs_model{
         $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query.";";
         $data = $this->db->select($sql);
         if($data){
-            return new residentes_edificaciones($data[0]);
+            $lista = array();
+            foreach($data as $d){
+                $item = new residentes_edificaciones($d);
+                $item->pertenencia = $this->pertenencia($item);
+                $lista[] = $item;
+            }
+            return $lista;
         }else{
             return false;
         }
@@ -207,15 +213,32 @@ class residentes_edificaciones extends \fs_model{
         }
     }
 
+    public function buscar_cantidad_inmuebles($id,$linea){
+        $inicio_busqueda = ($linea==0)?"{\"":"{%\"";
+        $sql = "SELECT DISTINCT codigo FROM ".$this->table_name." WHERE codigo_interno LIKE '".$inicio_busqueda.$id."\":%}' ORDER BY codigo;";
+        $data = $this->db->select($sql);
+        if($data){
+            $lista = array();
+            foreach($data as $d){
+                $l = $this->get_by_field('codigo', $d['codigo']);
+                $lista[] = $l;
+            }
+            return $lista;
+        }else{
+            return false;
+        }
+    }
+
     public function generar_mapa(){
-        $linea = 0;
         $mapa = array();
-        foreach($this->edificaciones_tipo->jerarquia() as $data){
-            $items = $this->buscar_ubicacion_inmueble($data['id'],$linea);
+        $linea = 0;
+        foreach($this->edificaciones_tipo->all() as $data){
+            if($linea==1){
+                break;
+            }
+            $items = $this->buscar_cantidad_inmuebles($data->id,$data->padre);
             foreach($items as $inmueble){
-                foreach($inmueble as $ubicacion){
-                    $mapa[$ubicacion->padre]['hijos'][] = $ubicacion->valor;
-                }
+                $mapa[$data->id][] = $inmueble;
             }
             $linea++;
         }

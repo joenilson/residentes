@@ -140,15 +140,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             {loop="$fsc->edificaciones->generar_mapa()"}
                 <div class="col-sm-2">
                     <ul class="list-group">
-                        {loop="$value"}
-                        <li class="list-group-item">{$value2}</li>
+                        {loop="$value1"}
                             {loop="$value2"}
-                            <li class="list-group-item">{$value3}</li>
+                            <li class="list-group-item">{$value3->pertenencia[0]->desc_id} {$value3->codigo} {$value3->numero}</li>
                             {/loop}
                         {/loop}
                     </ul>
                 </div>
             {/loop}
+
             {loop="$fsc->edificaciones->all()"}
             <div class="col-sm-2">
                 <ul class="list-group">
