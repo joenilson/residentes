@@ -1,0 +1,106 @@
+{include="header"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid" style="margin-top: 10px;">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#nuevaEstructura">
+                    <span class="fa fa-plus"></span> &nbsp; Nuevo
+                </button>
+                {loop="$fsc->extensions"}
+                {if="$value->type=='button'"}
+                <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                {/if}
+                {/loop}
+            </div>
+        </div>
+        <div class="col-sm-6 text-right">
+            <h2 style="margin-top: 0px;"><span class="fa fa-building-o"></span>&nbsp;Mapa de Edificaciones</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+
+        </div>
+    </div>
+</div>
+<!-- Modal para nueva estructura -->
+<div class="modal fade" id="nuevaEstructura" tabindex="-1" role="dialog" aria-labelledby="nuevaEstructuraTitulo">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="nuevaEstructuraTitulo">Nueva Estructura</h4>
+            </div>
+            <form class="form" role="form" name="f_mapa_nuevo" action="{$fsc->url()}" method="POST">
+                <div class="modal-body">
+                    <div class="form-group col-sm-6">
+                        <select name="tipo" class="form-control" required>
+                            <option value="">Elige un tipo</option>
+                            {loop="$fsc->edificaciones_tipo->all()"}
+                            <option value="{$value->id}">{$value->descripcion}</option>
+                            {/loop}
+                        </select>
+
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <input type="text" name="inicio" id="inicio" value="" placeholder="Codigo" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-3">
+                    </div>
+                    <div class="form-group text-center">
+                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#rangoCreacion" aria-expanded="false" aria-controls="rangoCreacion">
+                            Agregar rango de edificaciones
+                        </button>
+                    </div>
+                    <div class="collapse" id="rangoCreacion">
+                        <div class="well">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" name="inicio" value="" class="form-control" aria-describedby="basic-addon2"/>
+                                    <div class="input-group-addon" id="basic-addon2">Hasta</div>
+                                    <input type="text" name="final" value="" class="form-control"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary">Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{include="footer"}

@@ -36,9 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             onSelect: function (suggestion) {
                 if (suggestion)
                 {
-                    if (document.f_nuevo_inquilino.cliente.value != suggestion.data)
+                    if (document.f_nuevo_inquilino.cliente.value !== suggestion.data)
                     {
-                        document.f_nuevo_inquilino.cliente.value = suggestion.data;
+                        document.f_nuevo_inquilino.cliente.value === suggestion.data;
                     }
                 }
             }
@@ -123,6 +123,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <a id="b_opciones" class="btn btn-sm btn-default" href="#">
                    <span class="fa fa-gear"></span> &nbsp; Configuración
                 </a>
+                <a class="btn btn-sm btn-default" href="index.php?page=mapa_edificaciones">
+                   <span class="fa fa-building-o"></span> &nbsp; Mapa de Edificaciones
+                </a>
                 {loop="$fsc->extensions"}
                 {if="$value->type=='button'"}
                 <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
@@ -148,7 +151,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </ul>
                 </div>
             {/loop}
-
             {loop="$fsc->edificaciones->all()"}
             <div class="col-sm-2">
                 <ul class="list-group">
