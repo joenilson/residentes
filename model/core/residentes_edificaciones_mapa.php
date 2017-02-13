@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace FacturaScripts\model;
-use FacturaScripts\model\residentes_edificaciones_tipo;
 /**
  * Description of residentes_edificaciones
  *
@@ -136,7 +135,7 @@ class residentes_edificaciones_mapa extends \fs_model{
         if($this->exists()){
             $sql = "UPDATE ".$this->table_name." SET ".
                     "codigo_edificacion = ".$this->var2str($this->codigo_edificacion).", ".
-                    "numero = ".$this->var2str($this->numero)." ".
+                    "numero = ".$this->var2str($this->numero).", ".
                     "padre_tipo = ".$this->intval($this->padre_tipo)." ".
                     "WHERE id_tipo = ".$this->intval($this->id_tipo)." AND";
                     " codigo_edificacion = ".$this->var2str($this->codigo_edificacion)." AND";

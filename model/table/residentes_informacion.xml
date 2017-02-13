@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : residentes_informacion.xml
+    Description:
+        Estructura de la tabla residentes_informacion.
+-->
+<tabla>
+    <columna>
+        <nombre>ca_apellidos</nombre>
+        <tipo>character varying(180)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ca_email</nombre>
+        <tipo>character varying(100)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ca_nombres</nombre>
+        <tipo>character varying(180)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ca_parentesco</nombre>
+        <tipo>character varying(10)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ca_parentesco_obs</nombre>
+        <tipo>character varying(180)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ca_propietario</nombre>
+        <tipo>boolean</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ca_telefono</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>codcliente</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codigo</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>informacion_discapacidad</nombre>
+        <tipo>text</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupacion</nombre>
+        <tipo>character varying(10)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupantes</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupantes12anos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupantes18anos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupantes30anos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupantes50anos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupantes70anos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>ocupantes71anos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>profesion</nombre>
+        <tipo>character varying(180)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>propietario</nombre>
+        <tipo>boolean</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>vehiculos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <restriccion>
+        <nombre>residentes_informacion_codcliente_fkey</nombre>
+        <consulta>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente)</consulta>
+    </restriccion>
+    <restriccion>
+        <nombre>residentes_informacion_ik</nombre>
+        <consulta>PRIMARY KEY (codcliente)</consulta>
+    </restriccion>
+</tabla>

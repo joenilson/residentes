@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : residentes_vehiculos.xml
+    Description:
+        Estructura de la tabla residentes_vehiculos.
+-->
+<tabla>
+    <columna>
+        <nombre>codcliente</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codigo_tarjeta</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>idvehiculo</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('residentes_vehiculos_idvehiculo_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>vehiculo_color</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>vehiculo_marca</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>vehiculo_modelo</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>vehiculo_placa</nombre>
+        <tipo>character varying(16)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>vehiculo_tipo</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <restriccion>
+        <nombre>residentes_vehiculos_codcliente_fkey</nombre>
+        <consulta>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente)</consulta>
+    </restriccion>
+    <restriccion>
+        <nombre>residentes_vehiculos_pk</nombre>
+        <consulta>PRIMARY KEY (idvehiculo,codcliente)</consulta>
+    </restriccion>
+</tabla>

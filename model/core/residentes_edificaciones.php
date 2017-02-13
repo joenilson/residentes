@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace FacturaScripts\model;
-use FacturaScripts\model\residentes_edificaciones_tipo;
 /**
  * Description of residentes_edificaciones
  *
