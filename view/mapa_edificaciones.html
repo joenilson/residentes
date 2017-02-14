@@ -48,9 +48,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <h2 style="margin-top: 0px;"><span class="fa fa-building-o"></span>&nbsp;Mapa de Edificaciones</h2>
         </div>
     </div>
+    <hr />
     <div class="row">
-        <div class="col-sm-12">
-
+        <div class="col-sm-3">
+            <ul class="list-group">
+            <li class="list-group-item active">{$fsc->padre->descripcion}</li>
+            {loop="$fsc->mapa"}
+            <li class="list-group-item clearfix">
+                {$value->codigo_edificacion}
+                <span class="pull-right">
+                    <a href="#" onclick="alert('bu')" style="margin-right:5px;"><span class="fa fa-plus"></span></a>
+                    <a href="#" onclick="alert('bu')" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
+                    {if="$value->tiene_hijos()"}
+                    <a href="#" class="text-warning" onclick="alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
+                    {else}
+                    <a href="#" class="text-danger" onclick="alert('bu')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
+                    {/if}
+                </span>
+            </li>
+            {else}
+                <li class="list-group-item list-group-item-warning">No se han agregado Edificaciones, agregue un rango de información inicial con el boton <b>Nuevo</b>.</li>
+            {/loop}
+            </ul>
         </div>
     </div>
 </div>
@@ -64,40 +83,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
             <form class="form" role="form" name="f_mapa_nuevo" action="{$fsc->url()}" method="POST">
                 <div class="modal-body">
-                    <div class="form-group col-sm-6">
-                        <select name="tipo" class="form-control" required>
-                            <option value="">Elige un tipo</option>
-                            {loop="$fsc->edificaciones_tipo->all()"}
-                            <option value="{$value->id}">{$value->descripcion}</option>
-                            {/loop}
-                        </select>
-
-                    </div>
                     <div class="form-group col-sm-3">
-                        <input type="text" name="inicio" id="inicio" value="" placeholder="Codigo" class="form-control">
+                        <input type="hidden" name="padre" id="padre" value="{$fsc->padre->id}">
+                        {$fsc->padre->descripcion}
                     </div>
-                    <div class="form-group col-sm-3">
-                    </div>
-                    <div class="form-group text-center">
-                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#rangoCreacion" aria-expanded="false" aria-controls="rangoCreacion">
-                            Agregar rango de edificaciones
-                        </button>
-                    </div>
-                    <div class="collapse" id="rangoCreacion">
-                        <div class="well">
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <input type="text" name="inicio" value="" class="form-control" aria-describedby="basic-addon2"/>
-                                    <div class="input-group-addon" id="basic-addon2">Hasta</div>
-                                    <input type="text" name="final" value="" class="form-control"/>
-                                </div>
-                            </div>
+                    <div class="form-group col-sm-9">
+                        <div class="input-group">
+                            <input type="text" name="inicio" value="" placeholder="Desde" class="form-control" aria-describedby="basic-addon2"/>
+                            <div class="input-group-addon" id="basic-addon2"><span class="fa fa-arrow-right"></span></div>
+                            <input type="text" name="final" value="" placeholder="Hasta" class="form-control"/>
                         </div>
                     </div>
+                    <div class="clearfix"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary">Agregar</button>
+                    <button type="submit" name="accion" value="agregar_base" class="btn btn-primary">Agregar</button>
                 </div>
             </form>
         </div>

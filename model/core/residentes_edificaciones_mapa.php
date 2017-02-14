@@ -124,10 +124,10 @@ class residentes_edificaciones_mapa extends \fs_model{
     }
 
     public function exists() {
-        if(is_null($this->id)){
+        if($this->get($this->id_tipo,$this->codigo_edificacion,$this->padre_tipo)){
             return false;
         }else{
-            return $this->get($this->id);
+            return $this->get($this->id_tipo,$this->codigo_edificacion,$this->padre_tipo);
         }
     }
 
@@ -146,7 +146,7 @@ class residentes_edificaciones_mapa extends \fs_model{
                     $this->intval($this->id_tipo).", ".
                     $this->var2str($this->codigo_edificacion).", ".
                     $this->var2str($this->numero).", ".
-                    $this->intval($this->padre_tipo).";";
+                    $this->intval($this->padre_tipo).");";
             if($this->db->exec($sql)){
                 return true;
             }else{
@@ -222,6 +222,16 @@ class residentes_edificaciones_mapa extends \fs_model{
             $linea++;
         }
         return $mapa;
+    }
+
+    public function tiene_hijos(){
+        $sql = "SELECT count(*) as cantidad FROM ".$this->table_name." WHERE padre_tipo = ".$this->intval($this->id_tipo).";";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['cantidad'];
+        }else{
+            return false;
+        }
     }
 
 }

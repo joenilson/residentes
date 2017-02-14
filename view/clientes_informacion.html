@@ -1,0 +1,113 @@
+{include="header2"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <div class="pull-left" style="margin-right: 5px;">
+            <a class="btn btn-xs btn-default" href="{$fsc->url()}&cod={$fsc->codcliente}" title="Recargar la página">
+                <span class="glyphicon glyphicon-refresh"></span>
+            </a>
+        </div>
+        <h3 class="panel-title">
+            Información del Residente {$fsc->cliente->nombre}
+        </h3>
+    </div>
+    <div class="panel-body">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-2">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="propietario" id="propietario"> Es Propietario
+                        </label>
+                    </div>
+                </div>
+                <label for="codigo" class="col-sm-2 control-label">Codigo</label>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" name="codigo" id="codigo" maxlength="32" placeholder="Codigo Auxiliar">
+                </div>
+                <label for="ocupantes" class="col-sm-2 control-label">Ocupantes</label>
+                <div class="col-sm-2">
+                    <input type="number" class="form-control" id="ocupantes" min="0" placeholder="Cantidad de Ocupantes">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="informacion_discapacidad" class="col-sm-2 control-label">Dispacidad</label>
+                <div class="col-sm-10">
+                    <textarea name="informacion_discapacidad" rows="4" class="col-sm-12" id="informacion_discapacidad"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+
+            </div>
+            <div class="form-group">
+                <label for="profesion" class="col-sm-2 control-label">Profesion</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" name="profesion" id="profesion" placeholder="Profesión del residente">
+                </div>
+                <label for="ocupacion" class="col-sm-2 control-label">Ocupación</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" name="ocupacion" id="ocupacion" placeholder="Ocupación del residente">
+                </div>
+            </div>
+            <div class="col-sm-12 text-center"><h4>Contacto Adicional</h4><hr/></div>
+            <div class="form-group">
+                <label for="ca_nombres" class="col-sm-2 control-label">CA Nombres</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" name="ca_nombres" id="ca_nombres" placeholder="Nombres Contacto Adicional">
+                </div>
+                <label for="ca_apellidos" class="col-sm-2 control-label">CA Apellidos</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" name="ca_apellidos" id="ca_apellidos" placeholder="Apellidos Contacto Adicional">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-2">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="ca_propietario" id="ca_propietario"> Es Propietario
+                        </label>
+                    </div>
+                </div>
+                <label for="ca_telefono" class="col-sm-1 control-label">CA Telefono</label>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" name="ca_telefono" id="ca_telefono" placeholder="Telefono del Contacto Adicional">
+                </div>
+                <label for="ca_email" class="col-sm-1 control-label">CA Email</label>
+                <div class="col-sm-4">
+                    <input type="email" class="form-control" name="ca_email" id="ca_email" placeholder="Email del Contacto Adicional">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="ca_parentesco" class="col-sm-2 control-label">CA Parentesco</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" name="ca_parentesco" id="ca_parentesco" placeholder="Parentesco Contacto Adicional">
+                </div>
+                <label for="ca_parentesco_obs" class="col-sm-2 control-label">CA Info Parentesco</label>
+                <div class="col-sm-5">
+                    <input type="text" class="form-control" name="ca_parentesco_obs" id="ca_parentesco_obs" placeholder="Apellidos Contacto Adicional">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-sm btn-primary">Guardar Informacion</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{include="footer2"}

@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require_model('residentes_edificaciones_tipo.php');
+require_model('residentes_edificaciones_mapa.php');
 /**
  * Description of mapa_edificaciones
  *
@@ -24,11 +25,33 @@ require_model('residentes_edificaciones_tipo.php');
  */
 class mapa_edificaciones extends fs_controller{
     public $edificaciones_tipo;
+    public $edificaciones_mapa;
+    public $padre;
+    public $mapa;
     public function __construct() {
         parent::__construct(__CLASS__, 'Mapa de Edificaciones', 'residentes', FALSE, FALSE, FALSE);
     }
 
     protected function private_core() {
         $this->edificaciones_tipo = new residentes_edificaciones_tipo();
+        $this->edificaciones_mapa = new residentes_edificaciones_mapa();
+        $tipos = $this->edificaciones_tipo->all();
+        $this->padre = $tipos[0];
+
+        $accion = \filter_input(INPUT_POST, 'accion');
+        if($accion == 'agregar_base'){
+            $inicio = \filter_input(INPUT_POST, 'inicio');
+            $final_p = \filter_input(INPUT_POST, 'final');
+            $final=(!empty($final_p))?$final_p:$inicio;
+            foreach(range($inicio,$final) as $item){
+                $punto = new residentes_edificaciones_mapa();
+                $punto->id_tipo = $this->padre->id;
+                $punto->codigo_edificacion = $item;
+                $punto->padre_tipo = $this->padre->padre;
+                $punto->numero = '';
+                $punto->save();
+            }
+        }
+        $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
     }
 }
