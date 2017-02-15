@@ -27,9 +27,134 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </h3>
     </div>
     <div class="panel-body">
-        <form class="form-horizontal">
+        <div class="table-responsive">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th class="text-center">Marca</th>
+                        <th class="text-center">Modelo</th>
+                        <th class="text-center">Color</th>
+                        <th class="text-center">Placa</th>
+                        <th class="text-center">Tipo</th>
+                        <th class="text-center">Tarjeta de Acceso</th>
+                        <th class="text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form class="form-horizontal" role="form" method="POST" action="{$fsc->url()}&cod={$fsc->codcliente}">
+                    <tr class="info">
+                        <td>
+                            <input type="hidden" name="idvehiculo" value="">
+                            <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
+                            <input type="text" name="vehiculo_marca" value="" class="form-control input-sm">
+                        </td>
+                        <td>
+                            <input type="text" name="vehiculo_modelo" value="" class="form-control input-sm">
+                        </td>
+                        <td>
+                            <input type="text" name="vehiculo_color" value="" class="form-control input-sm">
+                        </td>
+                        <td>
+                            <input type="text" name="vehiculo_placa" value="" class="form-control input-sm">
+                        </td>
+                        <td>
+                            <input type="text" name="vehiculo_tipo" value="" class="form-control input-sm">
+                        </td>
+                        <td>
+                            <input type="text" name="codigo_tarjeta" value="" class="form-control input-sm">
+                        </td>
+                        <td>
+                            <button type="submit" name="accion" value="agregar" class="btn btn-sm btn-primary">
+                                <span class="fa fa-plus"></span><span aria-hidden="true">&nbsp;Guardar</span>
+                            </button>
+                        </td>
+                    </tr>
+                    </form>
+                    {loop="$fsc->cliente_vehiculos"}
+                    <form class="form-horizontal" role="form" method="POST" action="{$fsc->url()}&cod={$fsc->codcliente}">
+                        <tr>
+                            <td>
+                                <input type="hidden" name="idvehiculo" value="{$value->idvehiculo}">
+                                <input type="hidden" name="codcliente" value="{$value->codcliente}">
+                                <input type="text" name="vehiculo_marca" value="{$value->vehiculo_marca}" class="form-control input-sm">
+                            </td>
+                            <td>
+                                <input type="text" name="vehiculo_modelo" value="{$value->vehiculo_modelo}" class="form-control input-sm">
+                            </td>
+                            <td>
+                                <input type="text" name="vehiculo_color" value="{$value->vehiculo_color}" class="form-control input-sm">
+                            </td>
+                            <td>
+                                <input type="text" name="vehiculo_placa" value="{$value->vehiculo_placa}" class="form-control input-sm">
+                            </td>
+                            <td>
+                                <input type="text" name="vehiculo_tipo" value="{$value->vehiculo_tipo}" class="form-control input-sm">
+                            </td>
+                            <td>
+                                <input type="text" name="codigo_tarjeta" value="{$value->codigo_tarjeta}" class="form-control input-sm">
+                            </td>
+                            <td>
+                                <button type="submit" name="accion" value="eliminar" class="btn btn-sm btn-danger" onclick="return confirm('¿Esta seguro que quiere eliminar este vehiculo?');"><span class="fa fa-trash"></span></button>
+                                <button type="submit" name="accion" value="agregar" class="btn btn-sm btn-primary"><span class="fa fa-save"></span></button>
+                            </td>
+                        </tr>
+                    </form>
+                    {/loop}
+                </tbody>
+            </table>
+        </div>
 
-        </form>
+
+
+    </div>
+</div>
+<!-- Modal agregarVehiculo -->
+<div class="modal fade" id="agregarVehiculo" tabindex="-1" role="dialog" aria-labelledby="agregarVehiculoTitulo">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form class="form-horizontal" method="POST" action="{$fsc->url()}&cod={$fsc->codcliente}">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="this.form.reset();"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="agregarVehiculoTitulo">Agregar Vehiculo</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <input type="hidden" name="idvehiculo" value="">
+                            <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
+                            <label class="control-label">Marca</label>
+                            <input type="text" name="vehiculo_marca" value="" class="form-control input-sm">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">Modelo</label>
+                            <input type="text" name="vehiculo_mmodelo" value="" class="form-control input-sm">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">Color</label>
+                            <input type="text" name="vehiculo_color" value="" class="form-control input-sm">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label class="control-label">Placa</label>
+                            <input type="text" name="vehiculo_placa" value="" class="form-control input-sm">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">Tipo</label>
+                            <input type="text" name="vehiculo_tipo" value="" class="form-control input-sm">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label">Tarjeta de Acceso</label>
+                            <input type="text" name="codigo_tarjeta" value="" class="form-control input-sm">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-danger pull-left" data-dismiss="modal" onclick="this.form.reset();">Cerrar</button>
+                    <button type="button" name="accion" value="agregar" class="btn btn-sm btn-primary pull-right">Guardar</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {include="footer2"}

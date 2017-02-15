@@ -108,7 +108,7 @@ class residentes_vehiculos extends \fs_model{
     }
 
     public function get($codcliente,$id){
-        $sql = "SELECT * FROM ".$this->table_name." WHERE codcliente = ".$this->var2str($codcliente)." AND id = ".$this->intval($id).";";
+        $sql = "SELECT * FROM ".$this->table_name." WHERE codcliente = ".$this->var2str($codcliente)." AND idvehiculo = ".$this->intval($id).";";
         $data = $this->db->select($sql);
         if($data){
             return new residentes_vehiculos($data[0]);
@@ -151,12 +151,12 @@ class residentes_vehiculos extends \fs_model{
         if($this->exists()){
             $sql = "UPDATE ".$this->table_name." SET ".
                     "vehiculo_marca = ".$this->var2str($this->vehiculo_marca).", ".
-                    "vehiculo_modelo = ".$this->var2str($this->vehiculo_modelo)." ".
-                    "vehiculo_color = ".$this->var2str($this->vehiculo_color)." ".
-                    "vehiculo_placa = ".$this->var2str($this->vehiculo_placa)." ".
-                    "vehiculo_tipo = ".$this->var2str($this->vehiculo_tipo)." ".
+                    "vehiculo_modelo = ".$this->var2str($this->vehiculo_modelo).", ".
+                    "vehiculo_color = ".$this->var2str($this->vehiculo_color).", ".
+                    "vehiculo_placa = ".$this->var2str($this->vehiculo_placa).", ".
+                    "vehiculo_tipo = ".$this->var2str($this->vehiculo_tipo).", ".
                     "codigo_tarjeta = ".$this->var2str($this->codigo_tarjeta)." ".
-                    "WHERE id = ".$this->intval($this->idvehiculo)." AND ".
+                    "WHERE idvehiculo = ".$this->intval($this->idvehiculo)." AND ".
                     "codcliente = ".$this->var2str($this->codcliente).";";
             return $this->db->exec($sql);
         }else{
@@ -177,7 +177,7 @@ class residentes_vehiculos extends \fs_model{
     }
 
     public function delete() {
-        $sql = "DELETE FROM ".$this->table_name." WHERE id = ".$this->intval($this->idvehiculo)." and codcliente = ".$this->var2str($this->codcliente).";";
+        $sql = "DELETE FROM ".$this->table_name." WHERE idvehiculo = ".$this->intval($this->idvehiculo)." and codcliente = ".$this->var2str($this->codcliente).";";
         return $this->db->exec($sql);
     }
 

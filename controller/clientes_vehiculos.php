@@ -28,6 +28,8 @@ class clientes_vehiculos extends fs_controller {
     public $codcliente;
     public $cliente;
     public $clientes;
+    public $vehiculos_cliente;
+    public $residentes_vehiculos;
     public function __construct() {
         parent::__construct(__CLASS__, 'Vehiculos Residente', 'residentes', FALSE, FALSE, FALSE);
     }
@@ -36,11 +38,52 @@ class clientes_vehiculos extends fs_controller {
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->shared_extensions();
         $this->clientes = new cliente();
+        $this->residentes_vehiculos = new residentes_vehiculos();
+
+        $accion = \filter_input(INPUT_POST, 'accion');
+        if(!empty($accion)){
+            $idvehiculo = \filter_input(INPUT_POST, 'idvehiculo');
+            $codcliente_p = \filter_input(INPUT_POST, 'codcliente');
+            $vehiculo_marca = $this->clean_text(\filter_input(INPUT_POST, 'vehiculo_marca'));
+            $vehiculo_modelo = $this->clean_text(\filter_input(INPUT_POST, 'vehiculo_modelo'));
+            $vehiculo_color = $this->clean_text(\filter_input(INPUT_POST, 'vehiculo_color'));
+            $vehiculo_placa = $this->clean_text(\filter_input(INPUT_POST, 'vehiculo_placa'));
+            $vehiculo_tipo = $this->clean_text(\filter_input(INPUT_POST, 'vehiculo_tipo'));
+            $codigo_tarjeta = $this->clean_text(\filter_input(INPUT_POST, 'codigo_tarjeta'));
+            $vehiculo = new residentes_vehiculos();
+            $vehiculo->idvehiculo = $idvehiculo;
+            $vehiculo->codcliente = $codcliente_p;
+            $vehiculo->vehiculo_marca = $vehiculo_marca;
+            $vehiculo->vehiculo_modelo = $vehiculo_modelo;
+            $vehiculo->vehiculo_color = $vehiculo_color;
+            $vehiculo->vehiculo_placa = $vehiculo_placa;
+            $vehiculo->vehiculo_tipo = $vehiculo_tipo;
+            $vehiculo->codigo_tarjeta = $codigo_tarjeta;
+            if($accion=='agregar'){
+                if($vehiculo->save()){
+                    $this->new_message('Vehiculo agregado exitosamente');
+                }else{
+                    $this->new_error_msg('No se pudieron agregar los datos del vehiculo, revise la información e intentelo nuevamente.');
+                }
+            }elseif($accion=='eliminar'){
+                if($vehiculo->delete()){
+                    $this->new_message('Vehiculo eliminado exitosamente');
+                }else{
+                    $this->new_error_msg('No se pudieron eliminar los datos del vehiculo, revise la información e intentelo nuevamente.');
+                }
+            }
+        }
+
         $codcliente = \filter_input(INPUT_GET, 'cod');
         if(!empty($codcliente)){
             $this->codcliente = $codcliente;
             $this->cliente = $this->clientes->get($codcliente);
+            $this->cliente_vehiculos = $this->residentes_vehiculos->get_by_field('codcliente',$this->codcliente);
         }
+    }
+
+    public function clean_text($text){
+        return strtoupper(htmlentities(strip_tags(trim($text))));
     }
 
     private function shared_extensions() {

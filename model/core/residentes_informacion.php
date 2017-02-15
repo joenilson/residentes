@@ -40,6 +40,11 @@ class residentes_informacion extends \fs_model{
      */
     public $ocupantes;
     /**
+     * Cantidad de ocupantes menores de 5 años
+     * @var type integer
+     */
+    public $ocupantes5anos;
+    /**
      * Cantidad de ocupantes menores de 12 años
      * @var type integer
      */
@@ -137,6 +142,7 @@ class residentes_informacion extends \fs_model{
             $this->codcliente=$t['codcliente'];
             $this->codigo=$t['codigo'];
             $this->ocupantes=$t['ocupantes'];
+            $this->ocupantes5anos=$t['ocupantes5anos'];
             $this->ocupantes12anos=$t['ocupantes12anos'];
             $this->ocupantes18anos=$t['ocupantes18anos'];
             $this->ocupantes30anos=$t['ocupantes30anos'];
@@ -159,6 +165,7 @@ class residentes_informacion extends \fs_model{
             $this->codcliente=NULL;
             $this->codigo=NULL;
             $this->ocupantes=NULL;
+            $this->ocupantes5anos=NULL;
             $this->ocupantes12anos=NULL;
             $this->ocupantes18anos=NULL;
             $this->ocupantes30anos=NULL;
@@ -240,7 +247,7 @@ class residentes_informacion extends \fs_model{
     }
 
     public function exists() {
-        if(is_null($this->codcliente)){
+        if(!$this->get($this->codcliente)){
             return false;
         }else{
             return $this->get($this->codcliente);
@@ -252,6 +259,7 @@ class residentes_informacion extends \fs_model{
             $sql = "UPDATE ".$this->table_name." SET ".
             "codigo = ".$this->var2str($this->codigo).", ".
             "ocupantes = ".$this->intval($this->ocupantes).", ".
+            "ocupantes5anos = ".$this->intval($this->ocupantes5anos).", ".
             "ocupantes12anos = ".$this->intval($this->ocupantes12anos).", ".
             "ocupantes18anos = ".$this->intval($this->ocupantes18anos).", ".
             "ocupantes30anos = ".$this->intval($this->ocupantes30anos).", ".
@@ -273,10 +281,11 @@ class residentes_informacion extends \fs_model{
             "WHERE codcliente = ".$this->var2str($this->codcliente).";";
             return $this->db->exec($sql);
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (codcliente, codigo, ocupantes, ocupantes12anos, ocupantes18anos, ocupantes30anos, ocupantes50anos, ocupantes70anos, ocupantes71anos, informacion_discapacidad, propietario, profesion, ocupacion, ca_nombres, ca_apellidos, ca_telefono, ca_email, ca_propietario, ca_parentesco, ca_parentesco_obs, vehiculos) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (codcliente, codigo, ocupantes, ocupantes5anos, ocupantes12anos, ocupantes18anos, ocupantes30anos, ocupantes50anos, ocupantes70anos, ocupantes71anos, informacion_discapacidad, propietario, profesion, ocupacion, ca_nombres, ca_apellidos, ca_telefono, ca_email, ca_propietario, ca_parentesco, ca_parentesco_obs, vehiculos) VALUES (".
             $this->var2str($this->codcliente).", ".
             $this->var2str($this->codigo).", ".
             $this->intval($this->ocupantes).", ".
+            $this->intval($this->ocupantes5anos).", ".
             $this->intval($this->ocupantes12anos).", ".
             $this->intval($this->ocupantes18anos).", ".
             $this->intval($this->ocupantes30anos).", ".
@@ -294,8 +303,7 @@ class residentes_informacion extends \fs_model{
             $this->var2str($this->ca_propietario).", ".
             $this->var2str($this->ca_parentesco).", ".
             $this->var2str($this->ca_parentesco_obs).", ".
-            $this->intval($this->vehiculos).", ".
-            $this->var2str($this->codcliente).");";
+            $this->intval($this->vehiculos).");";
             if($this->db->exec($sql)){
                 return true;
             }else{

@@ -66,6 +66,11 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>ocupantes5anos</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>ocupantes12anos</nombre>
         <tipo>integer</tipo>
         <nulo>YES</nulo>

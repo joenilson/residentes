@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_once 'plugins/residentes/model/core/residente_vehiculos.php';
+require_once 'plugins/residentes/model/core/residentes_informacion.php';
 /**
- * Description of residente_vehiculos
+ * Description of residentes_informacion
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class residente_vehiculos extends \FacturaScripts\model\residente_vehiculos {
+class residentes_informacion extends \FacturaScripts\model\residentes_informacion {
 
 }

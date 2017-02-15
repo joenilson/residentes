@@ -26,88 +26,130 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             Información del Residente {$fsc->cliente->nombre}
         </h3>
     </div>
-    <div class="panel-body">
-        <form class="form-horizontal">
+    <form class="form-horizontal" method="POST" action="{$fsc->url()}&cod={$fsc->codcliente}">
+        <div class="panel-body">
             <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-2">
+                <div class="col-sm-2">
+                    <br/>
+                    <input type="hidden" name="codcliente" value="{$fsc->codcliente}">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="propietario" id="propietario"> Es Propietario
+                            <input type="checkbox" name="propietario" id="propietario" {if="$fsc->cliente_info->propietario"}checked{/if}> Es Propietario
                         </label>
                     </div>
                 </div>
-                <label for="codigo" class="col-sm-2 control-label">Codigo</label>
                 <div class="col-sm-2">
-                    <input type="text" class="form-control" name="codigo" id="codigo" maxlength="32" placeholder="Codigo Auxiliar">
+                    <label for="codigo" class="control-label">Codigo</label>
+                    <input type="text" class="form-control" name="codigo" value="{$fsc->cliente_info->codigo}" id="codigo" maxlength="32" placeholder="Codigo Auxiliar">
                 </div>
-                <label for="ocupantes" class="col-sm-2 control-label">Ocupantes</label>
+                <div class="col-sm-3">
+                    <label for="profesion" class="control-label">Profesion</label>
+                    <input type="text" class="form-control" name="profesion"  value="{$fsc->cliente_info->profesion}" id="profesion" placeholder="Profesión del residente">
+                </div>
+                <div class="col-sm-3">
+                    <label for="ocupacion" class="control-label">Ocupación</label>
+                    <select name="ocupacion" class="form-control">
+                        <option value=""></option>
+                        {loop="$fsc->lista_ocupacion"}
+                        <option value="{$value->codigo}" {if="$value->codigo==$fsc->cliente_info->ocupacion"}selected{/if}>{$value->descripcion}</option>
+                        {/loop}
+                    </select>
+                </div>
                 <div class="col-sm-2">
-                    <input type="number" class="form-control" id="ocupantes" min="0" placeholder="Cantidad de Ocupantes">
+                    <label for="vehiculos" class="control-label">Cantidad Vehiculos</label>
+                    <input type="number" class="form-control" name="vehiculos" id="vehiculos" value="{$fsc->cliente_info->vehiculos}" placeholder="# de Vehiculos">
                 </div>
             </div>
             <div class="form-group">
-                <label for="informacion_discapacidad" class="col-sm-2 control-label">Dispacidad</label>
-                <div class="col-sm-10">
-                    <textarea name="informacion_discapacidad" rows="4" class="col-sm-12" id="informacion_discapacidad"></textarea>
+                <div class="col-xs-2 col-sm-2">
+                    <label for="ocupantes" class="control-label">Ocupantes</label>
+                    <input type="number" class="form-control" name="ocupantes" id="ocupantes" value="{$fsc->cliente_info->ocupantes}" min="0" placeholder="# de Ocupantes">
                 </div>
-            </div>
-            <div class="form-group">
+                <div class="col-sm-2">
+                    <label for="ocupantes5anos" class="control-label">Menores de 5 años</label>
+                    <input type="number" class="form-control" name="ocupantes5anos" value="{$fsc->cliente_info->ocupantes5anos}" id="ocupantes5anos" min="0">
+                </div>
+                <div class="col-sm-2">
+                    <label for="ocupantes12anos" class="control-label">Entre 5-12 años</label>
+                    <input type="number" class="form-control" name="ocupantes12anos" value="{$fsc->cliente_info->ocupantes12anos}" id="ocupantes12anos" min="0">
+                </div>
+                <div class="col-sm-2">
+                    <label for="ocupantes12anos" class="control-label">Entre 13-18 años</label>
+                    <input type="number" class="form-control" name="ocupantes18anos" value="{$fsc->cliente_info->ocupantes18anos}" id="ocupantes18anos" min="0">
+                </div>
+                <div class="col-sm-2">
+                    <label for="ocupantes12anos" class="control-label">Entre 19-30 años</label>
+                    <input type="number" class="form-control" name="ocupantes30anos" value="{$fsc->cliente_info->ocupantes30anos}" id="ocupantes30anos" min="0">
+                </div>
+                <div class="col-sm-2">
+                    <label for="ocupantes12anos" class="control-label">Entre 31-50 años</label>
+                    <input type="number" class="form-control" name="ocupantes50anos" value="{$fsc->cliente_info->ocupantes50anos}" id="ocupantes12anos" min="0">
+                </div>
+                <div class="col-sm-2">
 
+                </div>
+                <div class="col-sm-2">
+                    <label for="ocupantes12anos" class="control-label">Entre 51-70 años</label>
+                    <input type="number" class="form-control" name="ocupantes70anos" value="{$fsc->cliente_info->ocupantes70anos}" id="ocupantes12anos" min="0">
+                </div>
+                <div class="col-sm-2">
+                    <label for="ocupantes12anos" class="control-label">Más de 70 años</label>
+                    <input type="number" class="form-control" name="ocupantes71anos" value="{$fsc->cliente_info->ocupantes71anos}" id="ocupantes12anos" min="0">
+                </div>
             </div>
             <div class="form-group">
-                <label for="profesion" class="col-sm-2 control-label">Profesion</label>
-                <div class="col-sm-4">
-                    <input type="text" class="form-control" name="profesion" id="profesion" placeholder="Profesión del residente">
-                </div>
-                <label for="ocupacion" class="col-sm-2 control-label">Ocupación</label>
-                <div class="col-sm-4">
-                    <input type="text" class="form-control" name="ocupacion" id="ocupacion" placeholder="Ocupación del residente">
+                <div class="col-sm-12">
+                    <label for="informacion_discapacidad" class="control-label">Dispacidad</label>
+                    <textarea name="informacion_discapacidad" rows="4" class="col-sm-12" id="informacion_discapacidad">{function="html_entity_decode($fsc->cliente_info->informacion_discapacidad)"}</textarea>
                 </div>
             </div>
             <div class="col-sm-12 text-center"><h4>Contacto Adicional</h4><hr/></div>
             <div class="form-group">
-                <label for="ca_nombres" class="col-sm-2 control-label">CA Nombres</label>
-                <div class="col-sm-4">
-                    <input type="text" class="form-control" name="ca_nombres" id="ca_nombres" placeholder="Nombres Contacto Adicional">
+                <div class="col-sm-3">
+                    <label for="ca_nombres" class="control-label">CA Nombres</label>
+                    <input type="text" class="form-control" name="ca_nombres" id="ca_nombres" value="{$fsc->cliente_info->ca_nombres}" placeholder="Nombres Contacto Adicional">
                 </div>
-                <label for="ca_apellidos" class="col-sm-2 control-label">CA Apellidos</label>
-                <div class="col-sm-4">
-                    <input type="text" class="form-control" name="ca_apellidos" id="ca_apellidos" placeholder="Apellidos Contacto Adicional">
+                <div class="col-sm-3">
+                    <label for="ca_apellidos" class="control-label">CA Apellidos</label>
+                    <input type="text" class="form-control" name="ca_apellidos" id="ca_apellidos" value="{$fsc->cliente_info->ca_apellidos}" placeholder="Apellidos Contacto Adicional">
+                </div>
+                <div class="col-sm-3">
+                    <label for="ca_telefono" class="control-label">CA Telefono</label>
+                    <input type="text" class="form-control" name="ca_telefono" id="ca_telefono" value="{$fsc->cliente_info->ca_telefono}" placeholder="Telefono del Contacto Adicional">
+                </div>
+                <div class="col-sm-3">
+                    <label for="ca_email" class="control-label">CA Email</label>
+                    <input type="email" class="form-control" name="ca_email" id="ca_email" value="{$fsc->cliente_info->ca_email}" placeholder="Email del Contacto Adicional">
                 </div>
             </div>
             <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-2">
+                <div class="col-sm-3">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="ca_propietario" id="ca_propietario"> Es Propietario
+                            <input type="checkbox" name="ca_propietario" id="ca_propietario" {if="$fsc->cliente_info->ca_propietario"}checked{/if}> Es Propietario
                         </label>
                     </div>
                 </div>
-                <label for="ca_telefono" class="col-sm-1 control-label">CA Telefono</label>
-                <div class="col-sm-2">
-                    <input type="text" class="form-control" name="ca_telefono" id="ca_telefono" placeholder="Telefono del Contacto Adicional">
-                </div>
-                <label for="ca_email" class="col-sm-1 control-label">CA Email</label>
-                <div class="col-sm-4">
-                    <input type="email" class="form-control" name="ca_email" id="ca_email" placeholder="Email del Contacto Adicional">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="ca_parentesco" class="col-sm-2 control-label">CA Parentesco</label>
                 <div class="col-sm-3">
-                    <input type="text" class="form-control" name="ca_parentesco" id="ca_parentesco" placeholder="Parentesco Contacto Adicional">
+                    <label for="ca_parentesco" class="control-label">CA Parentesco</label>
+                    <select name="ca_parentesco" class="form-control">
+                        <option value=""></option>
+                        {loop="$fsc->lista_parentesco"}
+                        <option value="{$value->codigo}" {if="$value->codigo==$fsc->cliente_info->ca_parentesco"}selected{/if}>{$value->descripcion}</option>
+                        {/loop}
+                    </select>
                 </div>
-                <label for="ca_parentesco_obs" class="col-sm-2 control-label">CA Info Parentesco</label>
-                <div class="col-sm-5">
-                    <input type="text" class="form-control" name="ca_parentesco_obs" id="ca_parentesco_obs" placeholder="Apellidos Contacto Adicional">
+                <div class="col-sm-6">
+                    <label for="ca_parentesco_obs" class="control-label">CA Info Parentesco</label>
+                    <input type="text" class="form-control" name="ca_parentesco_obs" id="ca_parentesco_obs" value="{$fsc->cliente_info->ca_parentesco_obs}" placeholder="Información de parentesco Contacto Adicional">
                 </div>
             </div>
-            <div class="form-group">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <button type="submit" class="btn btn-sm btn-primary">Guardar Informacion</button>
-                </div>
+        </div>
+        <div class="panel-footer">
+            <div class="text-right">
+                <button type="submit" name="accion" value="agregar" class="btn btn-sm btn-primary">Guardar Informacion</button>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 {include="footer2"}
