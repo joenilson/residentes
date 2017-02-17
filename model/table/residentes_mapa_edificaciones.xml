@@ -11,6 +11,11 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>codigo_padre</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>id_tipo</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
@@ -27,6 +32,6 @@
     </columna>
     <restriccion>
         <nombre>residentes_mapa_edificaciones_ik</nombre>
-        <consulta>PRIMARY KEY (id_tipo,codigo_edificacion,padre_tipo)</consulta>
+        <consulta>PRIMARY KEY (id_tipo,codigo_edificacion,padre_tipo,codigo_padre)</consulta>
     </restriccion>
 </tabla>

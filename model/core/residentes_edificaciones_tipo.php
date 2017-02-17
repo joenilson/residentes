@@ -90,7 +90,11 @@ class residentes_edificaciones_tipo extends \fs_model{
         $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query.";";
         $data = $this->db->select($sql);
         if($data){
-            return new residentes_edificaciones_tipo($data[0]);
+            $lista = array();
+            foreach($data as $d){
+                $lista[] =  new residentes_edificaciones_tipo($d);
+            }
+            return $lista;
         }else{
             return false;
         }
