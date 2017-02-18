@@ -16,8 +16,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+require_model('clientes.php');
 require_model('residentes_edificaciones.php');
 require_model('residentes_edificaciones_tipo.php');
+require_model('residentes_edificaciones_mapa.php');
 /**
  * Description of edificaciones
  *
@@ -26,24 +28,33 @@ require_model('residentes_edificaciones_tipo.php');
 class edificaciones extends fs_controller{
     public $edificaciones;
     public $edificaciones_tipo;
+    public $edificaciones_mapa;
     public $allow_delete;
     public $nombre_edificacion;
     public $residentes_setup;
+    public $mapa;
+    public $padre_interior;
+    public $lista_interior;
     public function __construct() {
         parent::__construct(__CLASS__, 'Edificaciones', 'residentes', FALSE, TRUE, FALSE);
     }
 
     protected function private_core() {
         $this->shared_extensions();
-
         $this->allow_delete = ($this->user->admin)?TRUE:$this->user->allow_delete_on(__CLASS__);
         $this->edificaciones_tipo = new residentes_edificaciones_tipo();
+        $this->edificaciones_mapa = new residentes_edificaciones_mapa();
         $this->edificaciones = new residentes_edificaciones();
+        $tipos = $this->edificaciones_tipo->all();
+        $this->padre = $tipos[0];
 
         $accion = filter_input(INPUT_POST, 'accion');
         switch ($accion){
             case "agregar":
                 $this->tratar_edificaciones();
+                break;
+            case "agregar_inmueble":
+                $this->agregar_inmueble();
                 break;
             case "tratar_tipo":
                 $this->tratar_tipo_edificaciones();
@@ -72,6 +83,97 @@ class edificaciones extends fs_controller{
             if($_REQUEST['busqueda']=='arbol_tipo_edificaciones'){
                 $this->buscar_tipo_edificaciones();
             }
+        }
+        $interior = \filter_input(INPUT_GET, 'interior');
+        if($interior){
+            $this->padre_interior = $this->edificaciones_mapa->get($interior);
+            $this->lista_interior = $this->edificaciones_mapa->get_by_field('padre_id', $interior);
+        }
+        $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
+    }
+
+    public function buscar_padre($id,&$codigo){
+        $dato = $this->edificaciones_mapa->get($id);
+        $codigo[] = $dato->codigo_edificacion;
+        if($dato->padre_id==0){
+            return $codigo;
+        }else{
+            $this->buscar_padre($dato->padre_id,$codigo);
+        }
+    }
+
+    public function crear_codigo($id){
+        $codigo = array();
+        $this->buscar_padre($id,$codigo);
+        rsort($codigo);
+        return $codigo;
+    }
+
+    public function agregar_inmueble(){
+        $inicio = \filter_input(INPUT_POST, 'inicio');
+        $final_p = \filter_input(INPUT_POST, 'final');
+        $id = \filter_input(INPUT_POST, 'id');
+        $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
+        $cantidad = \filter_input(INPUT_POST, 'cantidad');
+        $incremento = \filter_input(INPUT_POST, 'incremento');
+        $codigo_mapa = $this->crear_codigo($id_edificacion);
+        $codigo = implode("",$codigo_mapa);
+        $codigo_interno = "{".implode("},{",$codigo_mapa)."}";
+        $ubicacion = "";
+        $codcliente = "";
+        $ocupado = FALSE;
+        $final=(!empty($final_p))?$final_p:$inicio;
+        $inmuebles = 0;
+        $error = 0;
+        $linea = 0;
+        if($inicio == $final){
+            $item = (is_int($inicio))?str_pad($inicio,3,"0",STR_PAD_LEFT):$inicio;
+            $edif0 = new residentes_edificaciones();
+            $edif0->id = $id;
+            $edif0->id_edificacion = $id_edificacion;
+            $edif0->codigo = $codigo;
+            $edif0->codigo_interno = $codigo_interno;
+            $edif0->numero = $item;
+            $edif0->ubicacion = trim($ubicacion);
+            $edif0->codcliente = trim($codcliente);
+            $edif0->ocupado = ($ocupado)?"TRUE":"FALSE";
+            try {
+                $edif0->save();
+                $inmuebles++;
+            } catch (Exception $exc) {
+                $this->new_error_msg($exc->getTraceAsString());
+                $error++;
+            }
+        }else{
+            for ($i = $inicio; $i<($final+1); $i++){
+                if($linea==$cantidad AND $cantidad!=0){
+                    $i = $inicio+$incremento;
+                    $linea = 0;
+                }
+                $item = (is_int($i))?str_pad($i,3,"0",STR_PAD_LEFT):$i;
+                $edif0 = new residentes_edificaciones();
+                $edif0->id = $id;
+                $edif0->id_edificacion = $id_edificacion;
+                $edif0->codigo = $codigo;
+                $edif0->codigo_interno = $codigo_interno;
+                $edif0->numero = $item;
+                $edif0->ubicacion = trim($ubicacion);
+                $edif0->codcliente = trim($codcliente);
+                $edif0->ocupado = ($ocupado)?"TRUE":"FALSE";
+                try {
+                    $edif0->save();
+                    $inmuebles++;
+                } catch (Exception $exc) {
+                    $this->new_error_msg($exc->getTraceAsString());
+                    $error++;
+                }
+                $linea++;
+            }
+        }
+        if($error){
+            $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
+        }if($inmuebles){
+            $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
         }
     }
 

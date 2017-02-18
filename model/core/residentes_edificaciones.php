@@ -28,6 +28,11 @@ class residentes_edificaciones extends \fs_model{
      */
     public $id;
     /**
+     * Este es el id de la edificacion en el mapa de Edificaciones
+     * @var type integer
+     */
+    public $id_edificacion;
+    /**
      * De cara al usuario se mostrará y buscara este código
      * pero esto se generará de los valores que ingrese de
      * los tipos de edificaciones
@@ -55,6 +60,11 @@ class residentes_edificaciones extends \fs_model{
      */
     public $ubicacion;
     /**
+     * Si se van a agregar las coordenadas del inmueble pueden colocarse aquí
+     * @var type varchar(64)
+     */
+    public $coordenadas;
+    /**
      * Si la edificación esta ocupada entonces se coloca aquí el código del Residente o Cliente
      * @var type string
      */
@@ -70,18 +80,22 @@ class residentes_edificaciones extends \fs_model{
         parent::__construct('residentes_edificaciones','plugins/residentes');
         if($t){
             $this->id = $t['id'];
+            $this->id_edificacion = $t['id_edificacion'];
             $this->codigo = $t['codigo'];
             $this->codigo_interno = $t['codigo_interno'];
             $this->numero = $t['numero'];
             $this->ubicacion = $t['ubicacion'];
+            $this->coordenadas = $t['coordenadas'];
             $this->codcliente = $t['codcliente'];
             $this->ocupado = $this->str2bool($t['ocupado']);
         }else{
             $this->id = null;
+            $this->id_edificacion = null;
             $this->codigo = null;
             $this->codigo_interno = null;
             $this->numero = null;
             $this->ubicacion = null;
+            $this->coordenadas = null;
             $this->codcliente = null;
             $this->ocupado = null;
         }
@@ -152,20 +166,24 @@ class residentes_edificaciones extends \fs_model{
     public function save() {
         if($this->exists()){
             $sql = "UPDATE ".$this->table_name." SET ".
+                    "id_edificacion = ".$this->intval($this->id_edificacion).", ".
                     "codigo = ".$this->var2str($this->codigo).", ".
-                    "codigo_interno = ".$this->var2str($this->codigo_interno)." ".
-                    "numero = ".$this->var2str($this->numero)." ".
-                    "ubicacion = ".$this->var2str($this->ubicacion)." ".
-                    "codcliente = ".$this->var2str($this->codlciente)." ".
+                    "codigo_interno = ".$this->var2str($this->codigo_interno).", ".
+                    "numero = ".$this->var2str($this->numero).", ".
+                    "ubicacion = ".$this->var2str($this->ubicacion).", ".
+                    "codcliente = ".$this->var2str($this->codlciente).", ".
+                    "coordenadas = ".$this->var2str($this->coordendas).", ".
                     "ocupado = ".$this->var2str($this->ocupado)." ".
                     "WHERE id = ".$this->intval($this->id).";";
             return $this->db->exec($sql);
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (codigo, codigo_interno, numero, ubicacion, codcliente, ocupado) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (id_edificacion, codigo, codigo_interno, numero, ubicacion, coordenadas,codcliente, ocupado) VALUES (".
+                    $this->intval($this->id_edificacion).", ".
                     $this->var2str($this->codigo).", ".
                     $this->var2str($this->codigo_interno).", ".
                     $this->var2str($this->numero).", ".
                     $this->var2str($this->ubicacion).", ".
+                    $this->var2str($this->coordenadas).", ".
                     $this->var2str($this->codcliente).", ".
                     $this->var2str($this->ocupado).");";
             if($this->db->exec($sql)){

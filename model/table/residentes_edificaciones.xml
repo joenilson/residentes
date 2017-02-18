@@ -27,6 +27,11 @@
         <defecto>nextval('residentes_edificaciones_id_seq'::regclass)</defecto>
     </columna>
     <columna>
+        <nombre>id_edificacion</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
         <nombre>numero</nombre>
         <tipo>character varying(16)</tipo>
         <nulo>NO</nulo>
@@ -36,6 +41,11 @@
         <tipo>boolean</tipo>
         <nulo>NO</nulo>
         <defecto>false</defecto>
+    </columna>
+    <columna>
+        <nombre>coordenadas</nombre>
+        <tipo>character varying(64)</tipo>
+        <nulo>YES</nulo>
     </columna>
     <columna>
         <nombre>ubicacion</nombre>

@@ -112,7 +112,9 @@ class residentes_edificaciones_mapa extends \fs_model{
                 " WHERE id = ".$this->intval($id).";";
         $data = $this->db->select($sql);
         if($data){
-            return new residentes_edificaciones_mapa($data[0]);
+            $item = new residentes_edificaciones_mapa($data[0]);
+            $item->desc_id = $this->edificaciones_tipo->get($item->id_tipo)->descripcion;
+            return $item;
         }else{
             return false;
         }

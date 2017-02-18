@@ -136,46 +136,78 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <div class="col-sm-6 text-right">
             <h2 style="margin-top: 0px;"><span class="fa fa-building-o"></span>&nbsp;Edificaciones</h2>
         </div>
+        <hr/>
     </div>
     <!-- INICIO Listado de Edificaciones !-->
     <div class="row">
         <div class="col-sm-12">
-            {loop="$fsc->edificaciones->generar_mapa()"}
-                <div class="col-sm-2">
-                    <ul class="list-group">
-                        {loop="$value1"}
-                            {loop="$value2"}
-                            <li class="list-group-item">{$value3->pertenencia[0]->desc_id} {$value3->codigo} {$value3->numero}</li>
-                            {/loop}
-                        {/loop}
-                    </ul>
-                </div>
-            {/loop}
-            {loop="$fsc->edificaciones->all()"}
             <div class="col-sm-2">
                 <ul class="list-group">
-                    <li class="list-group-item active">{$value->codigo} - {$value->numero}</li>
-                    {loop="$value1->pertenencia"}
-                    <li class="list-group-item">{$value->desc_id} {$value->valor}</li>
-                    {/loop}
-                    {if="$value->ocupado"}
-                    <li class="list-group-item list-group-item-danger">
-                        <span class="fa fa-ban"></span>&nbsp;Ocupado
-                    </li>
-                    <li class="list-group-item">
-                        <button class="btn btn-sm btn-danger"><span class="fa fa-user-times"></span>&nbsp;Eliminar Residente</button>
-                    </li>
-                    {else}
-                    <li class="list-group-item list-group-item-danger">
-                        <span class="fa fa-building-o"></span>&nbsp;Disponible&nbsp;
-                    </li>
-                    <li class="list-group-item">
-                        <button class="btn btn-sm btn-primary"><span class="fa fa-user-plus"></span>&nbsp;Agregar Residente</button>
-                    </li>
-                    {/if}
+                {loop="$fsc->mapa"}
+                {if="$fsc->padre_interior"}
+                    <a href="{#FS_PATH#}{$fsc->url()}&interior={$value->id}" class="list-group-item {if="$fsc->padre_interior->id==$value->id"}active{/if}">{$value->desc_id} {$value->codigo_edificacion}</a>
+                {else}
+                    <a href="{#FS_PATH#}{$fsc->url()}&interior={$value->id}" class="list-group-item">{$value->desc_id} {$value->codigo_edificacion}</a>
+                {/if}
+                {/loop}
                 </ul>
             </div>
-            {/loop}
+            <div class="col-sm-10">
+                {if="$fsc->lista_interior"}
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <a class="btn btn-sm btn-primary" href="{#FS_PATH#}{$fsc->url()}&interior={$fsc->padre_interior->padre_id}">
+                            <span class="fa fa-arrow-left"></span>&nbsp;{$fsc->padre_interior->desc_id} {$fsc->padre_interior->codigo_edificacion}
+                        </a>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-sm-12">
+                        {loop="$fsc->lista_interior"}
+                            <div class="col-sm-2">
+                                <ul class="list-group clearfix">
+                                    <li class="list-group-item active">{$value->desc_id} {$value->codigo_edificacion} {$value->numero}</li>
+                                    <li class="list-group-item">
+                                        {if="$fsc->edificaciones_tipo->get_by_field('padre', $value->id_tipo)"}
+                                        <a href="{$fsc->url()}&interior={$value->id}">
+                                            <span class="fa fa-building-o"></span>&nbsp;{$value->tiene_hijos()} Estructuras
+                                        </a>
+                                        {else}
+                                        {loop="$fsc->edificaciones_mapa->get_by_field('padre_id',$value->id)"}
+
+                                        {/loop}
+                                        <a href="{$fsc->url()}&interior={$value->id}">
+                                            <span class="fa fa-home"></span>&nbsp;{$value->tiene_hijos()} Inmuebles
+                                        </a>
+                                        {/if}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <button class="btn btn-xs btn-primary" onClick="$('#id_edificacion').val({$value->id})" data-toggle="modal" data-target="#nuevoInmueble"><span class="fa fa-plus"></span>&nbsp;Agregar Inmueble</button>
+                                        <div class="clearfix"></div>
+                                    </li>
+                                </ul>
+                            </div>
+                        {/loop}
+                        </div>
+                    </div>
+                </div>
+                {else}
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <p class="text-justify">Aqui se mostrará el listado de edificaciones.</p>
+                        <p class="text-justify">Para iniciar la configuración primero se debe crear la estructura en el boton de
+                            <b><span class="fa fa-gear"></span> &nbsp; Configuración</b>, debe crear desde el grupo mayor
+                            hasta la edificación minima por ejemplo Manzana > Bloque > Edificio y si son casas lo que se controlará entonces Manzana > Bloque > Casa.</p>
+                        <p class="text-justify">Puede tener varios tipos de configuraciones, pero siempre partiendo de un solo inicio, eso significa que puede tener
+                            Manzana > Edificio, Manzana > Casa y Manzana > Bloque > Edificio.</p>
+                        <p class="text-justify">Luego de crear los tipos de edificaciones debe ir al <b><span class="fa fa-building-o"></span>&nbsp;Mapa de Edificaciones</b> y crear
+                            todo la estructura con los numeros o letras de cada Grupo, Manzana, Ramal, o como haya denominado su estructura.</p>
+                        <p class="text-justify">
+                            En el <b><span class="fa fa-building-o"></span>&nbsp;Mapa de Edificaciones</b> puede crear en masa por cada tipo de edificacion rangos de Manzanas, Grupos, Bloques, Edificios, etc.
+                        </p>
+                    </div>
+                </div>
+                {/if}
+            </div>
         </div>
     </div>
     <!-- FIN Listado de Edificaciones !-->
@@ -298,4 +330,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
     </div>
 </form>
+{include="mapa/nuevo_inmueble"}
 {include="footer"}
