@@ -29,6 +29,10 @@ class mapa_edificaciones extends fs_controller{
     public $padre;
     public $hijo;
     public $mapa;
+    public $edificacion;
+    public $edificacion_padre;
+    public $edificacion_info;
+    public $edificacion_interior;
     public function __construct() {
         parent::__construct(__CLASS__, 'Mapa de Edificaciones', 'residentes', FALSE, FALSE, FALSE);
     }
@@ -47,6 +51,19 @@ class mapa_edificaciones extends fs_controller{
             $objeto = $this->edificaciones_tipo->get($id);
             $this->agregar($objeto);
         }
+
+        $tipo = $accion = \filter_input(INPUT_GET, 'type');
+        if($tipo=='select-hijos'){
+            $this->obtener_hijos();
+        }
+
+        $inmuebles = \filter_input(INPUT_GET, 'inmuebles');
+        if(!empty($inmuebles)){
+            $this->inmuebles = $inmuebles;
+            $this->inmuebles_info = $this->edificaciones_mapa->get($inmuebles);
+            $this->lista_inmuebles = $this->edificaciones_mapa->get_by_field('padre_id', $inmuebles);
+            $this->template = "mapa/inmuebles";
+        }
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
         $this->hijo = $this->edificaciones_tipo->get_by_field('padre', $this->padre->id);
     }
@@ -54,28 +71,34 @@ class mapa_edificaciones extends fs_controller{
     /**
      * funcion para guardar los codigos de las edificaciones base Manzana, Zona, Grupo, Edificio, etc
      */
-    public function agregar($id){
+    public function agregar($objeto){
         $inicio = \filter_input(INPUT_POST, 'inicio');
         $final_p = \filter_input(INPUT_POST, 'final');
+        $id = \filter_input(INPUT_POST, 'id');
         $codigo_padre = \filter_input(INPUT_POST, 'codigo_padre');
-        $salto = \filter_input(INPUT_POST, 'cantidad');
+        $padre_id = \filter_input(INPUT_POST, 'padre_id');
+        $cantidad = \filter_input(INPUT_POST, 'cantidad');
+        $incremento = \filter_input(INPUT_POST, 'incremento');
         $final=(!empty($final_p))?$final_p:$inicio;
-        $cantidad = 0;
+        $inmuebles = 0;
         $error = 0;
         $linea = 0;
         foreach(range($inicio,$final) as $item){
-            if($linea==$salto){
-                //break;
+            if($linea==$cantidad AND $cantidad!=0){
+                $item = $inicio+$incremento;
+                $linea = 0;
             }
             $item = (is_int($item))?str_pad($item,3,"0",STR_PAD_LEFT):$item;
             $punto = new residentes_edificaciones_mapa();
-            $punto->id_tipo = $id->id;
+            $punto->id = $id;
+            $punto->id_tipo = $objeto->id;
             $punto->codigo_edificacion = $item;
             $punto->codigo_padre = $codigo_padre;
-            $punto->padre_tipo = $id->padre;
+            $punto->padre_tipo = $objeto->padre;
+            $punto->padre_id = $padre_id;
             $punto->numero = '';
             if($punto->save()){
-                $cantidad++;
+                $inmuebles++;
             }else{
                 $error++;
             }
@@ -84,6 +107,17 @@ class mapa_edificaciones extends fs_controller{
         if($error){
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
         }
-        $this->new_message('Se guardaron correctamente '.$cantidad.' inmuebles.');
+        $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
+    }
+
+    public function obtener_hijos(){
+        $this->template = FALSE;
+        $id_tipo = \filter_input(INPUT_GET, 'id_tipo');
+        $hijos = array();
+        if($id_tipo){
+            $hijos = $this->edificaciones_tipo->get_by_field('padre', $id_tipo);
+        }
+        header('Content-Type: application/json');
+        echo json_encode($hijos);
     }
 }

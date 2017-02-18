@@ -23,6 +23,11 @@ namespace FacturaScripts\model;
  */
 class residentes_edificaciones_mapa extends \fs_model{
     /**
+     * ID correlativo de cada linea
+     * @var type serial
+     */
+    public $id;
+    /**
      * El Id del tipo de edificacion
      * @var type integer
      */
@@ -48,18 +53,25 @@ class residentes_edificaciones_mapa extends \fs_model{
      * @var type integer
      */
     public $padre_tipo;
-
+    /**
+     * el ID de la edificacion padre
+     * @var type integer
+     */
+    public $padre_id;
     public $edificaciones_tipo;
     public function __construct($t = FALSE) {
         parent::__construct('residentes_mapa_edificaciones','plugins/residentes');
         if($t){
+            $this->id = $t['id'];
             $this->id_tipo = $t['id_tipo'];
             $this->codigo_edificacion = $t['codigo_edificacion'];
             $this->codigo_padre = $t['codigo_padre'];
             $this->numero = $t['numero'];
             $this->padre_tipo = $t['padre_tipo'];
+            $this->padre_id = $t['padre_id'];
 
         }else{
+            $this->id = null;
             $this->id_tipo = null;
             $this->codigo_edificacion = null;
             $this->codigo_padre = null;
@@ -95,12 +107,9 @@ class residentes_edificaciones_mapa extends \fs_model{
      * @param type $padre_tipo integer
      * @return \FacturaScripts\model\residentes_edificaciones_mapa|boolean
      */
-    public function get($id_tipo,$codigo_edificacion,$padre_tipo,$codigo_padre){
+    public function get($id){
         $sql = "SELECT * FROM ".$this->table_name.
-                " WHERE id_tipo = ".$this->intval($id_tipo)." AND ".
-                " codigo_edificacion = ".$this->var2str($codigo_edificacion)." AND ".
-                " codigo_padre = ".$this->var2str($codigo_padre)." AND ".
-                " padre_tipo = ".$this->intval($padre_tipo).";";
+                " WHERE id = ".$this->intval($id).";";
         $data = $this->db->select($sql);
         if($data){
             return new residentes_edificaciones_mapa($data[0]);
@@ -133,31 +142,32 @@ class residentes_edificaciones_mapa extends \fs_model{
     }
 
     public function exists() {
-        if(!$this->get($this->id_tipo,$this->codigo_edificacion,$this->padre_tipo,$this->codigo_padre)){
+        if(is_null($this->id)){
             return false;
         }else{
-            return $this->get($this->id_tipo,$this->codigo_edificacion,$this->padre_tipo,$this->codigo_padre);
+            return $this->get($this->id);
         }
     }
 
     public function save() {
         if($this->exists()){
             $sql = "UPDATE ".$this->table_name." SET ".
-                    "codigo_edificacion = ".$this->var2str($this->codigo_edificacion).", ".
-                    "numero = ".$this->var2str($this->numero).", ".
-                    "padre_tipo = ".$this->intval($this->padre_tipo)." ".
-                    "WHERE id_tipo = ".$this->intval($this->id_tipo)." AND ".
-                    " codigo_edificacion = ".$this->var2str($this->codigo_edificacion)." AND ".
-                    " codigo_padre = ".$this->var2str($this->codigo_padre)." AND ".
-                    " padre_tipo = ".$this->intval($this->padre_tipo).";";
+                    " codigo_edificacion = ".$this->var2str($this->codigo_edificacion).", ".
+                    " codigo_padre = ".$this->var2str($this->codigo_padre).", ".
+                    " id_tipo = ".$this->intval($this->id_tipo).", ".
+                    " numero = ".$this->var2str($this->numero).", ".
+                    " padre_tipo = ".$this->intval($this->padre_tipo)." ".
+                    " padre_id = ".$this->intval($this->padre_id)." ".
+                    "WHERE id = ".$this->intval($this->id).";";
             return $this->db->exec($sql);
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (id_tipo, codigo_edificacion, codigo_padre, numero, padre_tipo) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (id_tipo, codigo_edificacion, codigo_padre, numero, padre_tipo, padre_id) VALUES (".
                     $this->intval($this->id_tipo).", ".
                     $this->var2str($this->codigo_edificacion).", ".
                     $this->var2str($this->codigo_padre).", ".
                     $this->var2str($this->numero).", ".
-                    $this->intval($this->padre_tipo).");";
+                    $this->intval($this->padre_tipo).", ".
+                    $this->intval($this->padre_id).");";
             if($this->db->exec($sql)){
                 return true;
             }else{
@@ -168,7 +178,7 @@ class residentes_edificaciones_mapa extends \fs_model{
 
     public function delete() {
         $sql = "DELETE FROM ".$this->table_name.
-                " WHERE id_tipo = ".$this->intval($this->id).";";
+                " WHERE id = ".$this->intval($this->id).";";
         return $this->db->exec($sql);
     }
 
@@ -236,7 +246,7 @@ class residentes_edificaciones_mapa extends \fs_model{
     }
 
     public function tiene_hijos(){
-        $sql = "SELECT count(*) as cantidad FROM ".$this->table_name." WHERE padre_tipo = ".$this->intval($this->id_tipo)." and codigo_padre = ".$this->var2str($this->codigo_edificacion).";";
+        $sql = "SELECT count(*) as cantidad FROM ".$this->table_name." WHERE padre_id = ".$this->intval($this->id).";";
         $data = $this->db->select($sql);
         if($data){
             return $data[0]['cantidad'];

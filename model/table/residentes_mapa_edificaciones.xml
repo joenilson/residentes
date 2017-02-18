@@ -13,7 +13,13 @@
     <columna>
         <nombre>codigo_padre</nombre>
         <tipo>character varying(6)</tipo>
-        <nulo>YES</nulo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('residentes_mapa_edificaciones_id_seq'::regclass)</defecto>
     </columna>
     <columna>
         <nombre>id_tipo</nombre>
@@ -26,12 +32,17 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>padre_id</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
         <nombre>padre_tipo</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
     </columna>
     <restriccion>
-        <nombre>residentes_mapa_edificaciones_ik</nombre>
-        <consulta>PRIMARY KEY (id_tipo,codigo_edificacion,padre_tipo,codigo_padre)</consulta>
+        <nombre>residentes_mapa_edificaciones_pk</nombre>
+        <consulta>PRIMARY KEY (id)</consulta>
     </restriccion>
 </tabla>

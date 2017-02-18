@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </a>
                 {/if}
             </div>
-
             <div class="btn-group">
                 <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#nuevaEstructura">
                     <span class="fa fa-plus"></span> &nbsp; Nuevo
@@ -50,52 +49,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
     <hr />
     <div class="row">
-        <div class="col-sm-3">
-            <ul class="list-group">
-            <li class="list-group-item active">{$fsc->padre->descripcion}</li>
-            {loop="$fsc->mapa"}
-            <li class="list-group-item clearfix">
-                {$value->codigo_edificacion}
-                <span class="pull-right">
-                    <a href="#" onclick="$('#codigo_padre').val('{$value->codigo_edificacion}');$('#padre').val('{$value->id_tipo}');" data-toggle="modal" data-target="#nuevoHijo" style="margin-right:5px;"><span class="fa fa-plus"></span></a>
-                    <a href="#grupo{$value->codigo_edificacion}" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="grupo{$value->codigo_edificacion}" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
+        {loop="$fsc->mapa"}
+        <div class="col-sm-2">
+            <div class="alert {if="$value->tiene_hijos()"}alert-info{else}alert-warning{/if} clearfix">
+                <h3>{$fsc->padre->descripcion} {$value->codigo_edificacion}</h3>
+                <p>{$value->tiene_hijos()} Inmuebles</p>
+                <p class="pull-right">
+                    <a href="#" onclick="$('#padre_id').val('{$value->id}');$('#codigo_padre').val('{$value->codigo_edificacion}');$('#padre').val('{$value->id_tipo}');obtener_hijos('{$value->id_tipo}');" data-toggle="modal" data-target="#nuevoHijo" style="margin-right:5px;"><span class="fa fa-plus"></span></a>
+                    <a href="{$fsc->url()}&inmuebles={$value->id}" role="button" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
                     {if="$value->tiene_hijos()"}
                     <a href="#" class="text-warning" onclick="alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
                     {else}
-                    <a href="#" class="text-danger" onclick="alert('bu')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
+                    <a href="#" class="text-danger" onclick="alert('Eliminar aun no completo.')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
                     {/if}
-                </span>
-            </li>
-            {else}
-                <li class="list-group-item list-group-item-warning">No se han agregado Edificaciones, agregue un rango de información inicial con el boton <b>Nuevo</b>.</li>
-            {/loop}
-            </ul>
-        </div>
-        <div class="col-sm-9">
-            {loop="$fsc->mapa"}
-            <div class="collapse" id="grupo{$value->codigo_edificacion}">
-                <div class="col-sm-3">
-                    <ul class="list-group">
-                        <li class="list-group-item active">{$fsc->padre->descripcion} {$value->codigo_edificacion}</li>
-                        {loop="$fsc->edificaciones_mapa->get_by_field('codigo_padre',$value->codigo_edificacion)"}
-                            <li class="list-group-item">
-                                {$value2->desc_id} {$value2->codigo_edificacion}
-                                <span class="pull-right">
-                                    <a href="#" onclick="$('#codigo_padre').val('{$value->codigo_edificacion}');$('#padre').val('{$value->id_tipo}');" data-toggle="modal" data-target="#nuevoHijo" style="margin-right:5px;"><span class="fa fa-plus"></span></a>
-                                    <a href="#grupo{$value->codigo_edificacion}" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="grupo{$value->codigo_edificacion}" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
-                                    {if="$value->tiene_hijos()"}
-                                    <a href="#" class="text-warning" onclick="alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
-                                    {else}
-                                    <a href="#" class="text-danger" onclick="alert('bu')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
-                                    {/if}
-                                </span>
-                            </li>
-                        {/loop}
-                    </ul>
-                </div>
+                </p>
             </div>
-            {/loop}
         </div>
+        {/loop}
     </div>
 </div>
 <!-- Modal para nueva estructura -->
@@ -109,7 +79,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <div class="modal-body">
                     <div class="form-group col-sm-3">
-                        <input type="hidden" name="codigo_padre" value="">
+                        <input type="hidden" name="id" value="">
+                        <input type="hidden" name="codigo_padre" value="{$fsc->padre->padre}">
+                        <input type="hidden" name="padre_id" value="">
                         {$fsc->padre->descripcion}
                     </div>
                     <div class="form-group col-sm-9">
@@ -129,51 +101,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
     </div>
 </div>
-<!-- Modal para nuevo hijo -->
-<div class="modal fade" id="nuevoHijo" tabindex="-1" role="dialog" aria-labelledby="nuevoHijoTitulo">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form class="form" role="form" name="f_mapa_nuevo" action="{$fsc->url()}" method="POST">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" onClick="this.form.reset();" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="nuevoHijoTitulo">Nueva Estructura Interna</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group col-sm-3">
-                        <input type="hidden" name="padre" id="padre" value="{$fsc->padre->id}">
-                        <input type="hidden" name="codigo_padre" id="codigo_padre" value="">
-                        <select name="id_hijo" class="form-control">
-                        {loop="$fsc->hijo"}
-                        <option value="{$value->id}">{$value->descripcion}</option>
-                        {/loop}
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-9">
-                        <div class="input-group">
-                            <input type="text" name="inicio" value="" placeholder="Desde" class="form-control" aria-describedby="basic-addon2"/>
-                            <div class="input-group-addon" id="basic-addon2"><span class="fa fa-arrow-right"></span></div>
-                            <input type="text" name="final" value="" placeholder="Hasta" class="form-control"/>
-                        </div>
-                    </div>
-                    <div class="form-group col-sm-12">
-                        <div class="input-group">
-                            <label for="cantidad">Cantidad maxima a generar</label>
-                            <input type="number" name="cantidad" value="" step="1" min="0" placeholder="Cantidad" class="form-control" aria-describedby="helpBlock"/>
-                            <span id="helpBlock" class="help-block text-justify">
-                                Si el rango que estas poniendo va del 101 al 405 y solo necesitas que se generen los 5 primeros numeros de este rango
-                                (101,102,103,104,105 y luego que salte a 201,202,203,204,205) puedes colocar en cantidad el numero 5 para que el
-                                generador de codigos realice esta tarea.
-                            </span>
-                        </div>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" onClick="this.form.reset();" data-dismiss="modal">Cerrar</button>
-                    <button type="submit" name="accion" value="agregar_hijo" class="btn btn-primary">Agregar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+{include="mapa/nuevo_hijo"}
 {include="footer"}

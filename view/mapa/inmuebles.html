@@ -1,0 +1,72 @@
+{include="header"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid" style="margin-top: 10px;">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&inmuebles={$fsc->inmuebles}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&inmuebles={$fsc->inmuebles_info->padre_id}">
+                    <span class="fa fa-arrow-left"></span>&nbsp;Regresar
+                </a>
+            </div>
+            <div class="btn-group">
+                {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                        <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                    {/if}
+                {/loop}
+            </div>
+        </div>
+        <div class="col-sm-6 text-right">
+            <h2 style="margin-top: 0px;"><span class="fa fa-building-o"></span>&nbsp;Edificaciones</h2>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        {loop="$fsc->lista_inmuebles"}
+        <div class="col-sm-2">
+            <div class="alert {if="$value->tiene_hijos()"}alert-info{else}alert-warning{/if} clearfix">
+                <h3>{$value->desc_id} {$value->codigo_edificacion}</h3>
+                <p>{$value->tiene_hijos()} Inmuebles</p>
+                <p class="pull-right">
+                    <a href="#" onclick="$('#f_nuevo_hijo').attr('action','{$fsc->url()}&inmuebles={$value->id}');$('#padre_id').val('{$value->id}');$('#codigo_padre').val('{$value->codigo_edificacion}');$('#padre').val('{$value->id_tipo}');obtener_hijos('{$value->id_tipo}');" data-toggle="modal" data-target="#nuevoHijo" style="margin-right:5px;"><span class="fa fa-plus"></span></a>
+                    {if="$value->tiene_hijos()"}
+                    <a href="{$fsc->url()}&inmuebles={$value->id}" role="button" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
+                    <a href="#" class="text-warning" onclick="alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
+                    {else}
+                    <a href="#" class="text-danger" onclick="alert('Eliminar aun no completo.')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
+                    {/if}
+                </p>
+            </div>
+        </div>
+        {/loop}
+    </div>
+</div>
+{include="mapa/nuevo_hijo"}
+{include="footer"}

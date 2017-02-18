@@ -142,10 +142,10 @@ class residentes_edificaciones_tipo extends \fs_model{
             if($item->padre == $raiz){
                 unset($lista[$key]);
                 $estructura[]=array(
-                    'id'=>$item->idvehiculo,
+                    'id'=>$item->id,
                     'text'=>$item->descripcion,
                     'padre'=>$item->padre,
-                    'nodes'=>$this->estructura($lista,$item->idvehiculo)
+                    'nodes'=>$this->estructura($lista,$item->id)
                 );
             }
         }

@@ -1,0 +1,126 @@
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!-- Modal para nuevo hijo -->
+<div class="modal fade" id="nuevoHijo" tabindex="-1" role="dialog" aria-labelledby="nuevoHijoTitulo">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form class="form" role="form" name="f_mapa_nuevo" id="f_nuevo_hijo" action="{$fsc->url()}" method="POST">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" onClick="this.form.reset();" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="nuevoHijoTitulo">Nueva Estructura Interna</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="campos">
+                        <div class="form-group col-sm-3">
+                            <input type="hidden" name="id" value="">
+                            <input type="hidden" name="padre" id="padre" value="{$fsc->padre->id}">
+                            <input type="hidden" name="codigo_padre" id="codigo_padre" value="">
+                            <input type="hidden" name="padre_id" id="padre_id" value="">
+                            <select name="id_hijo" id="id_hijo" required class="form-control">
+
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="input-group">
+                                <input type="text" name="inicio" value="" placeholder="Desde" class="form-control" aria-describedby="basic-addon3"/>
+                                <div class="input-group-addon" id="basic-addon3"><span class="fa fa-arrow-right"></span></div>
+                                <input type="text" name="final" value="" placeholder="Hasta" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <div class="input-group">
+                                <div class="col-sm-6">
+                                    <label for="cantidad">Cantidad maxima a generar</label>
+                                    <input type="number" name="cantidad" value="" step="1" min="0" placeholder="Cantidad" class="form-control" aria-describedby="helpBlock"/>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="cantidad">Incremento</label>
+                                    <input type="number" name="incremento" value="" step="1" min="0" placeholder="Incremento" class="form-control" aria-describedby="helpBlock"/>
+                                </div>
+                                <span id="helpBlock" class="help-block text-justify">
+                                    Si el rango es 101,102,103,104,105 y luego 201,202,203,204,205 puedes colocar en <b>Cantidad</b> el numero 5
+                                    y en <b>Incremento</b> coloca 100 para que se incremente el contador.<br/><br/>
+                                    Si los numeros son 1001, 1002, 1004 entonces el incremento es de 1000 y si los
+                                    números osn 10,11,12,13,14,20,21,22 entonces los incrementos son de 10 en 10.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="row">
+                        <div class="alert alert-danger" id="mensaje">
+
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" onClick="this.form.reset();" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" name="accion" id="agregar_hijo" value="agregar_hijo" class="btn btn-primary">Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function obtener_hijos(id_tipo){
+        var data = "";
+        var select = $('#id_hijo');
+        var campos = $('#campos');
+        var mensaje = $('#mensaje');
+        var boton = $('#agregar_hijo');
+        select.empty();
+        $.ajax({
+            type: 'GET',
+            url : '{$fsc->url()}&type=select-hijos',
+            data : 'id_tipo='+id_tipo,
+            async: false,
+            success : function(response) {
+                //data = response;
+                if(response.length !== 0 && response){
+                    data = response;
+                    select.prop('disabled', false);
+                }else{
+                    select.prop('disabled', 'disabled');
+                    campos.hide();
+                    mensaje.html('Has llegado al final, ahora regresa a las edificaciones y agrega unidades individuales como Casas, Departamentos, etc.');
+                    mensaje.show();
+                    boton.hide();
+                }
+            },
+            error: function(response) {
+                alert(response);
+            }
+        });
+        if(data.length !== 0){
+            var array = data.filter(function(e){return e;});
+            select.append(
+                $('<option></option>').val('').html('Elija un tipo')
+            );
+            $.each(array, function(index, value) {
+                select.append(
+                    $('<option></option>').val(value.id).html(value.descripcion)
+                );
+            });
+        }else{
+            select.prop('disabled', 'disabled');;
+        }
+    }
+    $(document).ready(function(){
+        $('#mensaje').hide();
+    });
+</script>
