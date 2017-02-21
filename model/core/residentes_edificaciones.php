@@ -246,6 +246,16 @@ class residentes_edificaciones extends \fs_model{
         }
     }
 
+    public function cantidad_inmuebles($id_edificacion){
+        $sql = "SELECT count(*) as cantidad FROM ".$this->table_name." WHERE id_edificacion = ".$this->intval($id_edificacion).";";
+        $data = $this->db->select($sql);
+        if($data){
+            return $data[0]['cantidad'];
+        }else{
+            return false;
+        }
+    }
+
     public function generar_mapa(){
         $mapa = array();
         $linea = 0;

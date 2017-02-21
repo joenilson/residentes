@@ -120,6 +120,20 @@ class residentes_edificaciones_mapa extends \fs_model{
         }
     }
 
+    public function getEstructura(){
+        $sql = "SELECT * FROM ".$this->table_name." WHERE codigo_edificacion = ".$this->var2str($this->codigo_edificacion)." AND ".
+                " codigo_padre = ".$this->var2str($this->codigo_padre)." AND id_tipo = ".$this->intval($this->id_tipo)." AND ".
+                " padre_tipo = ".$this->intval($this->padre_tipo)." AND padre_id = ".$this->intval($this->padre_id).";";
+        $data = $this->db->select($sql);
+        if($data){
+            $item = new residentes_edificaciones_mapa($data[0]);
+            $item->desc_id = $this->edificaciones_tipo->get($item->id_tipo)->descripcion;
+            return $item;
+        }else{
+            return false;
+        }
+    }
+
     /**
      * //Si queremos buscar por id_tipo o codigo_interno o numero
      * @param type $field string
@@ -144,10 +158,10 @@ class residentes_edificaciones_mapa extends \fs_model{
     }
 
     public function exists() {
-        if(is_null($this->id)){
+        if(!$this->getEstructura()){
             return false;
         }else{
-            return $this->get($this->id);
+            return $this->getEstructura();
         }
     }
 
@@ -158,7 +172,7 @@ class residentes_edificaciones_mapa extends \fs_model{
                     " codigo_padre = ".$this->var2str($this->codigo_padre).", ".
                     " id_tipo = ".$this->intval($this->id_tipo).", ".
                     " numero = ".$this->var2str($this->numero).", ".
-                    " padre_tipo = ".$this->intval($this->padre_tipo)." ".
+                    " padre_tipo = ".$this->intval($this->padre_tipo).", ".
                     " padre_id = ".$this->intval($this->padre_id)." ".
                     "WHERE id = ".$this->intval($this->id).";";
             return $this->db->exec($sql);

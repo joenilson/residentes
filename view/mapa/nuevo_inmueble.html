@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <h4 class="modal-title" id="nuevoInmuebleTitulo">Nuevo Inmueble</h4>
                 </div>
                 <div class="modal-body">
-                    <div id="campos">
+                    <div id="campos_inmueble">
                         <div class="col-sm-4">
                             Número del Inmueble
                         </div>
@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <div class="input-group">
                                 <input type="hidden" id="id_edificacion" name="id_edificacion" value="">
                                 <input type="text" name="inicio" value="" placeholder="Desde" class="form-control" aria-describedby="basic-addon3"/>
-                                <div class="input-group-addon" id="basic-addon3"><span class="fa fa-arrow-right"></span></div>
+                                <div class="input-group-addon" id="basic-addon4"><span class="fa fa-arrow-right"></span></div>
                                 <input type="text" name="final" value="" placeholder="Hasta" class="form-control"/>
                             </div>
                         </div>
@@ -57,8 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                     <div class="clearfix"></div>
                     <div class="row">
-                        <div class="alert alert-danger" id="mensaje">
-
+                        <div class="alert alert-danger" id="mensaje_inmueble">
                         </div>
                     </div>
                     <div class="clearfix"></div>
@@ -75,8 +74,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     function obtener_inmuebles(id_tipo){
         var data = "";
         var select = $('#id_hijo');
-        var campos = $('#campos');
-        var mensaje = $('#mensaje');
+        var campos = $('#campos_inmueble');
+        var mensaje = $('#mensaje_inmueble');
         var boton = $('#agregar_hijo');
         select.empty();
         $.ajax({
@@ -116,6 +115,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         }
     }
     $(document).ready(function(){
-        $('#mensaje').hide();
+        $('#mensaje_inmueble').hide();
     });
 </script>

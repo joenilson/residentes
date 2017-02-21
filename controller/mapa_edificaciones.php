@@ -77,17 +77,11 @@ class mapa_edificaciones extends fs_controller{
         $id = \filter_input(INPUT_POST, 'id');
         $codigo_padre = \filter_input(INPUT_POST, 'codigo_padre');
         $padre_id = \filter_input(INPUT_POST, 'padre_id');
-        $cantidad = \filter_input(INPUT_POST, 'cantidad');
-        $incremento = \filter_input(INPUT_POST, 'incremento');
         $final=(!empty($final_p))?$final_p:$inicio;
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
         foreach(range($inicio,$final) as $item){
-            if($linea==$cantidad AND $cantidad!=0){
-                $item = $inicio+$incremento;
-                $linea = 0;
-            }
             $item = (is_int($item))?str_pad($item,3,"0",STR_PAD_LEFT):$item;
             $punto = new residentes_edificaciones_mapa();
             $punto->id = $id;

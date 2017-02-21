@@ -68,7 +68,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             data : 'id_tipo='+id_tipo,
             async: false,
             success : function(response) {
-                //data = response;
                 if(response.length !== 0 && response){
                     data = response;
                     select.prop('disabled', false);

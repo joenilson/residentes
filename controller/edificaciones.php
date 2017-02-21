@@ -45,16 +45,32 @@ class edificaciones extends fs_controller{
         $this->edificaciones_tipo = new residentes_edificaciones_tipo();
         $this->edificaciones_mapa = new residentes_edificaciones_mapa();
         $this->edificaciones = new residentes_edificaciones();
+
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
 
         $accion = filter_input(INPUT_POST, 'accion');
         switch ($accion){
+            //Este case solo es temporal, cuando se tenga el plugin estable se eliminará
+            case "fixdb":
+                $sql1 = "DROP TABLE residentes_mapa_edificaciones;";
+                $this->db->exec($sql1);
+                $sql2 = "DROP TABLE residentes_edificaciones;";
+                $this->db->exec($sql2);
+                new residentes_edificaciones();
+                new residentes_edificaciones_mapa();
+                $this->new_message('¡Tablas eliminadas y creadas nuevamente!');
+                break;
             case "agregar":
                 $this->tratar_edificaciones();
                 break;
             case "agregar_inmueble":
                 $this->agregar_inmueble();
+                break;
+            case "agregar_hijo":
+                $id = \filter_input(INPUT_POST, 'id_hijo');
+                $objeto = $this->edificaciones_tipo->get($id);
+                $this->agregar($objeto);
                 break;
             case "tratar_tipo":
                 $this->tratar_tipo_edificaciones();
@@ -67,6 +83,11 @@ class edificaciones extends fs_controller{
                 $this->fsvar->array_save($residentes_config);
             default:
                 break;
+        }
+
+        $tipo = $accion = \filter_input(INPUT_GET, 'type');
+        if($tipo=='select-hijos'){
+            $this->obtener_hijos();
         }
 
         $this->fsvar = new fs_var();
@@ -92,20 +113,41 @@ class edificaciones extends fs_controller{
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
     }
 
-    public function buscar_padre($id,&$codigo){
-        $dato = $this->edificaciones_mapa->get($id);
-        $codigo[] = $dato->codigo_edificacion;
-        if($dato->padre_id==0){
-            return $codigo;
+    public function url(){
+        $interior = \filter_input(INPUT_GET, 'interior');
+        if($interior){
+            return 'index.php?page='.__CLASS__.'&interior='.$interior;
         }else{
-            $this->buscar_padre($dato->padre_id,$codigo);
+            return 'index.php?page='.__CLASS__;
         }
     }
 
-    public function crear_codigo($id){
+    public function parent_url(){
+        return 'index.php?page='.__CLASS__;
+    }
+
+    public function buscar_padre($id,&$codigo,&$unir = false){
+        $dato = $this->edificaciones_mapa->get($id);
+        $codigo[] = ($unir)?'"'.$dato->id_tipo.'":"'.$dato->codigo_edificacion.'"':$dato->codigo_edificacion;
+        if($dato->padre_id==0){
+            return $codigo;
+        }else{
+            $this->buscar_padre($dato->padre_id,$codigo,$unir);
+        }
+    }
+
+    public function crear_codigo($id,$unir = false){
         $codigo = array();
-        $this->buscar_padre($id,$codigo);
-        rsort($codigo);
+        $this->buscar_padre($id,$codigo, $unir);
+        if($unir){
+            $lista = array();
+            foreach($codigo as $linea){
+                array_unshift($lista, $linea);
+            }
+            $codigo = $lista;
+        }else{
+            rsort($codigo);
+        }
         return $codigo;
     }
 
@@ -117,8 +159,9 @@ class edificaciones extends fs_controller{
         $cantidad = \filter_input(INPUT_POST, 'cantidad');
         $incremento = \filter_input(INPUT_POST, 'incremento');
         $codigo_mapa = $this->crear_codigo($id_edificacion);
+        $codigo_interno = $this->crear_codigo($id_edificacion,1);
         $codigo = implode("",$codigo_mapa);
-        $codigo_interno = "{".implode("},{",$codigo_mapa)."}";
+        $codigo_interno = "{".implode(",",$codigo_interno)."}";
         $ubicacion = "";
         $codcliente = "";
         $ocupado = FALSE;
@@ -145,9 +188,9 @@ class edificaciones extends fs_controller{
                 $error++;
             }
         }else{
-            for ($i = $inicio; $i<($final+1); $i++){
+            for ($i = $inicio; $i<=($final); $i++){
                 if($linea==$cantidad AND $cantidad!=0){
-                    $i = $inicio+$incremento;
+                    $i = ($i-$cantidad)+$incremento;
                     $linea = 0;
                 }
                 $item = (is_int($i))?str_pad($i,3,"0",STR_PAD_LEFT):$i;
@@ -264,6 +307,53 @@ class edificaciones extends fs_controller{
         $this->template = false;
         header('Content-Type: application/json');
         echo json_encode($estructura);
+    }
+
+    public function obtener_hijos(){
+        $this->template = FALSE;
+        $id_tipo = \filter_input(INPUT_GET, 'id_tipo');
+        $hijos = array();
+        if($id_tipo){
+            $hijos = $this->edificaciones_tipo->get_by_field('padre', $id_tipo);
+        }
+        header('Content-Type: application/json');
+        echo json_encode($hijos);
+    }
+
+     /**
+     * funcion para guardar los codigos de las edificaciones base Manzana, Zona, Grupo, Edificio, etc
+     */
+    public function agregar($objeto){
+        $inicio = \filter_input(INPUT_POST, 'inicio');
+        $final_p = \filter_input(INPUT_POST, 'final');
+        $id = \filter_input(INPUT_POST, 'id');
+        $codigo_padre = \filter_input(INPUT_POST, 'codigo_padre');
+        $padre_id = \filter_input(INPUT_POST, 'padre_id');
+        $final=(!empty($final_p))?$final_p:$inicio;
+        $inmuebles = 0;
+        $error = 0;
+        $linea = 0;
+        foreach(range($inicio,$final) as $item){
+            $item = (is_int($item))?str_pad($item,3,"0",STR_PAD_LEFT):$item;
+            $punto = new residentes_edificaciones_mapa();
+            $punto->id = $id;
+            $punto->id_tipo = $objeto->id;
+            $punto->codigo_edificacion = $item;
+            $punto->codigo_padre = $codigo_padre;
+            $punto->padre_tipo = $objeto->padre;
+            $punto->padre_id = $padre_id;
+            $punto->numero = '';
+            if($punto->save()){
+                $inmuebles++;
+            }else{
+                $error++;
+            }
+            $linea++;
+        }
+        if($error){
+            $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
+        }
+        $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
     }
 
     private function mayusculas($string){

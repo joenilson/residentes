@@ -126,6 +126,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <a class="btn btn-sm btn-default" href="index.php?page=mapa_edificaciones">
                    <span class="fa fa-building-o"></span> &nbsp; Mapa de Edificaciones
                 </a>
+                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#corregirBaseDatos"><span class="fa fa-ban"></span>&nbsp;Corregir Base de Datos</button>
                 {loop="$fsc->extensions"}
                 {if="$value->type=='button'"}
                 <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
@@ -156,34 +157,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 {if="$fsc->lista_interior"}
                 <div class="panel panel-primary">
                     <div class="panel-heading">
-                        <a class="btn btn-sm btn-primary" href="{#FS_PATH#}{$fsc->url()}&interior={$fsc->padre_interior->padre_id}">
+                        <a class="btn btn-sm btn-primary" href="{#FS_PATH#}{$fsc->parent_url()}&interior={$fsc->padre_interior->padre_id}">
                             <span class="fa fa-arrow-left"></span>&nbsp;{$fsc->padre_interior->desc_id} {$fsc->padre_interior->codigo_edificacion}
                         </a>
                     </div>
                     <div class="panel-body">
                         <div class="col-sm-12">
                         {loop="$fsc->lista_interior"}
-                            <div class="col-sm-2">
+                            <div class="col-sm-3">
                                 <ul class="list-group clearfix">
                                     <li class="list-group-item active">{$value->desc_id} {$value->codigo_edificacion} {$value->numero}</li>
                                     <li class="list-group-item">
                                         {if="$fsc->edificaciones_tipo->get_by_field('padre', $value->id_tipo)"}
-                                        <a href="{$fsc->url()}&interior={$value->id}">
+                                        <a href="{$fsc->parent_url()}&interior={$value->id}">
                                             <span class="fa fa-building-o"></span>&nbsp;{$value->tiene_hijos()} Estructuras
                                         </a>
                                         {else}
-                                        {loop="$fsc->edificaciones_mapa->get_by_field('padre_id',$value->id)"}
-
-                                        {/loop}
-                                        <a href="{$fsc->url()}&interior={$value->id}">
-                                            <span class="fa fa-home"></span>&nbsp;{$value->tiene_hijos()} Inmuebles
+                                        <a href="{$fsc->parent_url()}&interior={$value->id}">
+                                            <span class="fa fa-home"></span>&nbsp;{$fsc->edificaciones->cantidad_inmuebles($value->id)} Inmuebles
                                         </a>
+                                        <ul class="list-group clearfix">
+                                        {loop="$fsc->edificaciones->get_by_field('id_edificacion',$value->id)"}
+                                        <li class="list-group-item">
+                                            <span class="fa fa-home"></span>&nbsp;{$value->codigo} {$value->numero}
+                                            <a href="{$fsc->parent_url()}&inmueble={$value->id}">
+
+                                            </a>
+                                        </li>
+                                        {/loop}
+                                        </ul>
                                         {/if}
                                     </li>
-                                    <li class="list-group-item">
-                                        <button class="btn btn-xs btn-primary" onClick="$('#id_edificacion').val({$value->id})" data-toggle="modal" data-target="#nuevoInmueble"><span class="fa fa-plus"></span>&nbsp;Agregar Inmueble</button>
-                                        <div class="clearfix"></div>
-                                    </li>
+                                    {if="$fsc->edificaciones_tipo->get_by_field('padre', $value->id_tipo)"}
+                                        <li class="list-group-item">
+                                            <button class="btn btn-xs btn-primary" onClick="$('#padre_id').val('{$value->id}');$('#codigo_padre').val('{$value->codigo_edificacion}');$('#padre').val('{$value->id_tipo}');obtener_hijos('{$value->id_tipo}');" data-toggle="modal" data-target="#nuevoHijo"><span class="fa fa-plus"></span>&nbsp;Agregar Edificaciones</button>
+                                            <div class="clearfix"></div>
+                                        </li>
+                                    {else}
+                                        <li class="list-group-item">
+                                            <button class="btn btn-xs btn-primary" onClick="$('#id_edificacion').val({$value->id})" data-toggle="modal" data-target="#nuevoInmueble"><span class="fa fa-plus"></span>&nbsp;Agregar Inmueble</button>
+                                            <div class="clearfix"></div>
+                                        </li>
+                                    {/if}
                                 </ul>
                             </div>
                         {/loop}
@@ -212,42 +227,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
     <!-- FIN Listado de Edificaciones !-->
 </div>
-
-<form name="f_nueva_edificacion" class="form-horizontal" action="{$fsc->url()}" method="post">
-    <input type="hidden" name="edificacion"/>
-    <div class="modal" id="modal_edificacion">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">Nueva Edificación</h4>
-                </div>
-                <div class="modal-body">
-                        {loop="$fsc->edificaciones_tipo->all()"}
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="campo_{$value->id}">{$value->descripcion}:</label>
-                            <div class="col-sm-4">
-                                <input type="text" name="campo_{$value->id}" id="campo_{$value->id}" class="form-control input-sm" autocomplete="off"/>
-                            </div>
-                        </div>
-                        {/loop}
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="numero_edificacion">{$fsc->nombre_edificacion}:</label>
-                            <div class="col-sm-4">
-                                <input type="text" name="numero_edificacion" id="numero_edificacion" class="form-control input-sm" value="" autocomplete="off" aria-describedby="helpBlockInmueble"/>
-                                <span id="helpBlockInmueble" class="help-block">Aquí va el número del Inmueble 101 por ejemplo.</span>
-                            </div>
-                        </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-sm btn-primary" type="submit" name="accion" value="agregar" onclick="return confirm('Está seguro que la información a ingresar está correcta?');">
-                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</form>
 
 <form name="f_opciones" class="form" action="{$fsc->url()}" method="post">
     <input type="hidden" name="edificacion"/>
@@ -293,37 +272,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
     </div>
 </form>
-
-<form name="f_nuevo_tipo_edificacion" class="form" action="{$fsc->url()}" method="post">
-    <input type="hidden" name="tipo_edificacion"/>
-    <div class="modal" id="modal_tipo_edificacion">
+<!-- Modal temporal !-->
+<form name="f_fixdb" class="form" action="{$fsc->url()}" method="post">
+    <div class="modal" id="corregirBaseDatos">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">Tipo de Edificación</h4>
+                    <h4 class="modal-title">Eliminacion</h4>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="form-group col-sm-6">
-                            <input type="hidden" name="id" value=""/>
-                            <label class="control-label">Descripción:</label>
-                            <input type="text" name="descripcion" class="form-control" autocomplete="off"/>
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label class="control-label">Padre:</label>
-                            <select name="padre" class="form-control input-sm">
-                                <option value="0">Principal</option>
-                                {loop="$fsc->edificaciones_tipo->all()"}
-                                <option value="{$value->id}">{$value->descripcion}</option>
-                                {/loop}
-                            </select>
-                        </div>
-                    </div>
+                    <span class="help-block text-justify alert alert-danger">
+                        <span class="fa fa-info-circle"></span>&nbsp;Al hacer click en el boton de <b>Realizar Borrado</b> se eliminarán
+                        los datos ingresados en inmuebles debido a que se destruirá la tabla que contiene esta información, ¿Esta seguro de querer
+                        hacer esto?.
+                    </span>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-sm btn-primary" name="accion" value="tratar_tipo" type="submit" onclick="return confirm('¿Está seguro que ingresó la información correcta?')">
-                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
+                    <button class="btn btn-sm btn-danger" type="submit" name="accion" value="fixdb" onclick="return confirm('¿Confirma que se eliminará toda la información de inmuebles ingresados?')">
+                        <span class="fa fa-ban"></span>&nbsp;Realizar Borrado
                     </button>
                 </div>
             </div>
@@ -331,4 +298,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
 </form>
 {include="mapa/nuevo_inmueble"}
+{include="mapa/nuevo_hijo"}
 {include="footer"}
