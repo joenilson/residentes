@@ -48,6 +48,16 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>fecha_ocupacion</nombre>
+        <tipo>date</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_disponibilidad</nombre>
+        <tipo>date</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>ubicacion</nombre>
         <tipo>character varying(64)</tipo>
         <nulo>YES</nulo>

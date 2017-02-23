@@ -74,7 +74,16 @@ class residentes_edificaciones extends \fs_model{
      * @var type boolean
      */
     public $ocupado;
-
+    /**
+     *
+     * @var type date
+     */
+    public $fecha_ocupacion;
+    /**
+     *
+     * @var type
+     */
+    public $fecha_disponibilidad;
     public $edificaciones_tipo;
     public function __construct($t = FALSE) {
         parent::__construct('residentes_edificaciones','plugins/residentes');
@@ -88,6 +97,8 @@ class residentes_edificaciones extends \fs_model{
             $this->coordenadas = $t['coordenadas'];
             $this->codcliente = $t['codcliente'];
             $this->ocupado = $this->str2bool($t['ocupado']);
+            $this->fecha_ocupacion = $t['fecha_ocupacion'];
+            $this->fecha_disponibilidad = $t['fecha_disponibilidad'];
         }else{
             $this->id = null;
             $this->id_edificacion = null;
@@ -98,6 +109,8 @@ class residentes_edificaciones extends \fs_model{
             $this->coordenadas = null;
             $this->codcliente = null;
             $this->ocupado = null;
+            $this->fecha_ocupacion = NULL;
+            $this->fecha_disponibilidad = NULL;
         }
         $this->edificaciones_tipo = new \residentes_edificaciones_tipo();
     }
@@ -107,7 +120,7 @@ class residentes_edificaciones extends \fs_model{
     }
 
     public function all(){
-        $sql = "SELECT * FROM ".$this->table_name." ORDER BY codigo_interno";
+        $sql = "SELECT * FROM ".$this->table_name." ORDER BY codigo_interno,numero";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
@@ -140,7 +153,7 @@ class residentes_edificaciones extends \fs_model{
      */
     public function get_by_field($field,$value){
         $query = (is_string($value))?$this->var2str($value):$this->intval($value);
-        $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query.";";
+        $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query." ORDER BY codigo_interno,numero;";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
@@ -166,18 +179,20 @@ class residentes_edificaciones extends \fs_model{
     public function save() {
         if($this->exists()){
             $sql = "UPDATE ".$this->table_name." SET ".
+                    "fecha_ocupacion = ".$this->var2str($this->fecha_ocupacion).", ".
+                    "fecha_disponibilidad = ".$this->var2str($this->fecha_disponibilidad).", ".
                     "id_edificacion = ".$this->intval($this->id_edificacion).", ".
                     "codigo = ".$this->var2str($this->codigo).", ".
                     "codigo_interno = ".$this->var2str($this->codigo_interno).", ".
                     "numero = ".$this->var2str($this->numero).", ".
                     "ubicacion = ".$this->var2str($this->ubicacion).", ".
-                    "codcliente = ".$this->var2str($this->codlciente).", ".
-                    "coordenadas = ".$this->var2str($this->coordendas).", ".
+                    "codcliente = ".$this->var2str($this->codcliente).", ".
+                    "coordenadas = ".$this->var2str($this->coordenadas).", ".
                     "ocupado = ".$this->var2str($this->ocupado)." ".
                     "WHERE id = ".$this->intval($this->id).";";
             return $this->db->exec($sql);
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (id_edificacion, codigo, codigo_interno, numero, ubicacion, coordenadas,codcliente, ocupado) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (id_edificacion, codigo, codigo_interno, numero, ubicacion, coordenadas,codcliente, ocupado, fecha_ocupacion, fecha_disponibilidad) VALUES (".
                     $this->intval($this->id_edificacion).", ".
                     $this->var2str($this->codigo).", ".
                     $this->var2str($this->codigo_interno).", ".
@@ -185,7 +200,9 @@ class residentes_edificaciones extends \fs_model{
                     $this->var2str($this->ubicacion).", ".
                     $this->var2str($this->coordenadas).", ".
                     $this->var2str($this->codcliente).", ".
-                    $this->var2str($this->ocupado).");";
+                    $this->var2str($this->ocupado).", ".
+                    $this->var2str($this->fecha_ocupacion).", ".
+                    $this->var2str($this->fecha_disponibilidad).");";
             if($this->db->exec($sql)){
                 return $this->db->lastval();
             }else{

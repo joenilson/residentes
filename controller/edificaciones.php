@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('clientes.php');
+require_model('cliente.php');
 require_model('residentes_edificaciones.php');
 require_model('residentes_edificaciones_tipo.php');
 require_model('residentes_edificaciones_mapa.php');
@@ -34,7 +34,9 @@ class edificaciones extends fs_controller{
     public $residentes_setup;
     public $mapa;
     public $padre_interior;
+    public $padre_inmuebles;
     public $lista_interior;
+    public $lista_inmuebles;
     public function __construct() {
         parent::__construct(__CLASS__, 'Edificaciones', 'residentes', FALSE, TRUE, FALSE);
     }
@@ -66,6 +68,9 @@ class edificaciones extends fs_controller{
                 break;
             case "agregar_inmueble":
                 $this->agregar_inmueble();
+                break;
+            case "agregar_residente":
+                $this->agregar_residente();
                 break;
             case "agregar_hijo":
                 $id = \filter_input(INPUT_POST, 'id_hijo');
@@ -110,13 +115,26 @@ class edificaciones extends fs_controller{
             $this->padre_interior = $this->edificaciones_mapa->get($interior);
             $this->lista_interior = $this->edificaciones_mapa->get_by_field('padre_id', $interior);
         }
+        $inmuebles = \filter_input(INPUT_GET, 'inmuebles');
+        if($inmuebles){
+            $this->padre_inmuebles = $this->edificaciones_mapa->get($inmuebles);
+            $this->lista_inmuebles = $this->edificaciones->get_by_field('id_edificacion', $inmuebles);
+        }
+
+        if(\filter_input(INPUT_GET, 'buscar_cliente')){
+            $this->buscar_cliente();
+        }
+
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
     }
 
     public function url(){
         $interior = \filter_input(INPUT_GET, 'interior');
+        $inmuebles = \filter_input(INPUT_GET, 'inmuebles');
         if($interior){
             return 'index.php?page='.__CLASS__.'&interior='.$interior;
+        }elseif($inmuebles){
+            return 'index.php?page='.__CLASS__.'&inmuebles='.$inmuebles;
         }else{
             return 'index.php?page='.__CLASS__;
         }
@@ -124,6 +142,20 @@ class edificaciones extends fs_controller{
 
     public function parent_url(){
         return 'index.php?page='.__CLASS__;
+    }
+
+    private function buscar_cliente() {
+        /// desactivamos la plantilla HTML
+        $this->template = FALSE;
+
+        $cliente = new cliente();
+        $json = array();
+        foreach ($cliente->search(\filter_input(INPUT_GET,'buscar_cliente')) as $cli) {
+            $json[] = array('value' => $cli->razonsocial, 'data' => $cli->codcliente);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(array('query' => \filter_input(INPUT_GET,'buscar_cliente'), 'suggestions' => $json));
     }
 
     public function buscar_padre($id,&$codigo,&$unir = false){
@@ -217,6 +249,36 @@ class edificaciones extends fs_controller{
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
         }if($inmuebles){
             $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
+        }
+    }
+
+    public function agregar_residente(){
+        $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
+        $codcliente = \filter_input(INPUT_POST, 'codcliente');
+        $fecha_ocupacion = \filter_input(INPUT_POST, 'fecha_ocupacion');
+        $fecha_disponibilidad = \filter_input(INPUT_POST, 'fecha_disponibilidad');
+        $accion = \filter_input(INPUT_POST, 'accion');
+        $inmueble = $this->edificaciones->get($id_edificacion);
+        if($inmueble AND $accion == 'agregar_residente'){
+            $inmueble->ocupado = 'TRUE';
+            $inmueble->codcliente = $codcliente;
+            $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
+            $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
+            if($inmueble->save()){
+                $this->new_message('Residente agregado exitosamente.');
+            }else{
+                $this->new_error_msg('No se pudo agregar al residente confirme el nombre del residente y las fechs de ocupación y disponibilidad');
+            }
+        }elseif($inmueble AND $accion == 'quitar_residente'){
+            $inmueble->ocupado = 'FALSE';
+            $inmueble->codcliente = '';
+            $inmueble->fecha_ocupacion = '';
+            $inmueble->fecha_disponibilidad = '';
+            if($inmueble->save()){
+                $this->new_message('Residente removido exitosamente.');
+            }else{
+                $this->new_error_msg('No se pudo remover al residente');
+            }
         }
     }
 

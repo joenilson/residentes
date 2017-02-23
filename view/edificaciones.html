@@ -173,19 +173,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             <span class="fa fa-building-o"></span>&nbsp;{$value->tiene_hijos()} Estructuras
                                         </a>
                                         {else}
-                                        <a href="{$fsc->parent_url()}&interior={$value->id}">
-                                            <span class="fa fa-home"></span>&nbsp;{$fsc->edificaciones->cantidad_inmuebles($value->id)} Inmuebles
-                                        </a>
-                                        <ul class="list-group clearfix">
-                                        {loop="$fsc->edificaciones->get_by_field('id_edificacion',$value->id)"}
-                                        <li class="list-group-item">
-                                            <span class="fa fa-home"></span>&nbsp;{$value->codigo} {$value->numero}
-                                            <a href="{$fsc->parent_url()}&inmueble={$value->id}">
-
+                                            <a href="{$fsc->parent_url()}&inmuebles={$value->id}">
+                                                <span class="fa fa-home"></span>&nbsp;{$fsc->edificaciones->cantidad_inmuebles($value->id)} Inmuebles
                                             </a>
-                                        </li>
-                                        {/loop}
-                                        </ul>
                                         {/if}
                                     </li>
                                     {if="$fsc->edificaciones_tipo->get_by_field('padre', $value->id_tipo)"}
@@ -201,6 +191,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     {/if}
                                 </ul>
                             </div>
+                        {/loop}
+                        </div>
+                    </div>
+                </div>
+                {elseif="$fsc->lista_inmuebles"}
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <a class="btn btn-sm btn-primary" href="{#FS_PATH#}{$fsc->parent_url()}&interior={$fsc->padre_inmuebles->padre_id}">
+                            <span class="fa fa-arrow-left"></span>&nbsp;{$fsc->padre_inmuebles->desc_id} {$fsc->padre_inmuebles->codigo_edificacion}
+                        </a>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-sm-12">
+                        {loop="$fsc->lista_inmuebles"}
+                        <div class="col-sm-3">
+                            <div class="alert {if="$value->ocupado"}alert-info{else}alert-warning{/if} clearfix">
+                                <h3>{$value->codigo}-{$value->numero}</h3>
+                                <p>{if="$value->ocupado"}Ocupado{else}Disponible{/if}</p>
+                                <p class="pull-right">
+                                    {if="$value->ocupado"}
+                                    <a href="#" style="margin-right:5px;" onClick="$('#id_edificacion_residente').val({$value->id})" data-toggle="modal" data-target="#nuevoResidente" title="Remover Residente"><span class="fa fa-trash"></span></a>
+                                    {else}
+                                    <a href="#" style="margin-right:5px;" onClick="$('#id_edificacion_residente').val({$value->id})" data-toggle="modal" data-target="#nuevoResidente" title="Agregar Residente"><span class="fa fa-plus"></span></a>
+                                    {/if}
+                                    <a href="{$fsc->url()}&inmuebles={$value->id}" title="Ver Información del Residente" role="button" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
+                                    <a href="#" class="text-danger" onclick="alert('Eliminar aun no completo.')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
+                                </p>
+                            </div>
+                        </div>
                         {/loop}
                         </div>
                     </div>
@@ -299,4 +318,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 </form>
 {include="mapa/nuevo_inmueble"}
 {include="mapa/nuevo_hijo"}
+{include="mapa/nuevo_residente"}
 {include="footer"}
