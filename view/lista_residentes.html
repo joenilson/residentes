@@ -6,15 +6,28 @@
             $("#modal_cliente").modal('show');
             document.f_nuevo_residente.ac_cliente.focus();
         });
+        $("#ac_inmueble").autocomplete({
+            serviceUrl: '{$fsc->url()}',
+            paramName: 'buscar_inmueble',
+            onSelect: function (suggestion) {
+                if (suggestion)
+                {
+                    if (document.f_nuevo_residente.id_edificacion.value != suggestion.data)
+                    {
+                        document.f_nuevo_residente.id_edificacion.value = suggestion.data;
+                    }
+                }
+            }
+        });
         $("#ac_cliente").autocomplete({
             serviceUrl: '{$fsc->url()}',
             paramName: 'buscar_cliente',
             onSelect: function (suggestion) {
                 if (suggestion)
                 {
-                    if (document.f_nuevo_residente.cliente.value != suggestion.data)
+                    if (document.f_nuevo_residente.codcliente.value != suggestion.data)
                     {
-                        document.f_nuevo_residente.cliente.value = suggestion.data;
+                        document.f_nuevo_residente.codcliente.value = suggestion.data;
                     }
                 }
             }
@@ -40,7 +53,7 @@
             </div>
 
             <div class="btn-group">
-                <a id="b_nuevo_residente" class="btn btn-sm btn-success" href="#">
+                <a class="btn btn-sm btn-success"  data-toggle="modal" data-target="#nuevoResidente" role="button">
                     <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
                 </a>
                 {loop="$fsc->extensions"}
@@ -54,26 +67,6 @@
             <h2 style="margin-top: 0px;"><span class="fa fa-group"></span>&nbsp;Residentes</h2>
         </div>
     </div>
-    <div class="row">
-        <form action="{$fsc->url()}" method="post">
-            <div class="col-sm-2">
-                <select name="bloque" class="form-control" onchange="this.form.submit()">
-                    <option value="">Todos los bloques</option>
-                    <option value="">------</option>
-                    {loop="$fsc->bloques()"}
-                    <option value="{$value}"{if="$value==$fsc->bloque"} selected="selected"{/if}>{$value}</option>
-                    {/loop}
-                </select>
-            </div>
-            {if="$fsc->bloque"}
-            <div class="col-md-2">
-                <a href="index.php?page=informe_residentes&bloque={$fsc->bloque}" class="btn btn-sm btn-default">
-                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &nbsp; Informes
-                </a>
-            </div>
-            {/if}
-        </form>
-    </div>
 </div>
 
 <div class="table-responsive">
@@ -81,19 +74,21 @@
         <thead>
             <tr>
                 <th class="text-left">Cliente</th>
-                <th class="text-left">Observaciones</th>
-                <th class="text-right">Dpto.</th>
-                <th class="text-right">Bloque</th>
+                <th class="text-center">Dpto.</th>
+                <th class="text-left">Propietario</th>
+                <th class="text-center">Vehiculos</th>
+                <th class="text-center">Fecha Ocupación</th>
                 <th class="text-right">Deudas</th>
             </tr>
         </thead>
         {loop="$fsc->resultados"}
-        <tr class="clickableRow{if="$value->deudas>0"} bg-warning{/if}" href="{$value->url()}">
-            <td><a href="{$value->url()}">{$value->nombre}</a></td>
-            <td>{$value->observaciones()}</td>
-            <td class="text-right">{$value->piso}</td>
-            <td class="text-right">{$value->bloque}</td>
-            <td class="text-right">{$fsc->show_precio($value->deudas)}</td>
+        <tr>
+            <td><a href="#">{$value->nombre}</a></td>
+            <td class="text-center">{$value->codigo} {$value->numero}</td>
+            <td class="text-left">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</td>
+            <td class="text-center">{if="$value->info"}{$value->vehiculos|count}{else}Información Incompleta{/if}</td>
+            <td class="text-center">{$value->fecha_ocupacion}</td>
+            <td class="text-right"></td>
         </tr>
         {else}
         <tr class="bg-warning">
@@ -121,37 +116,54 @@
     {/if}
 </ul>
 
-<form name="f_nuevo_residente" class="form" action="{$fsc->url()}" method="post">
-    <input type="hidden" name="cliente"/>
-    <div class="modal" id="modal_cliente">
-        <div class="modal-dialog">
-            <div class="modal-content">
+<!-- Modal para nuevo hijo -->
+<div class="modal fade" id="nuevoResidente" tabindex="-1" role="dialog" aria-labelledby="nuevoResidenteTitulo">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form class="form" role="form" name="f_nuevo_residente" id="f_nuevo_residente" action="{$fsc->url()}" method="POST">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">Nuevo residente</h4>
+                    <button type="button" class="close" data-dismiss="modal" onClick="this.form.reset();" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="nuevoResidenteTitulo"><span class="fa fa-users"></span>&nbsp;Nuevo Residente</h4>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" placeholder="Buscar cliente" autocomplete="off"/>
-                        <p class="help-block"><a href="{$fsc->cliente->url()}#nuevo" target="_blank">Nuevo cliente</a>.</p>
+                    <div id="campos_residente">
+                        <div class="col-sm-2">
+                            Inmueble
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <input type="hidden" id="id_edificacion_residente" name="id_edificacion" value="">
+                            <input type="text" name="ac_inmueble" id="ac_inmueble" value="" placeholder="Inmueble a ocupar" class="form-control"/>
+                        </div>
+                        <div class="col-sm-2">
+                            Residente
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <input type="hidden" id="codcliente" name="codcliente" value="">
+                            <input type="text" name="ac_cliente" id="ac_cliente" value="" placeholder="Nombre del cliente" class="form-control"/>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <input type="text" name="fecha_ocupacion" id="fecha_ocupacion" value="" placeholder="Fecha Ocupación" class="form-control datepicker"/>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <input type="text" name="fecha_disponibilidad" id="fecha_disponibilidad" value="" placeholder="Fecha Disponibilidad" class="form-control datepicker"/>
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <span id="helpBlock1" class="help-block text-justify">
+                                La fecha de Ocupación es la fecha en la que el inquilino ocupó el Inmueble
+                            </span>
+                            <span id="helpBlock2" class="help-block text-justify">
+                                La fecha de Disponibilidad es la fecha en la que termina el contrato del residente en caso de no ser propietario del Inmueble
+                            </span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        Dpto:
-                        <input type="text" name="piso" class="form-control" autocomplete="off"/>
-                    </div>
-                    <div class="form-group">
-                        Bloque:
-                        <input type="text" name="bloque" class="form-control"/>
-                    </div>
+                    <div class="clearfix"></div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();">
-                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
-                    </button>
+                    <button type="button" class="btn btn-default" onClick="this.form.reset();" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" name="accion" id="agregar_residente" value="agregar_residente" class="btn btn-primary">Agregar</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-</form>
-
+</div>
 {include="footer"}

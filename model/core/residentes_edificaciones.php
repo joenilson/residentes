@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace FacturaScripts\model;
+require_model('core/residentes_edificaciones_tipo.php');
+require_model('core/residentes_informacion.php');
+require_model('core/residentes_vehiculos.php');
+require_model('cliente.php');
 /**
  * Description of residentes_edificaciones
  *
@@ -84,7 +88,11 @@ class residentes_edificaciones extends \fs_model{
      * @var type
      */
     public $fecha_disponibilidad;
+    //Datos auxiliares
     public $edificaciones_tipo;
+    public $cliente;
+    public $cliente_info;
+    public $cliente_vehiculo;
     public function __construct($t = FALSE) {
         parent::__construct('residentes_edificaciones','plugins/residentes');
         if($t){
@@ -112,7 +120,10 @@ class residentes_edificaciones extends \fs_model{
             $this->fecha_ocupacion = NULL;
             $this->fecha_disponibilidad = NULL;
         }
-        $this->edificaciones_tipo = new \residentes_edificaciones_tipo();
+        $this->edificaciones_tipo = new residentes_edificaciones_tipo();
+        $this->cliente = new cliente();
+        $this->cliente_info = new residentes_informacion();
+        $this->cliente_vehiculo = new residentes_vehiculos();
     }
 
     public function install(){
@@ -127,6 +138,25 @@ class residentes_edificaciones extends \fs_model{
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
+                $lista[] = $item;
+            }
+            return $lista;
+        }else{
+            return false;
+        }
+    }
+
+    public function all_ocupados(){
+        $sql = "SELECT * FROM ".$this->table_name." WHERE ocupado = TRUE ORDER BY codigo_interno,numero";
+        $data = $this->db->select($sql);
+        if($data){
+            $lista = array();
+            foreach($data as $d){
+                $item = new residentes_edificaciones($d);
+                $item->pertenencia = $this->pertenencia($item);
+                $item->nombre = $this->cliente->get($item->codcliente)->nombre;
+                $item->info = $this->cliente_info->get($item->codcliente);
+                $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
                 $lista[] = $item;
             }
             return $lista;
@@ -287,6 +317,36 @@ class residentes_edificaciones extends \fs_model{
             $linea++;
         }
         return $mapa;
+    }
+
+    public function search($query){
+        $sql = "SELECT * FROM ".$this->table_name." WHERE ";
+        $OR = "";
+        if(is_int($query)){
+            $sql.=" id_edificacion LIKE '%".$query."%' ";
+            $sql.=" id LIKE '%".$query."%' ";
+            $OR = "OR";
+        }
+        $sql.=" $OR numero LIKE '%".strtoupper($query)."%' ";
+        $sql.=" OR codigo LIKE '%".strtoupper($query)."%' ";
+        $sql.=" ORDER BY codigo,numero";
+        $data = $this->db->select($sql);
+        if($data){
+            $lista = array();
+            foreach($data as $d){
+                $item = new residentes_edificaciones($d);
+                $item->pertenencia = $this->pertenencia($item);
+                if($item->codcliente){
+                    $item->nombre = $this->cliente->get($item->codcliente)->nombre;
+                    $item->info = $this->cliente_info->get($item->codcliente);
+                    $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                }
+                $lista[] = $item;
+            }
+            return $lista;
+        }else{
+            return false;
+        }
     }
 
 }

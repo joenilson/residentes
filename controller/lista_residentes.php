@@ -1,12 +1,13 @@
 <?php
+
 /**
  * @author Carlos García Gómez      neorazorx@gmail.com
  * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-
 require_model('cliente.php');
-require_model('residente.php');
+
+require_model('residentes_edificaciones.php');
 
 /**
  * Description of lista_residentes
@@ -14,143 +15,153 @@ require_model('residente.php');
  * @author carlos <neorazorx@gmail.com>
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class lista_residentes extends fs_controller
-{
-   public $bloque;
-   public $cliente;
-   public $residente;
-   public $offset;
-   public $resultados;
+class lista_residentes extends fs_controller {
 
-   public function __construct()
-   {
-      parent::__construct(__CLASS__, 'Residentes', 'residentes', FALSE, TRUE);
-   }
+    public $bloque;
+    public $cliente;
+    public $residente;
+    public $offset;
+    public $resultados;
 
-   protected function private_core()
-   {
-      $this->bloque = '';
-      $this->cliente = new cliente();
-      $this->residente = new residente();
+    public function __construct() {
+        parent::__construct(__CLASS__, 'Residentes', 'residentes', FALSE, TRUE);
+    }
 
-      $this->offset = 0;
-      if( isset($_REQUEST['offset']) )
-      {
-         $this->offset = intval($_REQUEST['offset']);
-      }
+    protected function private_core() {
+        $this->bloque = '';
+        $this->cliente = new cliente();
+        $this->residente = new residentes_edificaciones();
 
-      if( isset($_REQUEST['buscar_cliente']) )
-      {
-         $this->buscar_cliente();
-      }
-      else if( isset($_POST['cliente']) )
-      {
-         $cliente = $this->cliente->get($_POST['cliente']);
-         if($cliente)
-         {
-            $this->residente->codcliente = $cliente->codcliente;
-            $this->residente->nombre = $cliente->nombre;
-            $this->residente->bloque = $_POST['bloque'];
-            $this->residente->piso = $_POST['piso'];
-            if( $this->residente->save() )
-            {
-               $this->new_message('Inquilino guardado correctamente.');
-               header('Location: '.$this->residente->url());
+        $this->offset = 0;
+        if (isset($_REQUEST['offset'])) {
+            $this->offset = intval($_REQUEST['offset']);
+        }
+
+        $accion = filter_input(INPUT_POST, 'accion');
+        switch ($accion) {
+            case "agregar_residente":
+                $this->agregar_residente();
+                break;
+            default:
+                break;
+        }
+
+        if (isset($_REQUEST['buscar_cliente'])) {
+            $this->buscar_cliente();
+        } elseif (isset($_REQUEST['buscar_inmueble'])) {
+            $this->buscar_inmueble();
+        } elseif (isset($_GET['delete'])) {
+            $inq = $this->residente->get($_GET['delete']);
+            if ($inq) {
+                if ($inq->delete()) {
+                    $this->new_message('Inquilino eliminado correctamente.');
+                } else
+                    $this->new_error_msg('Error al eliminar el inquilino.');
+            } else
+                $this->new_error_msg('Inquilino no encontrado.');
+        }
+
+        if (isset($_GET['cliente'])) {
+            $this->resultados = $this->residente->all_from_cliente($_GET['cliente']);
+        } else if (isset($_POST['bloque'])) {
+            if ($_POST['bloque'] != '') {
+                $this->bloque = $_POST['bloque'];
+                $this->resultados = $this->residente->all_from_bloque($_POST['bloque']);
+            } else {
+                $this->resultados = $this->residente->all_ocupados();
             }
-            else
-               $this->new_error_msg('Error al guardar el inquilino.');
-         }
-         else
-            $this->new_error_msg('Cliente no encontrado.');
-      }
-      else if( isset($_GET['delete']) )
-      {
-         $inq = $this->residente->get($_GET['delete']);
-         if($inq)
-         {
-            if( $inq->delete() )
-            {
-               $this->new_message('Inquilino eliminado correctamente.');
+        } else {
+            $this->resultados = $this->residente->all_ocupados();
+        }
+    }
+
+    public function agregar_residente(){
+        $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
+        $codcliente = \filter_input(INPUT_POST, 'codcliente');
+        $fecha_ocupacion = \filter_input(INPUT_POST, 'fecha_ocupacion');
+        $fecha_disponibilidad = \filter_input(INPUT_POST, 'fecha_disponibilidad');
+        $accion = \filter_input(INPUT_POST, 'accion');
+        $inmueble = $this->residente->get($id_edificacion);
+        if($inmueble AND $accion == 'agregar_residente'){
+            $inmueble->ocupado = 'TRUE';
+            $inmueble->codcliente = $codcliente;
+            $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
+            $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
+            if($inmueble->save()){
+                $this->new_message('Residente agregado exitosamente.');
+            }else{
+                $this->new_error_msg('No se pudo agregar al residente confirme el nombre del residente y las fechs de ocupación y disponibilidad');
             }
-            else
-               $this->new_error_msg('Error al eliminar el inquilino.');
-         }
-         else
-            $this->new_error_msg('Inquilino no encontrado.');
-      }
+        }elseif($inmueble AND $accion == 'quitar_residente'){
+            $inmueble->ocupado = 'FALSE';
+            $inmueble->codcliente = '';
+            $inmueble->fecha_ocupacion = '';
+            $inmueble->fecha_disponibilidad = '';
+            if($inmueble->save()){
+                $this->new_message('Residente removido exitosamente.');
+            }else{
+                $this->new_error_msg('No se pudo remover al residente');
+            }
+        }
+    }
 
-      if( isset($_GET['cliente']) )
-      {
-         $this->resultados = $this->residente->all_from_cliente($_GET['cliente']);
-      }
-      else if( isset($_POST['bloque']) )
-      {
-         if($_POST['bloque'] != '')
-         {
-            $this->bloque = $_POST['bloque'];
-            $this->resultados = $this->residente->all_from_bloque($_POST['bloque']);
-         }
-         else
-         {
-            $this->resultados = $this->residente->all($this->offset);
-         }
-      }
-      else
-         $this->resultados = $this->residente->all($this->offset);
-   }
+    private function buscar_cliente() {
+        /// desactivamos la plantilla HTML
+        $this->template = FALSE;
 
-   private function buscar_cliente()
-   {
-      /// desactivamos la plantilla HTML
-      $this->template = FALSE;
+        $json = array();
+        foreach ($this->cliente->search($_REQUEST['buscar_cliente']) as $cli) {
+            $json[] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+        }
 
-      $json = array();
-      foreach($this->cliente->search($_REQUEST['buscar_cliente']) as $cli)
-      {
-         $json[] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
-      }
+        header('Content-Type: application/json');
+        echo json_encode(array('query' => $_REQUEST['buscar_cliente'], 'suggestions' => $json));
+    }
 
-      header('Content-Type: application/json');
-      echo json_encode( array('query' => $_REQUEST['buscar_cliente'], 'suggestions' => $json) );
-   }
+    private function buscar_inmueble() {
+        /// desactivamos la plantilla HTML
+        $this->template = FALSE;
 
-   public function bloques()
-   {
-      $blist = array();
+        $json = array();
+        foreach ($this->residente->search($_REQUEST['buscar_inmueble']) as $inmueble) {
+            $json[] = array('value' => $inmueble->codigo.$inmueble->numero, 'data' => $inmueble->id);
+        }
 
-      $data = $this->db->select("SELECT DISTINCT bloque FROM residentes ORDER BY bloque ASC;");
-      if($data)
-      {
-         foreach($data as $d)
-         {
-            $blist[] = $d['bloque'];
-         }
-      }
+        header('Content-Type: application/json');
+        echo json_encode(array('query' => $_REQUEST['buscar_inmueble'], 'suggestions' => $json));
+    }
 
-      return $blist;
-   }
+    public function bloques() {
+        $blist = array();
 
-   public function anterior_url()
-   {
-      $url = '';
+        $data = $this->db->select("SELECT DISTINCT bloque FROM residentes ORDER BY bloque ASC;");
+        if ($data) {
+            foreach ($data as $d) {
+                $blist[] = $d['bloque'];
+            }
+        }
 
-      if($this->offset > '0')
-      {
-         $url = $this->url()."&offset=".($this->offset-FS_ITEM_LIMIT);
-      }
+        return $blist;
+    }
 
-      return $url;
-   }
+    public function anterior_url() {
+        $url = '';
 
-   public function siguiente_url()
-   {
-      $url = '';
+        if ($this->offset > '0') {
+            $url = $this->url() . "&offset=" . ($this->offset - FS_ITEM_LIMIT);
+        }
 
-      if(count($this->resultados) == FS_ITEM_LIMIT)
-      {
-         $url = $this->url()."&offset=".($this->offset+FS_ITEM_LIMIT);
-      }
+        return $url;
+    }
 
-      return $url;
-   }
+    public function siguiente_url() {
+        $url = '';
+
+        if (count($this->resultados) == FS_ITEM_LIMIT) {
+            $url = $this->url() . "&offset=" . ($this->offset + FS_ITEM_LIMIT);
+        }
+
+        return $url;
+    }
+
 }
