@@ -36,6 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#nuevaEstructura">
                     <span class="fa fa-plus"></span> &nbsp; Nuevo
                 </button>
+                <a class="btn btn-sm btn-default" href='{#FS_PATH#}index.php?page=edificaciones'>
+                    <span class="fa fa-arrow-left"></span> &nbsp;Regresar a Edificaciones
+                </a>
                 {loop="$fsc->extensions"}
                 {if="$value->type=='button'"}
                 <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>

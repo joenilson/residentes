@@ -18,17 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <script type="text/javascript">
     var url_tipo_edificaciones = '{$fsc->url()}';
     $(document).ready(function () {
-        $("#b_nueva_edificacion").click(function (event) {
-            event.preventDefault();
-            $("#modal_edificacion").modal('show');
-            document.f_nuevo_inquilino.ac_cliente.focus();
-        });
-
-        $("#b_opciones").click(function (event) {
-            event.preventDefault();
-            $("#modal_opciones").modal('show');
-        });
-
         $("#ac_cliente").autocomplete({
             serviceUrl: '{$fsc->url()}',
             paramName: 'buscar_cliente',
@@ -116,7 +105,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
 
             <div class="btn-group">
-                <a id="b_opciones" class="btn btn-sm btn-default" href="#">
+                <a id="b_opciones" class="btn btn-sm btn-default" href="#" data-toggle='modal' data-target='#modal_opciones'>
                    <span class="fa fa-gear"></span> &nbsp; Configuración
                 </a>
                 <a class="btn btn-sm btn-default" href="index.php?page=mapa_edificaciones">
@@ -287,25 +276,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
     </div>
 </form>
-<!-- Modal temporal !-->
-<form name="f_fixdb" class="form" action="{$fsc->url()}" method="post">
-    <div class="modal" id="corregirBaseDatos">
+
+
+<form name="f_nuevo_tipo_edificacion" class="form" action="{$fsc->url()}" method="post">
+    <input type="hidden" name="tipo_edificacion"/>
+    <div class="modal" id="modal_tipo_edificacion">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">Eliminacion</h4>
+                    <h4 class="modal-title">Tipo de Edificación</h4>
                 </div>
                 <div class="modal-body">
-                    <span class="help-block text-justify alert alert-danger">
-                        <span class="fa fa-info-circle"></span>&nbsp;Al hacer click en el boton de <b>Realizar Borrado</b> se eliminarán
-                        los datos ingresados en inmuebles debido a que se destruirá la tabla que contiene esta información, ¿Esta seguro de querer
-                        hacer esto?.
-                    </span>
+                    <div class="row">
+                        <div class="form-group col-sm-6">
+                            <input type="hidden" name="id" value=""/>
+                            <label class="control-label">Descripción:</label>
+                            <input type="text" name="descripcion" class="form-control" autocomplete="off"/>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label class="control-label">Padre:</label>
+                            <select name="padre" class="form-control input-sm">
+                                <option value="0">Principal</option>
+                                {loop="$fsc->edificaciones_tipo->all()"}
+                                <option value="{$value->id}">{$value->descripcion}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-sm btn-danger" type="submit" name="accion" value="fixdb" onclick="return confirm('¿Confirma que se eliminará toda la información de inmuebles ingresados?')">
-                        <span class="fa fa-ban"></span>&nbsp;Realizar Borrado
+                    <button class="btn btn-sm btn-primary" name="accion" value="tratar_tipo" type="submit" onclick="return confirm('¿Está seguro que ingresó la información correcta?')">
+                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
                     </button>
                 </div>
             </div>
