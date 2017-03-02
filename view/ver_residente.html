@@ -1,395 +1,333 @@
 {include="header"}
 {if="$fsc->residente"}
 <script type="text/javascript">
-   var medicion_agua = {$fsc->residente->agua};
-   var medicion_gas = {$fsc->residente->gas};
-   function recalcular()
-   {
-      var total = 0;
+   var medicion_agua = 0;
+   var medicion_gas = 0;
+    function recalcular(){
+        var total = 0;
+        {loop="$fsc->familia->get_articulos()"}
+            total += parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
+        {/loop}
+        total += parseFloat(document.f_nueva_factura.otro.value);
+        total += parseFloat(document.f_nueva_factura.otro2.value);
 
-      total += parseFloat(document.f_nueva_factura.mensualidad.value);
+        document.f_nueva_factura.total.value = total;
+    }
 
-      total += parseFloat(document.f_nueva_factura.consumo_agua.value) * parseFloat(document.f_nueva_factura.precio_agua.value);
-      total += parseFloat(document.f_nueva_factura.consumo_gas.value) * parseFloat(document.f_nueva_factura.precio_gas.value);
+    function get_consumo_agua(){
+        document.f_nueva_factura.consumo_agua.value = parseFloat(document.f_nueva_factura.agua.value) - medicion_agua;
+        recalcular();
+    }
 
-      total += parseFloat(document.f_nueva_factura.otro.value);
-      total += parseFloat(document.f_nueva_factura.otro2.value);
+    function get_consumo_gas(){
+        document.f_nueva_factura.consumo_gas.value = parseFloat(document.f_nueva_factura.gas.value) - medicion_gas;
+        recalcular();
+    }
 
-      document.f_nueva_factura.total.value = total;
-   }
-   function get_consumo_agua()
-   {
-      document.f_nueva_factura.consumo_agua.value = parseFloat(document.f_nueva_factura.agua.value) - medicion_agua;
-      recalcular();
-   }
-   function get_consumo_gas()
-   {
-      document.f_nueva_factura.consumo_gas.value = parseFloat(document.f_nueva_factura.gas.value) - medicion_gas;
-      recalcular();
-   }
-   $(document).ready(function() {
-      recalcular();
-      $("#b_eliminar").click(function(event) {
-         event.preventDefault();
-         if( confirm("¿Realmente desea eliminar este residente?") )
-            window.location.href = 'index.php?page=lista_residentes&delete={$fsc->residente->id}';
-      });
-      $("#ac_referencia").autocomplete({
-         serviceUrl: '{$fsc->url()}',
-         paramName: 'buscar_referencia',
-         onSelect: function (suggestion) {
-            if(suggestion)
-            {
-               if(document.f_nueva_factura.ref_otro.value != suggestion.data)
-               {
-                  document.f_nueva_factura.ref_otro.value = suggestion.data;
-                  document.f_nueva_factura.otro.value = suggestion.pvpi;
-                  document.f_nueva_factura.impuesto_otro.value = suggestion.codimpuesto;
-                  document.f_nueva_factura.desc_otro.value = suggestion.descripcion;
-                  recalcular();
-               }
+    $(document).ready(function () {
+        recalcular();
+        $("#b_eliminar").click(function (event) {
+            event.preventDefault();
+            if (confirm("¿Realmente desea eliminar este residente?"))
+                window.location.href = 'index.php?page=lista_residentes&delete={$fsc->residente->id}';
+        });
+        $("#ac_referencia").autocomplete({
+            serviceUrl: '{$fsc->url()}',
+            paramName: 'buscar_referencia',
+            onSelect: function (suggestion) {
+                if (suggestion)
+                {
+                    if (document.f_nueva_factura.ref_otro.value != suggestion.data)
+                    {
+                        document.f_nueva_factura.ref_otro.value = suggestion.data;
+                        document.f_nueva_factura.otro.value = suggestion.pvpi;
+                        document.f_nueva_factura.impuesto_otro.value = suggestion.codimpuesto;
+                        document.f_nueva_factura.desc_otro.value = suggestion.descripcion;
+                        recalcular();
+                    }
+                }
             }
-         }
-      });
-      $("#ac_referencia2").autocomplete({
-         serviceUrl: '{$fsc->url()}',
-         paramName: 'buscar_referencia',
-         onSelect: function (suggestion) {
-            if(suggestion)
-            {
-               if(document.f_nueva_factura.ref_otro2.value != suggestion.data)
-               {
-                  document.f_nueva_factura.ref_otro2.value = suggestion.data;
-                  document.f_nueva_factura.otro2.value = suggestion.pvpi;
-                  document.f_nueva_factura.impuesto_otro2.value = suggestion.codimpuesto;
-                  document.f_nueva_factura.desc_otro2.value = suggestion.descripcion;
-                  recalcular();
-               }
+        });
+
+        $("#ac_referencia2").autocomplete({
+            serviceUrl: '{$fsc->url()}',
+            paramName: 'buscar_referencia',
+            onSelect: function (suggestion) {
+                if (suggestion)
+                {
+                    if (document.f_nueva_factura.ref_otro2.value != suggestion.data)
+                    {
+                        document.f_nueva_factura.ref_otro2.value = suggestion.data;
+                        document.f_nueva_factura.otro2.value = suggestion.pvpi;
+                        document.f_nueva_factura.impuesto_otro2.value = suggestion.codimpuesto;
+                        document.f_nueva_factura.desc_otro2.value = suggestion.descripcion;
+                        recalcular();
+                    }
+                }
             }
-         }
-      });
-   });
+        });
+    });
 </script>
 
 <form name="f_residente" action="{$fsc->url()}" method="post" class="form">
-   <input type="hidden" name="cliente" value="{$fsc->residente->codcliente}"/>
-   <div class="container-fluid">
-      <div class="row" style="margin-top: 10px; margin-bottom: 10px;">
-         <div class="col-sm-6">
-            <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
-               <span class="glyphicon glyphicon-refresh"></span>
-            </a>
-
-            <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes">
-               <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Inquilinos
-            </a>
-
-            <div class="btn-group">
-               <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes&cliente={$fsc->residente->codcliente}">
-                  <span class="glyphicon glyphicon-zoom-in"></span> &nbsp; Más del cliente
-               </a>
-               {loop="$fsc->extensions"}
-                  {if="$value->type=='button'"}
-                  <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
-                  {/if}
-               {/loop}
+    <input type="hidden" name="cliente" value="{$fsc->residente->codcliente}"/>
+    <div class="container-fluid">
+        <div class="row" style="margin-top: 10px; margin-bottom: 10px;">
+            <div class="col-sm-6">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes">
+                    <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Inquilinos
+                </a>
+                <div class="btn-group">
+                    <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes&cliente={$fsc->residente->codcliente}">
+                        <span class="glyphicon glyphicon-zoom-in"></span> &nbsp; Más del cliente
+                    </a>
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </div>
             </div>
-         </div>
-         <div class="col-sm-6 text-right">
-            <div class="btn-group">
-               <a id="b_eliminar" class="btn btn-sm btn-danger" href="#">
-                  <span class="glyphicon glyphicon-trash"></span> &nbsp; Eliminar
-               </a>
-               <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
-                  <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
-               </button>
+            <div class="col-sm-6 text-right">
+                <div class="btn-group">
+                    <a id="b_eliminar" class="btn btn-sm btn-danger" href="#">
+                        <span class="glyphicon glyphicon-trash"></span> &nbsp; Eliminar
+                    </a>
+                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
+                    </button>
+                </div>
             </div>
-         </div>
-      </div>
-      <div class="row">
-         <div class="col-sm-5">
-            <div class="form-group">
-               Cliente:
-               <div class="input-group">
-                  <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" value="{$fsc->residente->nombre}" placeholder="Buscar" autocomplete="off"/>
-                  <span class="input-group-btn">
-                     <button class="btn btn-default" type="button" onclick="document.f_residente.ac_cliente.value='';document.f_residente.ac_cliente.focus();">
-                        <span class="glyphicon glyphicon-edit"></span>
-                     </button>
-                  </span>
-               </div>
-               <p class="help-block"><a href="{$fsc->cliente->url()}#nuevo" target="_blank">Nuevo cliente</a>.</p>
+        </div>
+        <div class="row">
+            <div class="col-sm-5">
+                <div class="form-group">
+                    <label class="control-label">Cliente:</label>
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" value="{$fsc->residente->nombre}" placeholder="Buscar" autocomplete="off"/>
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" onclick="document.f_residente.ac_cliente.value = '';document.f_residente.ac_cliente.focus();">
+                                <span class="glyphicon glyphicon-edit"></span>
+                            </button>
+                        </span>
+                    </div>
+                    <p class="help-block"><a href="{$fsc->cliente->url()}#nuevo" target="_blank">Nuevo cliente</a>.</p>
+                </div>
             </div>
-         </div>
-         <div class="col-sm-2">
-            <div class="form-group">
-               Dpto:
-               <input class="form-control" type="text" name="piso" value="{$fsc->residente->piso}" autocomplete="off"/>
+            <div class="col-sm-7">
             </div>
-         </div>
-         <div class="col-sm-3">
-            <div class="form-group">
-               Bloque:
-               <input class="form-control" type="text" name="bloque" value="{$fsc->residente->bloque}" autocomplete="off"/>
+            <div class="clearfix"></div>
+            {loop="$fsc->residente->pertenencia"}
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label class="control-label">{$value->desc_id}</label>
+                    <input class="form-control" type="text" name="{$value->id}" value="{$value->valor}" autocomplete="off"/>
+                </div>
             </div>
-         </div>
-         <div class="col-sm-2">
-            <div class="form-group">
-               Fecha de alta:
-               <input class="form-control datepicker" type="text" name="fechaalta" value="{$fsc->residente->fechaalta}" autocomplete="off"/>
+            {/loop}
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label class="control-label">Inmueble:</label>
+                    <input class="form-control" type="text" name="numero" value="{$fsc->residente->numero}" autocomplete="off"/>
+                </div>
             </div>
-         </div>
-      </div>
-      <div class="row">
-         <div class="col-sm-12">
-            <div class="form-group">
-               Observaciones:
-               <textarea name="observaciones" class="form-control" rows="4">{$fsc->residente->observaciones}</textarea>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <label class="control-label">Fecha de alta:</label>
+                    <input class="form-control datepicker" type="text" name="fecha_ocupacion" value="{function="date('d-m-Y',strtotime($fsc->residente->fecha_ocupacion))"}" autocomplete="off"/>
+                </div>
             </div>
-         </div>
-      </div>
-   </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label class="control-label">Observaciones:</label>
+                    <textarea name="observaciones" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
 {/if}
 
 <div role="tabpanel">
-   <ul class="nav nav-tabs" role="tablist">
-      <li role="presentation" class="active">
-         <a href="#home" aria-controls="home" role="tab" data-toggle="tab">Facturas del cliente</a>
-      </li>
-      <li role="presentation">
-         <a href="#nuevaf" aria-controls="nuevaf" role="tab" data-toggle="tab">
-            <span class="glyphicon glyphicon-file"></span> &nbsp; Nueva
-         </a>
-      </li>
-   </ul>
-   <div class="tab-content">
-      <div role="tabpanel" class="tab-pane active" id="home">
-         <div class="table-responsive">
-            <table class="table table-hover">
-               <thead>
-                  <tr>
-                     <th></th>
-                     <th></th>
-                     <th class="text-left">Código + Número2</th>
-                     <th class="text-left">Observaciones</th>
-                     <th class="text-right">Total</th>
-                     <th class="text-right">Fecha</th>
-                     <th class="text-right">Hora</th>
-                  </tr>
-               </thead>
-               <!--{$total=0}-->
-               {loop="$fsc->facturas"}
-               <tr class="clickableRow{if="$value->total<=0"} bg-warning{/if}" href="{$value->url()}">
-                  <td class="text-center">
-                     {if="$value->pagada"}
-                     <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
-                     {else}
-                     <!--{$total=$total+$value->total}-->
-                     {/if}
-                  </td>
-                  <td class="text-center">
-                     {if="$value->idasiento"}
-                     <span class="glyphicon glyphicon-paperclip" title="La factura tiene vinculado un asiento contable"></span>
-                     {/if}
-                  </td>
-                  <td><a href="{$value->url()}">{$value->codigo}</a> {$value->numero2}</td>
-                  <td>{$value->observaciones_resume()}</td>
-                  <td class="text-right">{$fsc->show_precio($value->total, $value->coddivisa)}</td>
-                  <td class="text-right">{$value->fecha}</td>
-                  <td class="text-right">{$value->hora}</td>
-               </tr>
-               {else}
-               <tr class="bg-warning">
-                  <td></td>
-                  <td></td>
-                  <td colspan="5">Ninguna factura encontrada.</td>
-               </tr>
-               {/loop}
-               {if="$total != 0"}
-               <tr>
-                  <td colspan="5" class="text-right"><b>Deuda: &nbsp; {$fsc->show_precio($total)}</b></td>
-                  <td></td>
-                  <td></td>
-               </tr>
-               {/if}
-            </table>
-         </div>
-      </div>
-      <div role="tabpanel" class="tab-pane" id="nuevaf">
-         <form name="f_nueva_factura" class="form" action="{$fsc->url()}" method="post">
-            <input type="hidden" name="ref_otro"/>
-            <input type="hidden" name="ref_otro2"/>
-            <div class="container-fluid" style="margin-top: 10px;">
-               <div class="row">
-                  <div class="col-sm-6">
-                     <div class="form-group">
-                        Mensualidad:
-                        <input class="form-control" type="text" name="desc_mensualidad" value="Mensualidad"/>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Impuesto:
-                        <select name="impuesto_m" class="form-control">
-                           {loop="$fsc->impuesto->all()"}
-                           <option value="{$value->codimpuesto}"{if="$value->codimpuesto==$fsc->impuesto_m"} selected="selected"{/if}>{$value->descripcion}</option>
-                           {/loop}
-                        </select>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Importe:
-                        <input class="form-control" type="text" name="mensualidad" value="{$fsc->residente->mensualidad}" autocomplete="off" onkeyup="recalcular()"/>
-                     </div>
-                  </div>
-               </div>
-               <div class="row">
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Medición agua m<sup>3</sup>:
-                        <input class="form-control" type="text" name="agua" value="{$fsc->residente->agua}" autocomplete="off" onkeyup="get_consumo_agua()"/>
-                        <p class="help-block">última medición de {$fsc->residente->agua} m<sup>3</sup> el {$fsc->residente->fechaagua}</p>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Consumo de agua m<sup>3</sup>:
-                        <input class="form-control" type="text" name="consumo_agua" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Impuesto:
-                        <select name="impuesto_a" class="form-control">
-                           {loop="$fsc->impuesto->all()"}
-                           <option value="{$value->codimpuesto}"{if="$value->codimpuesto==$fsc->impuesto_a"} selected="selected"{/if}>{$value->descripcion}</option>
-                           {/loop}
-                        </select>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Precio m<sup>3</sup> agua:
-                        <input class="form-control" type="text" name="precio_agua" value="{$fsc->precio_agua}" autocomplete="off" onkeyup="recalcular()"/>
-                     </div>
-                  </div>
-               </div>
-               <div class="row">
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Medición gas m<sup>3</sup>:
-                        <input class="form-control" type="text" name="gas" value="{$fsc->residente->gas}" autocomplete="off" onkeyup="get_consumo_gas()"/>
-                        <p class="help-block">última medición de {$fsc->residente->gas} m<sup>3</sup> el {$fsc->residente->fechagas}</p>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Consumo de gas m<sup>3</sup>:
-                        <input class="form-control" type="text" name="consumo_gas" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Impuesto:
-                        <select name="impuesto_g" class="form-control">
-                           {loop="$fsc->impuesto->all()"}
-                           <option value="{$value->codimpuesto}"{if="$value->codimpuesto==$fsc->impuesto_g"} selected="selected"{/if}>{$value->descripcion}</option>
-                           {/loop}
-                        </select>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Precio m<sup>3</sup> gas:
-                        <input class="form-control" type="text" name="precio_gas" value="{$fsc->precio_gas}" autocomplete="off" onkeyup="recalcular()"/>
-                     </div>
-                  </div>
-               </div>
-               <div class="row">
-                  <div class="col-sm-2">
-                     <div class="form-group">
-                        Referencia:
-                        <input class="form-control" type="text" name="ac_referencia" id="ac_referencia" maxlength="18" placeholder="referencia" autocomplete="off"/>
-                        <p class="help-block">Opcional</p>
-                     </div>
-                  </div>
-                  <div class="col-sm-4">
-                     <div class="form-group">
-                        Otro concepto:
-                        <input class="form-control" type="text" name="desc_otro"/>
-                        <p class="help-block">Dejar en blanco para no usar.</p>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Impuesto:
-                        <select name="impuesto_otro" class="form-control">
-                           {loop="$fsc->impuesto->all()"}
-                           <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
-                           {/loop}
-                        </select>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Importe:
-                        <input class="form-control" type="text" name="otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                     </div>
-                  </div>
-               </div>
-               <div class="row">
-                  <div class="col-sm-2">
-                     <div class="form-group">
-                        Referencia:
-                        <input class="form-control" type="text" name="ac_referencia2" id="ac_referencia2" maxlength="18" placeholder="referencia" autocomplete="off"/>
-                        <p class="help-block">Opcional</p>
-                     </div>
-                  </div>
-                  <div class="col-sm-4">
-                     <div class="form-group">
-                        Otro concepto 2:
-                        <input class="form-control" type="text" name="desc_otro2"/>
-                        <p class="help-block">Dejar en blanco para no usar.</p>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Impuesto:
-                        <select name="impuesto_otro2" class="form-control">
-                           {loop="$fsc->impuesto->all()"}
-                           <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
-                           {/loop}
-                        </select>
-                     </div>
-                  </div>
-                  <div class="col-sm-3">
-                     <div class="form-group">
-                        Importe:
-                        <input class="form-control" type="text" name="otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                     </div>
-                  </div>
-               </div>
-               <div class="row">
-                  <div class="col-sm-3 col-sm-offset-9">
-                     <div class="form-group">
-                        Total:
-                        <input class="form-control" type="text" name="total" value="0" readonly/>
-                     </div>
-                  </div>
-               </div>
-               <div class="row">
-                  <div class="col-sm-12 text-right">
-                     <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
-                        <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
-                     </button>
-                  </div>
-               </div>
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active">
+            <a href="#home" aria-controls="home" role="tab" data-toggle="tab">Facturas del cliente</a>
+        </li>
+        <li role="presentation">
+            <a href="#nuevaf" aria-controls="nuevaf" role="tab" data-toggle="tab">
+                <span class="glyphicon glyphicon-file"></span> &nbsp; Nueva
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="home">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th class="text-left">Código + Número2</th>
+                            <th class="text-left">Observaciones</th>
+                            <th class="text-right">Total</th>
+                            <th class="text-right">Fecha</th>
+                            <th class="text-right">Hora</th>
+                        </tr>
+                    </thead>
+                    <!--{$total=0}-->
+                    {loop="$fsc->facturas"}
+                    <tr class="clickableRow{if="$value->total<=0"} bg-warning{/if}" href="{$value->url()}">
+                        <td class="text-center">
+                            {if="$value->pagada"}
+                            <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
+                            {else}
+                            <!--{$total=$total+$value->total}-->
+                            {/if}
+                        </td>
+                        <td class="text-center">
+                            {if="$value->idasiento"}
+                            <span class="glyphicon glyphicon-paperclip" title="La factura tiene vinculado un asiento contable"></span>
+                            {/if}
+                        </td>
+                        <td><a href="{$value->url()}">{$value->codigo}</a> {$value->numero2}</td>
+                        <td>{$value->observaciones_resume()}</td>
+                        <td class="text-right">{$fsc->show_precio($value->total, $value->coddivisa)}</td>
+                        <td class="text-right">{$value->fecha}</td>
+                        <td class="text-right">{$value->hora}</td>
+                    </tr>
+                    {else}
+                    <tr class="bg-warning">
+                        <td></td>
+                        <td></td>
+                        <td colspan="5">Ninguna factura encontrada.</td>
+                    </tr>
+                    {/loop}
+                    {if="$total != 0"}
+                    <tr>
+                        <td colspan="5" class="text-right"><b>Deuda: &nbsp; {$fsc->show_precio($total)}</b></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    {/if}
+                </table>
             </div>
-         </form>
-      </div>
-   </div>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="nuevaf">
+            <form name="f_nueva_factura" class="form" action="{$fsc->url()}" method="post">
+                <input type="hidden" name="ref_otro"/>
+                <input type="hidden" name="ref_otro2"/>
+                <div class="container-fluid" style="margin-top: 10px;">
+                    <div class="row">
+                        {loop="$fsc->familia->get_articulos()"}
+                        <div class="col-sm-6">
+                            {$value->descripcion}:
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                Impuesto:
+                                <select name="impuesto_{$value->referencia}" class="form-control">
+                                    {loop="$fsc->impuesto->all()"}
+                                    <option value="{$value2->codimpuesto}"{if="$value2->codimpuesto==$value->codimpuesto"} selected="selected"{/if}>{$value2->descripcion}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                Importe:
+                                <input class="form-control" type="text" name="importe_{$value->referencia}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
+                            </div>
+                        </div>
+                        {/loop}
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                Referencia:
+                                <input class="form-control" type="text" name="ac_referencia" id="ac_referencia" maxlength="18" placeholder="referencia" autocomplete="off"/>
+                                <p class="help-block">Opcional</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                Otro concepto:
+                                <input class="form-control" type="text" name="desc_otro"/>
+                                <p class="help-block">Dejar en blanco para no usar.</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                Impuesto:
+                                <select name="impuesto_otro" class="form-control">
+                                    {loop="$fsc->impuesto->all()"}
+                                    <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                Importe:
+                                <input class="form-control" type="text" name="otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                Referencia:
+                                <input class="form-control" type="text" name="ac_referencia2" id="ac_referencia2" maxlength="18" placeholder="referencia" autocomplete="off"/>
+                                <p class="help-block">Opcional</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                Otro concepto 2:
+                                <input class="form-control" type="text" name="desc_otro2"/>
+                                <p class="help-block">Dejar en blanco para no usar.</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                Impuesto:
+                                <select name="impuesto_otro2" class="form-control">
+                                    {loop="$fsc->impuesto->all()"}
+                                    <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                Importe:
+                                <input class="form-control" type="text" name="otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3 col-sm-offset-9">
+                            <div class="form-group">
+                                Total:
+                                <input class="form-control" type="text" name="total" value="0" readonly/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="$(this).hide();this.form.submit();">
+                                <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {include="footer"}

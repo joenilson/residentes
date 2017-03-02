@@ -127,7 +127,23 @@ class residentes_edificaciones extends \fs_model{
     }
 
     public function install(){
-        return "";
+        $familias_sql = "INSERT INTO familias (descripcion,codfamilia) VALUES ('Servicios Residentes','RESIDENT');";
+        $articulos_sql = "INSERT INTO articulos (referencia, descripcion, codfamilia, nostock, controlstock, secompra, sevende, bloqueado) VALUES ".
+                "('RES_CUOTA','Cuota Mensual','RESIDENT',TRUE,TRUE,FALSE, TRUE, FALSE),".
+                "('RES_SEGURIDAD','Pago de Seguridad común','RESIDENT',TRUE,TRUE,FALSE, TRUE, FALSE),".
+                "('RES_ILUMINACION','Pago Iluminación de Parques','RESIDENT',TRUE,TRUE,FALSE, TRUE, FALSE),".
+                "('RES_AGUA','Pago de Agua','RESIDENT',TRUE,TRUE,FALSE, TRUE, FALSE),".
+                "('RES_GAS','Pago de Gas Común','RESIDENT',TRUE,TRUE,FALSE, TRUE, FALSE),".
+                "('RES_SERVICIOS','Pago de Servicios Municipales','RESIDENT',TRUE,TRUE,FALSE, TRUE, FALSE);";
+        return "$familias_sql $articulos_sql";
+    }
+
+    public function url(){
+        if(!is_null($this->id)){
+            return FS_PATH.'index.php?page=ver_residente&id='.$this->id;
+        }else{
+            return FS_PATH.'index.php?page=residentes';
+        }
     }
 
     public function all(){
@@ -169,7 +185,12 @@ class residentes_edificaciones extends \fs_model{
         $sql = "SELECT * FROM ".$this->table_name." WHERE id = ".$this->intval($id).";";
         $data = $this->db->select($sql);
         if($data){
-            return new residentes_edificaciones($data[0]);
+             $item = new residentes_edificaciones($data[0]);
+            $item->pertenencia = $this->pertenencia($item);
+            $item->nombre = $this->cliente->get($item->codcliente)->nombre;
+            $item->info = $this->cliente_info->get($item->codcliente);
+            $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+            return $item;
         }else{
             return false;
         }

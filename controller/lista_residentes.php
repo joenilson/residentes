@@ -63,13 +63,6 @@ class lista_residentes extends fs_controller {
 
         if (isset($_GET['cliente'])) {
             $this->resultados = $this->residente->all_from_cliente($_GET['cliente']);
-        } else if (isset($_POST['bloque'])) {
-            if ($_POST['bloque'] != '') {
-                $this->bloque = $_POST['bloque'];
-                $this->resultados = $this->residente->all_from_bloque($_POST['bloque']);
-            } else {
-                $this->resultados = $this->residente->all_ocupados();
-            }
         } else {
             $this->resultados = $this->residente->all_ocupados();
         }
@@ -124,24 +117,13 @@ class lista_residentes extends fs_controller {
 
         $json = array();
         foreach ($this->residente->search($_REQUEST['buscar_inmueble']) as $inmueble) {
-            $json[] = array('value' => $inmueble->codigo.$inmueble->numero, 'data' => $inmueble->id);
+            if(!$inmueble->ocupado){
+                $json[] = array('value' => $inmueble->codigo.$inmueble->numero, 'data' => $inmueble->id);
+            }
         }
 
         header('Content-Type: application/json');
         echo json_encode(array('query' => $_REQUEST['buscar_inmueble'], 'suggestions' => $json));
-    }
-
-    public function bloques() {
-        $blist = array();
-
-        $data = $this->db->select("SELECT DISTINCT bloque FROM residentes ORDER BY bloque ASC;");
-        if ($data) {
-            foreach ($data as $d) {
-                $blist[] = $d['bloque'];
-            }
-        }
-
-        return $blist;
     }
 
     public function anterior_url() {

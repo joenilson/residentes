@@ -83,7 +83,7 @@
         </thead>
         {loop="$fsc->resultados"}
         <tr>
-            <td><a href="#">{$value->nombre}</a></td>
+            <td><a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a></td>
             <td class="text-center">{$value->codigo} {$value->numero}</td>
             <td class="text-left">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</td>
             <td class="text-center">{if="$value->info"}{$value->vehiculos|count}{else}Información Incompleta{/if}</td>

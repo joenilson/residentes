@@ -6,10 +6,11 @@
  */
 
 require_model('articulo.php');
+require_model('familia.php');
 require_model('cliente.php');
 require_model('factura_cliente.php');
 require_model('impuesto.php');
-require_model('residente.php');
+require_model('residentes_edificaciones.php');
 /**
  * Description of ver_residente
  *
@@ -18,6 +19,9 @@ require_model('residente.php');
 class ver_residente extends fs_controller
 {
    public $cliente;
+   public $articulos;
+   public $familia;
+   public $familias;
    public $facturas;
    public $impuesto;
    public $impuesto_a;
@@ -43,40 +47,23 @@ class ver_residente extends fs_controller
       $this->residente = FALSE;
       $this->precio_agua = 0;
       $this->precio_gas = 0;
+      $this->articulos = new articulo();
+      $this->familias = new familia();
+      $this->familia = $this->familias->get('RESIDENT');
 
-      if( isset($_COOKIE['impuesto_a']) )
+
+      if(\filter_input(INPUT_GET, 'id'))
       {
-         $this->impuesto_a = $_COOKIE['impuesto_a'];
+         $inq0 = new residentes_edificaciones();
+         $this->residente = $inq0->get(\filter_input(INPUT_GET, 'id'));
       }
-
-      if( isset($_COOKIE['impuesto_g']) )
-      {
-         $this->impuesto_g = $_COOKIE['impuesto_g'];
-      }
-
-      if( isset($_COOKIE['impuesto_m']) )
-      {
-         $this->impuesto_m = $_COOKIE['impuesto_m'];
-      }
-
-      if( isset($_COOKIE['precio_agua']) )
-      {
-         $this->precio_agua = $_COOKIE['precio_agua'];
-      }
-
-      if( isset($_COOKIE['precio_gas']) )
-      {
-         $this->precio_gas = $_COOKIE['precio_gas'];
-      }
-
-      if( isset($_REQUEST['id']) )
-      {
-         $inq0 = new residente();
-         $this->residente = $inq0->get($_REQUEST['id']);
-      }
-
       if($this->residente)
       {
+         $accion = \filter_input(INPUT_POST, 'accion');
+         if($accion == 'generar_factura'){
+             $this->nueva_factura();
+         }
+         /*
          if( isset($_REQUEST['buscar_referencia']) )
          {
             $this->buscar_referencia();
@@ -130,19 +117,18 @@ class ver_residente extends fs_controller
             else
                $this->new_error_msg('Error al guardar los datos.');
          }
-
+         */
          $this->page->title = 'Residente '.$this->residente->nombre;
-
          $factura = new factura_cliente();
          $this->facturas = $factura->all_from_cliente($this->residente->codcliente);
-      }
-      else
+      } else {
          $this->new_error_msg('Residente no encontrado.');
+      }
    }
 
    public function url()
    {
-      if( isset($_REQUEST['id']) )
+      if(\filter_input(INPUT_GET, 'id'))
       {
          return $this->residente->url();
       }
@@ -196,69 +182,28 @@ class ver_residente extends fs_controller
 
          if( $factura->save() )
          {
-            /// mensualidad
-            if( floatval($_POST['mensualidad']) > 0 )
-            {
-               $linea = new linea_factura_cliente();
-               $linea->idfactura = $factura->idfactura;
-               $linea->descripcion = $_POST['desc_mensualidad'];
-               $linea->cantidad = 1;
-               $imp = $this->impuesto->get($_POST['impuesto_m']);
-               if($imp)
-               {
-                  $linea->codimpuesto = $imp->codimpuesto;
-                  $linea->iva = $imp->iva;
-                  $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval($_POST['mensualidad']))/(100 + $imp->iva);
-                  if( $linea->save() )
-                  {
-                     $factura->neto += $linea->pvptotal;
-                     $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
-                  }
-               }
-            }
-
-            /// consumo de agua
-            if( floatval($_POST['consumo_agua']) > 0 AND floatval($_POST['precio_agua']) > 0 )
-            {
-               $linea = new linea_factura_cliente();
-               $linea->idfactura = $factura->idfactura;
-               $linea->descripcion = 'Consumo de agua: '.$_POST['consumo_agua'].' M3';
-               $imp = $this->impuesto->get($_POST['impuesto_a']);
-               if($imp)
-               {
-                  $linea->codimpuesto = $imp->codimpuesto;
-                  $linea->iva = $imp->iva;
-                  $linea->cantidad = floatval($_POST['consumo_agua']);
-                  $linea->pvpunitario = (100 * floatval($_POST['precio_agua']))/(100 + $imp->iva);
-                  $linea->pvpsindto = $linea->pvptotal = $linea->cantidad * $linea->pvpunitario;
-                  if( $linea->save() )
-                  {
-                     $factura->neto += $linea->pvptotal;
-                     $factura->totaliva += $linea->pvptotal * $linea->iva / 100;
-                  }
-               }
-            }
-
-            /// consumo de gas
-            if( floatval($_POST['consumo_gas']) > 0 AND floatval($_POST['precio_gas']) > 0 )
-            {
-               $linea = new linea_factura_cliente();
-               $linea->idfactura = $factura->idfactura;
-               $linea->descripcion = 'Consumo de gas: '.$_POST['consumo_gas'].' M3';
-               $imp = $this->impuesto->get($_POST['impuesto_g']);
-               if($imp)
-               {
-                  $linea->codimpuesto = $imp->codimpuesto;
-                  $linea->iva = $imp->iva;
-                  $linea->cantidad = floatval($_POST['consumo_gas']);
-                  $linea->pvpunitario = (100 * floatval($_POST['precio_gas']))/(100 + $imp->iva);
-                  $linea->pvpsindto = $linea->pvptotal = $linea->cantidad * $linea->pvpunitario;
-                  if( $linea->save() )
-                  {
-                     $factura->neto += $linea->pvptotal;
-                     $factura->totaliva += $linea->pvptotal * $linea->iva / 100;
-                  }
-               }
+            foreach($this->familia->get_articulos() as $art){
+                $importe = \filter_input(INPUT_POST, 'importe_'.$art->referencia);
+                $impuesto = \filter_input(INPUT_POST, 'impuesto_'.$art->referencia);
+                if(floatval($importe)){
+                    $linea = new linea_factura_cliente();
+                    $linea->idfactura = $factura->idfactura;
+                    $linea->referencia = $art->referencia;
+                    $linea->descripcion = $art->descripcion;
+                    $linea->cantidad = 1;
+                    $imp = $this->impuesto->get($impuesto);
+                    if($imp)
+                    {
+                       $linea->codimpuesto = $imp->codimpuesto;
+                       $linea->iva = $imp->iva;
+                       $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval($importe))/(100 + $imp->iva);
+                       if( $linea->save() )
+                       {
+                          $factura->neto += $linea->pvptotal;
+                          $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
+                       }
+                    }
+                }
             }
 
             $art0 = new articulo();
