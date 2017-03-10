@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace FacturaScripts\model;
+
+require_model('cliente.php');
 /**
  * Tabla para guardar la información adicional de los residentes
  * para guardar la información de los vehiculos de los mismos
@@ -136,6 +138,7 @@ class residentes_informacion extends \fs_model{
      * @var type integer
      */
     public $vehiculos;
+    public $cliente;
     public function __construct($t = FALSE) {
         parent::__construct('residentes_informacion','plugins/residentes');
         if($t){
@@ -185,10 +188,21 @@ class residentes_informacion extends \fs_model{
             $this->ca_parentesco_obs='';
             $this->vehiculos=0;
         }
+        $this->cliente = new cliente();
     }
 
     public function install(){
         return "";
+    }
+
+    public function info_adicional($i){
+        $data = $this->cliente->get($i->codcliente);
+        $i->nombre = $data->nombre;
+        $i->telefono1 = $data->telefono1;
+        $i->telefono2 = $data->telefono2;
+        $i->email = $data->email;
+        $i->observaciones = $data->observaciones;
+        return $i;
     }
 
     public function all(){
@@ -198,7 +212,7 @@ class residentes_informacion extends \fs_model{
             $lista = array();
             foreach($data as $d){
                 $item = new residentes_informacion($d);
-                $lista[] = $item;
+                $lista[] = $item->info_adicional($item);
             }
             return $lista;
         }else{
@@ -218,7 +232,8 @@ class residentes_informacion extends \fs_model{
                 " WHERE codcliente = ".$this->var2str($codcliente).";";
         $data = $this->db->select($sql);
         if($data){
-            return new residentes_informacion($data[0]);
+            $item = new residentes_informacion($data[0]);
+            return $item->info_adicional($item);
         }else{
             return false;
         }
@@ -238,7 +253,7 @@ class residentes_informacion extends \fs_model{
             $lista = array();
             foreach($data as $d){
                 $item = new residentes_informacion($d);
-                $lista[] = $item;
+                $lista[] = $item->info_adicional($item);
             }
             return $lista;
         }else{
@@ -310,6 +325,36 @@ class residentes_informacion extends \fs_model{
                 return false;
             }
         }
+    }
+
+    /**
+     * Función para realizar buquedas en la mayor cantidad de información del residente
+     * @param type $query string/integer
+     */
+    public function search($busqueda, $offset = 0) {
+        $clilist = array();
+        $query = mb_strtolower($this->no_html($busqueda), 'UTF8');
+
+        $consulta = "SELECT * FROM " . $this->table_name . " WHERE ";
+        if (is_numeric($query)) {
+            $consulta .= "(ca_telefono LIKE '%" . $query . "%' OR codigo LIKE '%" . $query . "%')";
+        } else {
+            $buscar = str_replace(' ', '%', $query);
+            $consulta .= "(lower(ca_nombres) LIKE '%" . $buscar . "%' OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ocupacion) LIKE '%" . $buscar . "%' OR lower(profesion) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ca_email) LIKE '%" . $buscar . "%')";
+        }
+        $consulta .= " ORDER BY codcliente ASC";
+
+        $data = $this->db->select_limit($consulta, FS_ITEM_LIMIT, $offset);
+        if ($data) {
+            foreach ($data as $d) {
+                $item = new residentes_informacion($d);
+                $clilist[] = $item->info_adicional($item);
+            }
+        }
+
+        return $clilist;
     }
 
     public function delete() {

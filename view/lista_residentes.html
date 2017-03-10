@@ -6,6 +6,9 @@
             $("#modal_cliente").modal('show');
             document.f_nuevo_residente.ac_cliente.focus();
         });
+        $('#modal_info_residente').on('hidden.bs.modal', function () {
+            window.location.assign("{$fsc->url()}");
+        });
         $("#ac_inmueble").autocomplete({
             serviceUrl: '{$fsc->url()}',
             paramName: 'buscar_inmueble',
@@ -32,11 +35,31 @@
                 }
             }
         });
+        $("#search_cliente").autocomplete({
+            serviceUrl: '{$fsc->url()}',
+            paramName: 'buscar_cliente_avanzado',
+            onSelect: function (suggestion) {
+                if (suggestion)
+                {
+                    window.location.assign("{#FS_PATH#}index.php?page=ver_residente&id="+suggestion.data);
+                }
+            }
+        });
     });
+    function informacionResidente(cod,tipo){
+        $('#modal_info_residente').modal('show');
+        $("#info_residente").detach();
+        $("<iframe id='info_residente' />")
+          .attr('src', '{#FS_PATH#}index.php?page=clientes_'+tipo+'&cod='+cod)
+          .attr('width', '100%')
+          .attr('height', '400')
+          .appendTo('#modal_body_info_residente');
+    }
+
 </script>
 <div class="container-fluid" style="margin-top: 10px;">
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col-sm-7">
             <div class="btn-group hidden-xs">
                 <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
                     <span class="glyphicon glyphicon-refresh"></span>
@@ -62,8 +85,17 @@
                 {/if}
                 {/loop}
             </div>
+            <div class="btn-group">
+                <input class="form-control" name="search_cliente" id="search_cliente" value="" autocomplete="off" placeholder="Buscar Residente" type="text">
+                <span class="input-group-btn hidden-sm">
+                    <button class="btn btn-primary" type="button">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </button>
+                </span>
+            </div>
+
         </div>
-        <div class="col-sm-6 text-right">
+        <div class="col-sm-5 text-right">
             <h2 style="margin-top: 0px;"><span class="fa fa-group"></span>&nbsp;Residentes</h2>
         </div>
     </div>
@@ -85,8 +117,8 @@
         <tr>
             <td><a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a></td>
             <td class="text-center">{$value->codigo} {$value->numero}</td>
-            <td class="text-left">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</td>
-            <td class="text-center">{if="$value->info"}{$value->vehiculos|count}{else}Información Incompleta{/if}</td>
+            <td class="text-left"><a href='#' onclick="informacionResidente('{$value->codcliente}','informacion')">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
+            <td class="text-center"><a href='#' onclick="informacionResidente('{$value->codcliente}','vehiculos')">{if="$value->info"}{$value->vehiculos|count}{else}Información Incompleta{/if}</a></td>
             <td class="text-center">{$value->fecha_ocupacion}</td>
             <td class="text-right"></td>
         </tr>
@@ -163,6 +195,19 @@
                     <button type="submit" name="accion" id="agregar_residente" value="agregar_residente" class="btn btn-primary">Agregar</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+<div class="modal" id="modal_info_residente">
+    <div class="modal-dialog" style="width: 99%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="">&times;</button>
+                <h4 class="modal-title">Información del Residente</h4>
+            </div>
+            <div class="modal-body" id='modal_body_info_residente'>
+
+            </div>
         </div>
     </div>
 </div>

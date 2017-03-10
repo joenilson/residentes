@@ -43,13 +43,29 @@ class mapa_edificaciones extends fs_controller{
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
 
-        $accion = \filter_input(INPUT_POST, 'accion');
+        $accion_p = \filter_input(INPUT_POST, 'accion');
+        $accion_g = \filter_input(INPUT_GET, 'accion');
+        $accion = ($accion_p)?$accion_p:$accion_g;
         if($accion == 'agregar_base'){
             $this->agregar($this->padre);
         }elseif($accion == 'agregar_hijo'){
             $id = \filter_input(INPUT_POST, 'id_hijo');
             $objeto = $this->edificaciones_tipo->get($id);
             $this->agregar($objeto);
+        }elseif($accion == 'eliminar'){
+            $id = \filter_input(INPUT_GET, 'id');
+            $estructura = $this->edificaciones_mapa->get($id);
+            if($estructura->tiene_hijos()){
+                $this->new_error_msg('Esta estructura tiene edificaciones internas, primero debe eliminarlas para eliminar esta.');
+            }else{
+                try {
+                    $estructura->delete();
+                    $this->new_message('Edificación eliminada correctamente.');
+                } catch (\Exception $ex) {
+                    $this->new_error_msg('Ocurrió un error intentando eliminar la edificación');
+                    $this->new_error_msg($ex->getTraceAsString());
+                }
+            }
         }
 
         $tipo = $accion = \filter_input(INPUT_GET, 'type');
@@ -81,8 +97,8 @@ class mapa_edificaciones extends fs_controller{
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
-        foreach(range($inicio,$final) as $item){
-            $item = (is_int($item))?str_pad($item,3,"0",STR_PAD_LEFT):$item;
+        if($inicio == $final){
+            $item = (is_int($inicio))?str_pad($inicio,3,"0",STR_PAD_LEFT):$inicio;
             $punto = new residentes_edificaciones_mapa();
             $punto->id = $id;
             $punto->id_tipo = $objeto->id;
@@ -97,6 +113,24 @@ class mapa_edificaciones extends fs_controller{
                 $error++;
             }
             $linea++;
+        }else{
+            foreach(range($inicio,$final) as $item){
+                $item = (is_int($item))?str_pad($item,3,"0",STR_PAD_LEFT):$item;
+                $punto = new residentes_edificaciones_mapa();
+                $punto->id = $id;
+                $punto->id_tipo = $objeto->id;
+                $punto->codigo_edificacion = $item;
+                $punto->codigo_padre = $codigo_padre;
+                $punto->padre_tipo = $objeto->padre;
+                $punto->padre_id = $padre_id;
+                $punto->numero = '';
+                if($punto->save()){
+                    $inmuebles++;
+                }else{
+                    $error++;
+                }
+                $linea++;
+            }
         }
         if($error){
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');

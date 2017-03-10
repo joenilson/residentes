@@ -63,7 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {if="$value->tiene_hijos()"}
                     <a href="#" class="text-warning" onclick="alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
                     {else}
-                    <a href="#" class="text-danger" onclick="alert('Eliminar aun no completo.')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
+                    <a href="{$fsc->url()}&id={$value->id}&accion=eliminar" class="text-danger" onclick="return confirm('¿Está seguro que quiere eliminar esta Edificación?')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
                     {/if}
                 </p>
             </div>
@@ -89,8 +89,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                     <div class="form-group col-sm-9">
                         <div class="input-group">
-                            <input type="text" name="inicio" value="" placeholder="Desde" class="form-control" aria-describedby="basic-addon2"/>
-                            <div class="input-group-addon" id="basic-addon2"><span class="fa fa-arrow-right"></span></div>
+                            <input type="text" name="inicio" value="" placeholder="Desde" class="form-control" aria-describedby="hasta-addon2"/>
+                            <div class="input-group-addon" id="hasta-addon2"><span class="fa fa-arrow-right"></span></div>
                             <input type="text" name="final" value="" placeholder="Hasta" class="form-control"/>
                         </div>
                     </div>

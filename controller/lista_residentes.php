@@ -8,6 +8,8 @@
 require_model('cliente.php');
 
 require_model('residentes_edificaciones.php');
+require_model('residentes_informacion.php');
+require_model('residentes_vehiculos.php');
 
 /**
  * Description of lista_residentes
@@ -22,7 +24,8 @@ class lista_residentes extends fs_controller {
     public $residente;
     public $offset;
     public $resultados;
-
+    public $residente_informacion;
+    public $residente_vehiculo;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'residentes', FALSE, TRUE);
     }
@@ -31,7 +34,8 @@ class lista_residentes extends fs_controller {
         $this->bloque = '';
         $this->cliente = new cliente();
         $this->residente = new residentes_edificaciones();
-
+        $this->residente_informacion = new residentes_informacion();
+        $this->residente_vehiculo = new residentes_vehiculos();
         $this->offset = 0;
         if (isset($_REQUEST['offset'])) {
             $this->offset = intval($_REQUEST['offset']);
@@ -48,6 +52,8 @@ class lista_residentes extends fs_controller {
 
         if (isset($_REQUEST['buscar_cliente'])) {
             $this->buscar_cliente();
+        } elseif (isset($_REQUEST['buscar_cliente_avanzado'])) {
+            $this->buscar_cliente_avanzado();
         } elseif (isset($_REQUEST['buscar_inmueble'])) {
             $this->buscar_inmueble();
         } elseif (isset($_GET['delete'])) {
@@ -109,6 +115,28 @@ class lista_residentes extends fs_controller {
 
         header('Content-Type: application/json');
         echo json_encode(array('query' => $_REQUEST['buscar_cliente'], 'suggestions' => $json));
+    }
+
+    private function buscar_cliente_avanzado() {
+        /// desactivamos la plantilla HTML
+        $this->template = FALSE;
+
+        $json = array();
+        //Buscamos en la lista de clientes
+        foreach ($this->cliente->search($_REQUEST['buscar_cliente_avanzado']) as $cli) {
+            $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+        }
+        //Buscamos en los datos adicionales del residente
+        foreach ($this->residente_informacion->search($_REQUEST['buscar_cliente_avanzado']) as $cli) {
+            $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+        }
+        //Buscamos en los datos de vehiculos del residente
+        foreach ($this->residente_vehiculo->search($_REQUEST['buscar_cliente_avanzado']) as $cli){
+            $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(array('query' => $_REQUEST['buscar_cliente_avanzado'], 'suggestions' => $json));
     }
 
     private function buscar_inmueble() {

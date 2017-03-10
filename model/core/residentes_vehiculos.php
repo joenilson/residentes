@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace FacturaScripts\model;
+
+require_model('cliente.php');
 /**
  * Model de la tabla donde se almacenan los distintos vehiculos y la información de los mismos
  * de cada residente
@@ -64,6 +66,7 @@ class residentes_vehiculos extends \fs_model{
      * @var type varchar(32)
      */
     public $codigo_tarjeta;
+    public $cliente;
     public function __construct($t = FALSE) {
         parent::__construct('residentes_vehiculos','plugins/residentes');
         if($t){
@@ -85,11 +88,21 @@ class residentes_vehiculos extends \fs_model{
             $this->vehiculo_tipo = NULL;
             $this->codigo_tarjeta = null;
         }
-
+        $this->cliente = new cliente();
     }
 
     public function install(){
         return "";
+    }
+
+    public function info_adicional($i){
+        $data = $this->cliente->get($i->codcliente);
+        $i->nombre = $data->nombre;
+        $i->telefono1 = $data->telefono1;
+        $i->telefono2 = $data->telefono2;
+        $i->email = $data->email;
+        $i->observaciones = $data->observaciones;
+        return $i;
     }
 
     public function all(){
@@ -174,6 +187,36 @@ class residentes_vehiculos extends \fs_model{
                 return false;
             }
         }
+    }
+
+    /**
+     * Función para realizar buquedas en la mayor cantidad de información de vehiculos del residente
+     * @param type $query string/integer
+     */
+    public function search($busqueda, $offset = 0) {
+        $clilist = array();
+        $query = mb_strtolower($this->no_html($busqueda), 'UTF8');
+
+        $consulta = "SELECT * FROM " . $this->table_name . " WHERE ";
+        if (is_numeric($query)) {
+            $consulta .= "(codigo_tarjeta LIKE '%" . $query . "%' OR idvehiculo LIKE '%" . $query . "%')";
+        } else {
+            $buscar = str_replace(' ', '%', $query);
+            $consulta .= "(lower(codigo_tarjeta) LIKE '%" . $buscar . "%' OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_marca) LIKE '%" . $buscar . "%' OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_placa) LIKE '%" . $buscar . "%' OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%')";
+        }
+        $consulta .= " ORDER BY codcliente ASC";
+
+        $data = $this->db->select_limit($consulta, FS_ITEM_LIMIT, $offset);
+        if ($data) {
+            foreach ($data as $d) {
+                $item = new residentes_vehiculos($d);
+                $clilist[] = $item->info_adicional($item);
+            }
+        }
+
+        return $clilist;
     }
 
     public function delete() {
