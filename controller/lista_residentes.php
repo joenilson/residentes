@@ -124,15 +124,34 @@ class lista_residentes extends fs_controller {
         $json = array();
         //Buscamos en la lista de clientes
         foreach ($this->cliente->search($_REQUEST['buscar_cliente_avanzado']) as $cli) {
-            $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+
+            $lista = $this->residente->get_by_field('codcliente', $cli->codcliente);
+            if($lista){
+                foreach($lista as $residente){
+                    $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente, 'nombre' => $cli->nombre, 'asignado' => true);
+                }
+            }else{
+                $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente, 'nombre' => $cli->nombre, 'asignado' => false);
+            }
         }
         //Buscamos en los datos adicionales del residente
         foreach ($this->residente_informacion->search($_REQUEST['buscar_cliente_avanzado']) as $cli) {
-            $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+            if(!empty($cli)){
+                $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+            }
         }
         //Buscamos en los datos de vehiculos del residente
         foreach ($this->residente_vehiculo->search($_REQUEST['buscar_cliente_avanzado']) as $cli){
-            $json[$cli->codcliente] = array('value' => $cli->nombre, 'data' => $cli->codcliente);
+            if(!empty($cli)){
+                $json[$cli->codcliente] = array('value' => $cli->nombre.' '.$cli->vehiculo_placa." ".$cli->vehiculo_marca.''.$cli->vehiculo_modelo, 'data' => $cli->codcliente);
+            }
+        }
+
+        //Buscamos en las residencias
+        foreach($this->residente->search($_REQUEST['buscar_cliente_avanzado']) as $cli){
+            if(!empty($cli)){
+                $json[$cli->codcliente] = array('value' => $cli->nombre." ".$cli->codigo.' '.$cli->numero, 'data' => $cli->id, 'asignado' => true);
+            }
         }
 
         header('Content-Type: application/json');

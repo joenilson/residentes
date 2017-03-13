@@ -199,7 +199,7 @@ class residentes_vehiculos extends \fs_model{
 
         $consulta = "SELECT * FROM " . $this->table_name . " WHERE ";
         if (is_numeric($query)) {
-            $consulta .= "(codigo_tarjeta LIKE '%" . $query . "%' OR idvehiculo LIKE '%" . $query . "%')";
+            $consulta .= "(codigo_tarjeta LIKE '%" . $query . "%' OR CAST(idvehiculo as CHAR) = '%" . $query . "%')";
         } else {
             $buscar = str_replace(' ', '%', $query);
             $consulta .= "(lower(codigo_tarjeta) LIKE '%" . $buscar . "%' OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"

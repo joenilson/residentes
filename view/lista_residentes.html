@@ -41,7 +41,13 @@
             onSelect: function (suggestion) {
                 if (suggestion)
                 {
-                    window.location.assign("{#FS_PATH#}index.php?page=ver_residente&id="+suggestion.data);
+                    if(suggestion.asignado){
+                        window.location.assign("{#FS_PATH#}index.php?page=ver_residente&id="+suggestion.data);
+                    }else{
+                        $("#ac_cliente").val(suggestion.value);
+                        document.f_nuevo_residente.codcliente.value = suggestion.data;
+                        $("#nuevoResidente").modal('show');
+                    }
                 }
             }
         });
@@ -74,7 +80,6 @@
                 </a>
                 {/if}
             </div>
-
             <div class="btn-group">
                 <a class="btn btn-sm btn-success"  data-toggle="modal" data-target="#nuevoResidente" role="button">
                     <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
@@ -86,14 +91,8 @@
                 {/loop}
             </div>
             <div class="btn-group">
-                <input class="form-control" name="search_cliente" id="search_cliente" value="" autocomplete="off" placeholder="Buscar Residente" type="text">
-                <span class="input-group-btn hidden-sm">
-                    <button class="btn btn-primary" type="button">
-                        <span class="glyphicon glyphicon-search"></span>
-                    </button>
-                </span>
+                <input class="form-control input-sm" name="search_cliente" id="search_cliente" value="" autocomplete="off" placeholder="Buscar Residente" type="text">
             </div>
-
         </div>
         <div class="col-sm-5 text-right">
             <h2 style="margin-top: 0px;"><span class="fa fa-group"></span>&nbsp;Residentes</h2>

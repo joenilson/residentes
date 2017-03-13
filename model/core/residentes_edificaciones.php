@@ -185,7 +185,7 @@ class residentes_edificaciones extends \fs_model{
         $sql = "SELECT * FROM ".$this->table_name." WHERE id = ".$this->intval($id).";";
         $data = $this->db->select($sql);
         if($data){
-             $item = new residentes_edificaciones($data[0]);
+            $item = new residentes_edificaciones($data[0]);
             $item->pertenencia = $this->pertenencia($item);
             $item->nombre = $this->cliente->get($item->codcliente)->nombre;
             $item->info = $this->cliente_info->get($item->codcliente);
@@ -352,11 +352,14 @@ class residentes_edificaciones extends \fs_model{
         $sql.=" OR codigo LIKE '%".strtoupper($query)."%' ";
         $sql.=" ORDER BY codigo,numero";
         $data = $this->db->select($sql);
+        $lista = array();
         if($data){
-            $lista = array();
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
+                $item->nombre = 'Libre';
+                $item->info = '';
+                $item->vehiculos = '';
                 if($item->codcliente){
                     $item->nombre = $this->cliente->get($item->codcliente)->nombre;
                     $item->info = $this->cliente_info->get($item->codcliente);
@@ -364,10 +367,8 @@ class residentes_edificaciones extends \fs_model{
                 }
                 $lista[] = $item;
             }
-            return $lista;
-        }else{
-            return false;
         }
+        return $lista;
     }
 
 }
