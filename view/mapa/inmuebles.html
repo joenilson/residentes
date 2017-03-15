@@ -60,7 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <a href="{$fsc->url()}&inmuebles={$value->id}" role="button" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
                     <a href="#" class="text-warning" onclick="alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
                     {else}
-                    <a href="{$fsc->url()}&id={$value->id}&accion=eliminar" class="text-danger"  onclick="return confirm('¿Está seguro que quiere eliminar esta Edificación?')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
+                    <a href="{$fsc->url()}&id={$value->id}&accion=eliminar" class="text-danger" onclick="return confirm('¿Está seguro que quiere eliminar esta Edificación?')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
                     {/if}
                 </p>
             </div>

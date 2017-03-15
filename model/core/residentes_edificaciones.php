@@ -154,6 +154,11 @@ class residentes_edificaciones extends \fs_model{
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
+                if($item->codcliente){
+                    $item->nombre = $this->cliente->get($item->codcliente)->nombre;
+                    $item->info = $this->cliente_info->get($item->codcliente);
+                    $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                }
                 $lista[] = $item;
             }
             return $lista;
@@ -187,9 +192,11 @@ class residentes_edificaciones extends \fs_model{
         if($data){
             $item = new residentes_edificaciones($data[0]);
             $item->pertenencia = $this->pertenencia($item);
-            $item->nombre = $this->cliente->get($item->codcliente)->nombre;
-            $item->info = $this->cliente_info->get($item->codcliente);
-            $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+            if($item->codcliente){
+                $item->nombre = $this->cliente->get($item->codcliente)->nombre;
+                $item->info = $this->cliente_info->get($item->codcliente);
+                $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+            }
             return $item;
         }else{
             return false;
@@ -211,6 +218,11 @@ class residentes_edificaciones extends \fs_model{
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
+                if($item->codcliente){
+                    $item->nombre = $this->cliente->get($item->codcliente)->nombre;
+                    $item->info = $this->cliente_info->get($item->codcliente);
+                    $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                }
                 $lista[] = $item;
             }
             return $lista;

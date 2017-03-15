@@ -59,7 +59,11 @@ class lista_residentes extends fs_controller {
         } elseif (isset($_GET['delete'])) {
             $inq = $this->residente->get($_GET['delete']);
             if ($inq) {
-                if ($inq->delete()) {
+                $inq->ocupado = FALSE;
+                $inq->codcliente = '';
+                $inq->fecha_disponibilidad = NULL;
+                $inq->fecha_ocupacion = NULL;
+                if ($inq->save()) {
                     $this->new_message('Inquilino eliminado correctamente.');
                 } else
                     $this->new_error_msg('Error al eliminar el inquilino.');
@@ -82,7 +86,7 @@ class lista_residentes extends fs_controller {
         $accion = \filter_input(INPUT_POST, 'accion');
         $inmueble = $this->residente->get($id_edificacion);
         if($inmueble AND $accion == 'agregar_residente'){
-            $inmueble->ocupado = 'TRUE';
+            $inmueble->ocupado = TRUE;
             $inmueble->codcliente = $codcliente;
             $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
             $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
@@ -92,7 +96,7 @@ class lista_residentes extends fs_controller {
                 $this->new_error_msg('No se pudo agregar al residente confirme el nombre del residente y las fechs de ocupación y disponibilidad');
             }
         }elseif($inmueble AND $accion == 'quitar_residente'){
-            $inmueble->ocupado = 'FALSE';
+            $inmueble->ocupado = FALSE;
             $inmueble->codcliente = '';
             $inmueble->fecha_ocupacion = '';
             $inmueble->fecha_disponibilidad = '';

@@ -51,20 +51,43 @@ class edificaciones extends fs_controller{
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
 
-        $accion = filter_input(INPUT_POST, 'accion');
+        $accion_p = filter_input(INPUT_POST, 'accion');
+        $accion_g = filter_input(INPUT_GET, 'accion');
+        $accion = ($accion_p)?$accion_p:$accion_g;
         switch ($accion){
-            //Este case solo es temporal, cuando se tenga el plugin estable se eliminará
-            case "fixdb":
-                $sql1 = "DROP TABLE residentes_mapa_edificaciones;";
-                $this->db->exec($sql1);
-                $sql2 = "DROP TABLE residentes_edificaciones;";
-                $this->db->exec($sql2);
-                new residentes_edificaciones();
-                new residentes_edificaciones_mapa();
-                $this->new_message('¡Tablas eliminadas y creadas nuevamente!');
-                break;
             case "agregar":
                 $this->tratar_edificaciones();
+                break;
+            case "eliminar":
+                $id = \filter_input(INPUT_GET, 'id');
+                $edificacion = $this->edificaciones->get($id);
+                if($edificacion->ocupado){
+                    $this->new_error_msg('Esta edificacion tiene un residente, primero debe quitar al residente para proceder a eliminar esta edificacion.');
+                }else{
+                    try {
+                        $edificacion->delete();
+                        $this->new_message('Edificación eliminada correctamente.');
+                    } catch (\Exception $ex) {
+                        $this->new_error_msg('Ocurrió un error intentando eliminar la edificación');
+                        $this->new_error_msg($ex->getTraceAsString());
+                    }
+                }
+                break;
+            case "desocupar":
+                $id = \filter_input(INPUT_GET, 'id');
+                $edificacion = $this->edificaciones->get($id);
+                if($edificacion->ocupado){
+                    $edificacion->ocupado = FALSE;
+                    $edificacion->codcliente = '';
+                    $edificacion->fecha_disponibilidad = NULL;
+                    $edificacion->fecha_ocupacion = NULL;
+                    try{
+                        $edificacion->save();
+                        $this->new_message('Inmueble desocupado exitosamente.');
+                    } catch (Exception $ex) {
+                        $this->new_error_msg('Ocurrio un error al intentar desocupar el inmueble, intentelo nuevamente.');
+                    }
+                }
                 break;
             case "agregar_inmueble":
                 $this->agregar_inmueble();
@@ -90,7 +113,7 @@ class edificaciones extends fs_controller{
                 break;
         }
 
-        $tipo = $accion = \filter_input(INPUT_GET, 'type');
+        $tipo = \filter_input(INPUT_GET, 'type');
         if($tipo=='select-hijos'){
             $this->obtener_hijos();
         }

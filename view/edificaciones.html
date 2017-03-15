@@ -193,15 +193,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <div class="col-sm-3">
                             <div class="alert {if="$value->ocupado"}alert-info{else}alert-warning{/if} clearfix">
                                 <h3>{$value->codigo}-{$value->numero}</h3>
-                                <p>{if="$value->ocupado"}Ocupado{else}Disponible{/if}</p>
+                                <p>{if="$value->ocupado"}Ocupado por<br><b><a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a></b>{else}Disponible<br><br>{/if}</p>
                                 <p class="pull-right">
                                     {if="$value->ocupado"}
-                                    <a href="#" style="margin-right:5px;" onClick="$('#id_edificacion_residente').val({$value->id})" data-toggle="modal" data-target="#nuevoResidente" title="Remover Residente"><span class="fa fa-trash"></span></a>
+                                    <a href="{$fsc->url()}&id={$value->id}&accion=desocupar" style="margin-right:5px;" onClick="return confirm('¿Está seguro que quiere desocupar esta Edificación?')" title="Remover Residente"><span class="fa fa-sign-out"></span></a>
+                                    <a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}" title="Ver Información del Residente" role="button" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
                                     {else}
                                     <a href="#" style="margin-right:5px;" onClick="$('#id_edificacion_residente').val({$value->id})" data-toggle="modal" data-target="#nuevoResidente" title="Agregar Residente"><span class="fa fa-plus"></span></a>
+                                    <a href="{$fsc->url()}&id={$value->id}&accion=eliminar" class="text-danger" onclick="return confirm('¿Está seguro que quiere eliminar esta Edificación?')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
                                     {/if}
-                                    <a href="{$fsc->url()}&inmuebles={$value->id}" title="Ver Información del Residente" role="button" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
-                                    <a href="#" class="text-danger" onclick="alert('Eliminar aun no completo.')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
                                 </p>
                             </div>
                         </div>
