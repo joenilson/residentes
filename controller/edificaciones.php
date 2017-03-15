@@ -211,7 +211,7 @@ class edificaciones extends fs_controller{
             $edif0->numero = $item;
             $edif0->ubicacion = trim($ubicacion);
             $edif0->codcliente = trim($codcliente);
-            $edif0->ocupado = ($ocupado)?"TRUE":"FALSE";
+            $edif0->ocupado = ($ocupado)?TRUE:FALSE;
             try {
                 $edif0->save();
                 $inmuebles++;
@@ -234,7 +234,7 @@ class edificaciones extends fs_controller{
                 $edif0->numero = $item;
                 $edif0->ubicacion = trim($ubicacion);
                 $edif0->codcliente = trim($codcliente);
-                $edif0->ocupado = ($ocupado)?"TRUE":"FALSE";
+                $edif0->ocupado = ($ocupado)?TRUE:FALSE;
                 try {
                     $edif0->save();
                     $inmuebles++;
@@ -260,7 +260,7 @@ class edificaciones extends fs_controller{
         $accion = \filter_input(INPUT_POST, 'accion');
         $inmueble = $this->edificaciones->get($id_edificacion);
         if($inmueble AND $accion == 'agregar_residente'){
-            $inmueble->ocupado = 'TRUE';
+            $inmueble->ocupado = TRUE;
             $inmueble->codcliente = $codcliente;
             $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
             $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
@@ -270,7 +270,7 @@ class edificaciones extends fs_controller{
                 $this->new_error_msg('No se pudo agregar al residente confirme el nombre del residente y las fechs de ocupación y disponibilidad');
             }
         }elseif($inmueble AND $accion == 'quitar_residente'){
-            $inmueble->ocupado = 'FALSE';
+            $inmueble->ocupado = TRUE;
             $inmueble->codcliente = '';
             $inmueble->fecha_ocupacion = '';
             $inmueble->fecha_disponibilidad = '';

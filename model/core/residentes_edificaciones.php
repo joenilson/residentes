@@ -116,7 +116,7 @@ class residentes_edificaciones extends \fs_model{
             $this->ubicacion = null;
             $this->coordenadas = null;
             $this->codcliente = null;
-            $this->ocupado = null;
+            $this->ocupado = false;
             $this->fecha_ocupacion = NULL;
             $this->fecha_disponibilidad = NULL;
         }
