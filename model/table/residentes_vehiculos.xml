@@ -54,4 +54,9 @@
         <nombre>residentes_vehiculos_pk</nombre>
         <consulta>PRIMARY KEY (idvehiculo,codcliente)</consulta>
     </restriccion>
+    <restriccion>
+        <nombre>residentes_vehiculos_clientes</nombre>
+        <consulta>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE</consulta>
+    </restriccion>
 </tabla>
