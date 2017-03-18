@@ -22,9 +22,24 @@
                 }
             }
         });
+
         $("#ac_cliente").autocomplete({
             serviceUrl: '{$fsc->url()}',
             paramName: 'buscar_cliente',
+            onSelect: function (suggestion) {
+                if (suggestion)
+                {
+                    if (document.f_nuevo_residente.codcliente.value != suggestion.data)
+                    {
+                        document.f_nuevo_residente.codcliente.value = suggestion.data;
+                    }
+                }
+            }
+        });
+
+        $("#query_inmueble").autocomplete({
+            serviceUrl: '{$fsc->url()}',
+            paramName: 'buscar_inmueble',
             onSelect: function (suggestion) {
                 if (suggestion)
                 {
@@ -91,15 +106,48 @@
                 {/loop}
             </div>
             <div class="btn-group">
-                <input class="form-control input-sm" name="search_cliente" id="search_cliente" value="" autocomplete="off" placeholder="Buscar Residente" type="text">
+                <input class="form-control input-sm" name="search_cliente" id="search_cliente" value="" autocomplete="off" placeholder="Buscar Residente" type="hidden">
             </div>
         </div>
         <div class="col-sm-5 text-right">
             <h2 style="margin-top: 0px;"><span class="fa fa-group"></span>&nbsp;Residentes</h2>
         </div>
     </div>
+    <div class="row">
+        <form role="form" class="form" action="{$fsc->url()}" method="POST">
+            <div class="col-sm-3">
+                <div class="input-group">
+                    <input class="form-control" type="text" name="query_r" value="{$fsc->query_r}" autocomplete="off" placeholder="Buscar por Residente">
+                    <span class="input-group-btn hidden-sm">
+                        <button class="btn btn-primary" type="submit">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="input-group">
+                    <input class="form-control" type="text" readonly name="query_v" value="{$fsc->query_v}" autocomplete="off" placeholder="Buscar por Vehiculo">
+                    <span class="input-group-btn hidden-sm">
+                        <button class="btn btn-primary" disabled type="submit">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="input-group">
+                    <input class="form-control" type="text" readonly name="query_i" value="{$fsc->query_i}" autocomplete="off" placeholder="Buscar por Inmueble">
+                    <span class="input-group-btn hidden-sm">
+                        <button class="btn btn-primary" disabled type="submit">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
-
 <div class="table-responsive">
     <table class="table table-hover">
         <thead>
@@ -123,29 +171,24 @@
         </tr>
         {else}
         <tr class="bg-warning">
-            <td colspan="5">Sin resultados.</td>
+            <td colspan="6">Sin resultados.</td>
         </tr>
         {/loop}
     </table>
 </div>
-
-<ul class="pager">
-    {if="$fsc->anterior_url()!=''"}
-    <li class="previous">
-        <a href="{$fsc->anterior_url()}">
-            <span class="glyphicon glyphicon-chevron-left"></span> &nbsp; Anteriores
-        </a>
-    </li>
-    {/if}
-
-    {if="$fsc->siguiente_url()!=''"}
-    <li class="next">
-        <a href="{$fsc->siguiente_url()}">
-            Siguientes &nbsp; <span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-    </li>
-    {/if}
-</ul>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12 text-center">
+            <ul class="pagination">
+                {loop="$fsc->paginas()"}
+                <li{if="$value['actual']"} class="active"{/if}>
+                    <a href="{$value['url']}">{$value['num']}</a>
+                </li>
+                {/loop}
+            </ul>
+        </div>
+    </div>
+</div>
 
 <!-- Modal para nuevo hijo -->
 <div class="modal fade" id="nuevoResidente" tabindex="-1" role="dialog" aria-labelledby="nuevoResidenteTitulo">

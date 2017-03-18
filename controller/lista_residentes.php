@@ -10,6 +10,8 @@ require_model('cliente.php');
 require_model('residentes_edificaciones.php');
 require_model('residentes_informacion.php');
 require_model('residentes_vehiculos.php');
+require_model('residentes_edificaciones_tipo.php');
+require_model('residentes_edificaciones_mapa.php');
 
 /**
  * Description of lista_residentes
@@ -22,8 +24,16 @@ class lista_residentes extends fs_controller {
     public $bloque;
     public $cliente;
     public $residente;
+    public $query;
+    public $query_r;
+    public $query_i;
+    public $query_v;
     public $offset;
     public $resultados;
+    public $total_resultados;
+    public $edificacion_tipo;
+    public $edificacion_mapa;
+    public $tipo_edificaciones;
     public $residente_informacion;
     public $residente_vehiculo;
     public function __construct() {
@@ -36,6 +46,10 @@ class lista_residentes extends fs_controller {
         $this->residente = new residentes_edificaciones();
         $this->residente_informacion = new residentes_informacion();
         $this->residente_vehiculo = new residentes_vehiculos();
+        $this->edificacion_tipo = new residentes_edificaciones_tipo();
+        $this->edificacion_mapa = new residentes_edificaciones_mapa();
+        $this->tipo_edificaciones = $this->edificacion_tipo->all();
+
         $this->offset = 0;
         if (isset($_REQUEST['offset'])) {
             $this->offset = intval($_REQUEST['offset']);
@@ -71,10 +85,90 @@ class lista_residentes extends fs_controller {
                 $this->new_error_msg('Inquilino no encontrado.');
         }
 
-        if (isset($_GET['cliente'])) {
-            $this->resultados = $this->residente->all_from_cliente($_GET['cliente']);
+        $this->offset = 0;
+        if (isset($_GET['offset'])) {
+            $this->offset = intval($_GET['offset']);
+        }
+
+        $this->query_r = '';
+        if (isset($_REQUEST['query_r'])) {
+            $this->query_r = $_REQUEST['query_r'];
+        }
+
+        $this->query_v = '';
+        if (isset($_REQUEST['query_r'])) {
+            $this->query_r = $_REQUEST['query_r'];
+        }
+
+        $this->query_i = '';
+        if (isset($_REQUEST['query_i'])) {
+            $this->query_i = $_REQUEST['query_i'];
+        }
+
+        $this->orden = 'c.nombre ASC';
+        if (isset($_REQUEST['orden'])) {
+            $this->orden = $_REQUEST['orden'];
+        }
+
+        $this->buscar();
+    }
+
+    public function buscar(){
+        $this->total_resultados = 0;
+        $q = ($this->query_r)?$this->query_r:"";
+        $q = ($this->query_v)?$this->query_v:$q;
+        $q = ($this->query_i)?$this->query_i:$q;
+        $query = mb_strtolower($this->cliente->no_html($q), 'UTF8');
+
+        $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
+
+        $and = ' WHERE ';
+        if (is_numeric($query)) {
+            $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
+                    . " OR cifnif LIKE '%" . $query . "%'"
+                    . " OR telefono1 LIKE '" . $query . "%'"
+                    . " OR telefono2 LIKE '" . $query . "%'"
+                    . " OR observaciones LIKE '%" . $query . "%')";
+            $and = ' AND ';
         } else {
-            $this->resultados = $this->residente->all_ocupados();
+            $buscar = str_replace(' ', '%', $query);
+            $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
+                    . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
+                    . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
+                    . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
+                    . " OR lower(email) LIKE '%" . $buscar . "%')";
+            $and = ' AND ';
+        }
+        /**
+         * Consulta para unir la informacion
+         */
+        /*
+        if($this->query_r){
+            if (is_numeric($this->query_r)) {
+                $consulta .= "(ca_telefono LIKE '%" . $query . "%' OR codigo LIKE '%" . $query . "%')";
+            } else {
+                $buscar = str_replace(' ', '%', $query);
+                $consulta .= "(lower(ca_nombres) LIKE '%" . $buscar . "%' OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
+                        . " OR lower(ocupacion) LIKE '%" . $buscar . "%' OR lower(profesion) LIKE '%" . $buscar . "%'"
+                        . " OR lower(ca_email) LIKE '%" . $buscar . "%')";
+            }
+        }
+         * 
+         */
+
+        $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
+        if ($data) {
+            $this->total_resultados = intval($data[0]['total']);
+            $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+            if ($data2) {
+                foreach ($data2 as $d) {
+                    $item = new residentes_edificaciones($d);
+                    $item->nombre = $d['nombre'];
+                    $item->info = $this->residente_informacion->get($d['codcliente']);
+                    $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                    $this->resultados[] = $item;
+                }
+            }
         }
     }
 
@@ -177,24 +271,52 @@ class lista_residentes extends fs_controller {
         echo json_encode(array('query' => $_REQUEST['buscar_inmueble'], 'suggestions' => $json));
     }
 
-    public function anterior_url() {
-        $url = '';
+    public function paginas() {
+        $url = $this->url() . "&query=" . $this->query
+                . "&query_r=" . $this->query_r
+                . "&query_v=" . $this->query_v
+                . "&query_i=" . $this->query_i
+                . "&orden=" . $this->orden;
 
-        if ($this->offset > '0') {
-            $url = $this->url() . "&offset=" . ($this->offset - FS_ITEM_LIMIT);
+        $paginas = array();
+        $i = 0;
+        $num = 0;
+        $actual = 1;
+
+        /// añadimos todas la página
+        while ($num < $this->total_resultados) {
+            $paginas[$i] = array(
+                'url' => $url . "&offset=" . ($i * FS_ITEM_LIMIT),
+                'num' => $i + 1,
+                'actual' => ($num == $this->offset)
+            );
+
+            if ($num == $this->offset) {
+                $actual = $i;
+            }
+
+            $i++;
+            $num += FS_ITEM_LIMIT;
         }
 
-        return $url;
-    }
+        /// ahora descartamos
+        foreach ($paginas as $j => $value) {
+            $enmedio = intval($i / 2);
 
-    public function siguiente_url() {
-        $url = '';
-
-        if (count($this->resultados) == FS_ITEM_LIMIT) {
-            $url = $this->url() . "&offset=" . ($this->offset + FS_ITEM_LIMIT);
+            /**
+             * descartamos todo excepto la primera, la última, la de enmedio,
+             * la actual, las 5 anteriores y las 5 siguientes
+             */
+            if (($j > 1 AND $j < $actual - 5 AND $j != $enmedio) OR ( $j > $actual + 5 AND $j < $i - 1 AND $j != $enmedio)) {
+                unset($paginas[$j]);
+            }
         }
 
-        return $url;
+        if (count($paginas) > 1) {
+            return $paginas;
+        } else {
+            return array();
+        }
     }
 
 }
