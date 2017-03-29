@@ -84,14 +84,14 @@ class clientes_informacion extends fs_controller{
             $cliinfo->ocupantes70anos=$ocupantes70anos;
             $cliinfo->ocupantes71anos=$ocupantes71anos;
             $cliinfo->informacion_discapacidad= $informacion_discapacidad;
-            $cliinfo->propietario= ($propietario)?'TRUE':'FALSE';
+            $cliinfo->propietario= ($propietario)?TRUE:FALSE;
             $cliinfo->profesion= $profesion;
             $cliinfo->ocupacion= $ocupacion;
             $cliinfo->ca_nombres= $ca_nombres;
             $cliinfo->ca_apellidos= $ca_apellidos;
             $cliinfo->ca_telefono= $ca_telefono;
             $cliinfo->ca_email= $ca_email;
-            $cliinfo->ca_propietario= ($ca_propietario)?'TRUE':'FALSE';
+            $cliinfo->ca_propietario= ($ca_propietario)?TRUE:FALSE;
             $cliinfo->ca_parentesco= $ca_parentesco;
             $cliinfo->ca_parentesco_obs= $ca_parentesco_obs;
             $cliinfo->vehiculos= $vehiculos;

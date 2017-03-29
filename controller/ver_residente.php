@@ -6,6 +6,7 @@
  */
 
 require_model('articulo.php');
+require_model('asiento_factura.php');
 require_model('familia.php');
 require_model('cliente.php');
 require_model('factura_cliente.php');
@@ -51,7 +52,6 @@ class ver_residente extends fs_controller
       $this->familias = new familia();
       $this->familia = $this->familias->get('RESIDENT');
 
-
       if(\filter_input(INPUT_GET, 'id'))
       {
          $inq0 = new residentes_edificaciones();
@@ -63,61 +63,6 @@ class ver_residente extends fs_controller
          if($accion == 'generar_factura'){
              $this->nueva_factura();
          }
-         /*
-         if( isset($_REQUEST['buscar_referencia']) )
-         {
-            $this->buscar_referencia();
-         }
-         else if( isset($_POST['cliente']) )
-         {
-            /// modificar el residente
-            $cliente = $this->cliente->get($_POST['cliente']);
-            if($cliente)
-            {
-               $this->residente->codcliente = $cliente->codcliente;
-               $this->residente->nombre = $cliente->nombre;
-               $this->residente->piso = $_POST['piso'];
-               $this->residente->bloque = $_POST['bloque'];
-               $this->residente->fechaalta = $_POST['fechaalta'];
-               $this->residente->observaciones = $_POST['observaciones'];
-
-               if( $this->residente->save() )
-               {
-                  $this->new_message('Datos guardados correctamente');
-               }
-               else
-                  $this->new_error_msg('Error al guardar los datos.');
-            }
-            else
-               $this->new_error_msg('Cliente no encontrado.');
-         }
-         else if( isset($_POST['mensualidad']) )
-         {
-            /// nueva factura
-            $this->residente->mensualidad = floatval($_POST['mensualidad']);
-            $this->residente->agua = floatval($_POST['agua']);
-            $this->residente->fechaagua = date('d-m-Y');
-            $this->residente->gas = floatval($_POST['gas']);
-            $this->residente->fechagas = date('d-m-Y');
-            if( $this->residente->save() )
-            {
-               $this->impuesto_a = $_POST['impuesto_a'];
-               setcookie('impuesto_a', $this->impuesto_a);
-               $this->impuesto_g = $_POST['impuesto_g'];
-               setcookie('impuesto_g', $this->impuesto_g);
-               $this->impuesto_m = $_POST['impuesto_m'];
-               setcookie('impuesto_m', $this->impuesto_m);
-               $this->precio_agua = $_POST['precio_agua'];
-               setcookie('precio_agua', $this->precio_agua);
-               $this->precio_gas = $_POST['precio_gas'];
-               setcookie('precio_gas', $this->precio_gas);
-
-               $this->nueva_factura();
-            }
-            else
-               $this->new_error_msg('Error al guardar los datos.');
-         }
-         */
          $this->page->title = 'Residente '.$this->residente->nombre;
          $factura = new factura_cliente();
          $this->facturas = $factura->all_from_cliente($this->residente->codcliente);
@@ -142,15 +87,20 @@ class ver_residente extends fs_controller
       if($cliente)
       {
          $factura = new factura_cliente();
-         $factura->codserie = $cliente->codserie;
+         $factura->codserie = ($cliente->codserie)?$cliente->codserie:$this->empresa->codserie;
          $factura->codpago = $cliente->codpago;
          $factura->codalmacen = $this->empresa->codalmacen;
-
+         $factura->set_fecha_hora($this->today(), $this->hour());
          $eje0 = new ejercicio();
          $ejercicio = $eje0->get_by_fecha( date('d-m-Y') );
          if($ejercicio)
          {
             $factura->codejercicio = $ejercicio->codejercicio;
+         }
+         if($this->empresa->contintegrada)
+         {
+            /// forzamos crear la subcuenta
+            $cliente->get_subcuenta($this->empresa->codejercicio);
          }
 
          $div0 = new divisa();
@@ -277,7 +227,7 @@ class ver_residente extends fs_controller
             $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
             $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
 
-            if( abs(floatval($_POST['total']) - $factura->total) > .01 )
+            if( abs(floatval($_POST['total_neto']) - $factura->total) > .01 )
             {
                $this->new_error_msg("El total difiere entre la vista y el controlador (".$_POST['total'].
                        " frente a ".$factura->total."). Debes informar del error.");
@@ -285,6 +235,7 @@ class ver_residente extends fs_controller
             }
             else if( $factura->save() )
             {
+               $this->generar_asiento($factura);
                $this->new_message("<a href='".$factura->url()."'>Factura</a> guardada correctamente.");
                $this->new_change('Factura Cliente '.$factura->codigo, $factura->url(), TRUE);
             }
@@ -296,6 +247,34 @@ class ver_residente extends fs_controller
       }
       else
          $this->new_error_msg('Cliente no encontrado.');
+   }
+
+      /**
+    * Genera el asiento para la factura, si procede
+    * @param factura_cliente $factura
+    */
+   private function generar_asiento(&$factura)
+   {
+      if($this->empresa->contintegrada)
+      {
+         $asiento_factura = new asiento_factura();
+         $asiento_factura->generar_asiento_venta($factura);
+
+         foreach($asiento_factura->errors as $err)
+         {
+            $this->new_error_msg($err);
+         }
+
+         foreach($asiento_factura->messages as $msg)
+         {
+            $this->new_message($msg);
+         }
+      }
+      else
+      {
+         /// de todas formas forzamos la generación de las líneas de iva
+         $factura->get_lineas_iva();
+      }
    }
 
    private function buscar_referencia()

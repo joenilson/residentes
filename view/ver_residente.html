@@ -3,15 +3,51 @@
 <script type="text/javascript">
    var medicion_agua = 0;
    var medicion_gas = 0;
-    function recalcular(){
-        var total = 0;
-        {loop="$fsc->familia->get_articulos()"}
-            total += parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
-        {/loop}
-        total += parseFloat(document.f_nueva_factura.otro.value);
-        total += parseFloat(document.f_nueva_factura.otro2.value);
+   var fs_nf0 = 2;
+   var fs_nf0_art = 4;
+   var all_impuestos = {function="json_encode($fsc->impuesto->all())"};
 
-        document.f_nueva_factura.total.value = total;
+    function buscar_impuesto(cod){
+       for(var i=0; i<all_impuestos.length; i++)
+       {
+          if(cod === all_impuestos[i].codimpuesto)
+          {
+             return all_impuestos[i].iva;
+          }
+       }
+    }
+
+    function recalcular(){
+        var total_neto = 0;
+        var total_impuestos = 0;
+        var total_importe = 0;
+
+        {loop="$fsc->familia->get_articulos()"}
+            total_neto += parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
+            impuesto{$value->referencia}=buscar_impuesto(document.f_nueva_factura.impuesto_{$value->referencia}.value);
+        {/loop}
+        {loop="$fsc->familia->get_articulos()"}
+            total_impuestos += parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value)*((impuesto{$value->referencia})/100);
+            total_importe += (parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value)*((impuesto{$value->referencia}/100)))+parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
+            document.f_nueva_factura.total_{$value->referencia}.value = (parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value)*((impuesto{$value->referencia}/100)))+parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
+        {/loop}
+
+        total_neto += parseFloat(document.f_nueva_factura.otro.value)+0;
+        total_neto += parseFloat(document.f_nueva_factura.otro2.value)+0;
+
+        codimpuesto_otro=buscar_impuesto(document.f_nueva_factura.impuesto_otro.value);
+        codimpuesto_otro2=buscar_impuesto(document.f_nueva_factura.impuesto_otro2.value);
+
+        total_impuestos += parseFloat(document.f_nueva_factura.otro.value)*((codimpuesto_otro)/100);
+        total_impuestos += parseFloat(document.f_nueva_factura.otro2.value)*((codimpuesto_otro2)/100);
+
+        total_importe += (parseFloat(document.f_nueva_factura.otro.value)*((codimpuesto_otro)/100))+parseFloat(document.f_nueva_factura.otro.value);
+        total_importe += (parseFloat(document.f_nueva_factura.otro2.value)*((codimpuesto_otro2)/100))+parseFloat(document.f_nueva_factura.otro2.value);
+        document.f_nueva_factura.total_neto.value = fs_round(total_neto, fs_nf0_art);
+        document.f_nueva_factura.total_impuestos.value = fs_round(total_impuestos, fs_nf0_art);
+        document.f_nueva_factura.total_importe.value = fs_round(total_importe, fs_nf0);
+        document.f_nueva_factura.total_otro.value =  fs_round((parseFloat(document.f_nueva_factura.otro.value)*((codimpuesto_otro)/100))+parseFloat(document.f_nueva_factura.otro.value), fs_nf0_art);
+        document.f_nueva_factura.total_otro2.value =  fs_round((parseFloat(document.f_nueva_factura.otro2.value)*((codimpuesto_otro2)/100))+parseFloat(document.f_nueva_factura.otro2.value), fs_nf0_art);
     }
 
     function get_consumo_agua(){
@@ -78,7 +114,7 @@
                     <span class="glyphicon glyphicon-refresh"></span>
                 </a>
                 <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes">
-                    <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Inquilinos
+                    <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Residentes
                 </a>
                 <div class="btn-group">
                     <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes&cliente={$fsc->residente->codcliente}">
@@ -223,24 +259,37 @@
                 <input type="hidden" name="ref_otro2"/>
                 <div class="container-fluid" style="margin-top: 10px;">
                     <div class="row">
+                        <div class="col-sm-2">Referencia</div>
+                        <div class="col-sm-4">Concepto</div>
+                        <div class="col-sm-2">Importe</div>
+                        <div class="col-sm-2">Impuesto</div>
+                        <div class="col-sm-2">Total</div>
+                    </div>
+                    <div class="row">
                         {loop="$fsc->familia->get_articulos()"}
-                        <div class="col-sm-6">
+                        <div class="col-sm-2">
+                            {$value->referencia}
+                        </div>
+                        <div class="col-sm-4">
                             {$value->descripcion}:
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <div class="form-group">
-                                Impuesto:
+                                <input class="form-control" type="text" name="importe_{$value->referencia}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
                                 <select name="impuesto_{$value->referencia}" class="form-control">
                                     {loop="$fsc->impuesto->all()"}
-                                    <option value="{$value2->codimpuesto}"{if="$value2->codimpuesto==$value->codimpuesto"} selected="selected"{/if}>{$value2->descripcion}</option>
+                                    <option value="{$value2->codimpuesto}"{if="$value2->codimpuesto==$value1->codimpuesto"} selected="selected"{/if}>{$value2->descripcion}</option>
                                     {/loop}
                                 </select>
                             </div>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <div class="form-group">
-                                Importe:
-                                <input class="form-control" type="text" name="importe_{$value->referencia}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
+                                <input class="form-control" type="text" name="total_{$value->referencia}" value="{$value->pvp_iva()}" autocomplete="off" onkeyup="recalcular()"/>
                             </div>
                         </div>
                         {/loop}
@@ -248,21 +297,23 @@
                     <div class="row">
                         <div class="col-sm-2">
                             <div class="form-group">
-                                Referencia:
                                 <input class="form-control" type="text" name="ac_referencia" id="ac_referencia" maxlength="18" placeholder="referencia" autocomplete="off"/>
                                 <p class="help-block">Opcional</p>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
-                                Otro concepto:
-                                <input class="form-control" type="text" name="desc_otro"/>
+                                <input class="form-control" type="text" name="desc_otro" placeholder="Otro concepto"/>
                                 <p class="help-block">Dejar en blanco para no usar.</p>
                             </div>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <div class="form-group">
-                                Impuesto:
+                                <input class="form-control" type="text" name="otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
                                 <select name="impuesto_otro" class="form-control">
                                     {loop="$fsc->impuesto->all()"}
                                     <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
@@ -270,31 +321,32 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <div class="form-group">
-                                Importe:
-                                <input class="form-control" type="text" name="otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                <input class="form-control" type="text" name="total_otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-2">
                             <div class="form-group">
-                                Referencia:
                                 <input class="form-control" type="text" name="ac_referencia2" id="ac_referencia2" maxlength="18" placeholder="referencia" autocomplete="off"/>
                                 <p class="help-block">Opcional</p>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
-                                Otro concepto 2:
-                                <input class="form-control" type="text" name="desc_otro2"/>
+                                <input class="form-control" type="text" name="desc_otro2" placeholder="Otro concepto 2"/>
                                 <p class="help-block">Dejar en blanco para no usar.</p>
                             </div>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <div class="form-group">
-                                Impuesto:
+                                <input class="form-control" type="text" name="otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
                                 <select name="impuesto_otro2" class="form-control">
                                     {loop="$fsc->impuesto->all()"}
                                     <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
@@ -302,18 +354,29 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <div class="form-group">
-                                Importe:
-                                <input class="form-control" type="text" name="otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                <input class="form-control" type="text" name="total_otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-3 col-sm-offset-9">
+                        <div class="col-sm-2 col-sm-offset-6">
                             <div class="form-group">
                                 Total:
-                                <input class="form-control" type="text" name="total" value="0" readonly/>
+                                <input class="form-control" type="text" name="total_neto" value="0" readonly/>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                Total:
+                                <input class="form-control" type="text" name="total_impuestos" value="0" readonly/>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                Total:
+                                <input class="form-control" type="text" name="total_importe" value="0" readonly/>
                             </div>
                         </div>
                     </div>

@@ -96,8 +96,8 @@ class lista_residentes extends fs_controller {
         }
 
         $this->query_v = '';
-        if (isset($_REQUEST['query_r'])) {
-            $this->query_r = $_REQUEST['query_r'];
+        if (isset($_REQUEST['query_v'])) {
+            $this->query_v = $_REQUEST['query_v'];
         }
 
         $this->query_i = '';
@@ -115,58 +115,142 @@ class lista_residentes extends fs_controller {
 
     public function buscar(){
         $this->total_resultados = 0;
-        $q = ($this->query_r)?$this->query_r:"";
-        $q = ($this->query_v)?$this->query_v:$q;
-        $q = ($this->query_i)?$this->query_i:$q;
-        $query = mb_strtolower($this->cliente->no_html($q), 'UTF8');
-
-        $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
-
-        $and = ' WHERE ';
-        if (is_numeric($query)) {
-            $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
-                    . " OR cifnif LIKE '%" . $query . "%'"
-                    . " OR telefono1 LIKE '" . $query . "%'"
-                    . " OR telefono2 LIKE '" . $query . "%'"
-                    . " OR observaciones LIKE '%" . $query . "%')";
-            $and = ' AND ';
-        } else {
-            $buscar = str_replace(' ', '%', $query);
-            $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
-                    . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
-                    . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
-                    . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
-                    . " OR lower(email) LIKE '%" . $buscar . "%')";
-            $and = ' AND ';
-        }
-        /**
-         * Consulta para unir la informacion
-         */
-        /*
         if($this->query_r){
-            if (is_numeric($this->query_r)) {
-                $consulta .= "(ca_telefono LIKE '%" . $query . "%' OR codigo LIKE '%" . $query . "%')";
+            $query = mb_strtolower($this->cliente->no_html($this->query_r), 'UTF8');
+            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON r.codcliente = c.codcliente";
+            $sql .= " JOIN residentes_informacion as i ON i.codcliente = r.codcliente ";
+            $and = ' WHERE ';
+            if (is_numeric($query)) {
+                $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
+                        . " OR cifnif LIKE '%" . $query . "%'"
+                        . " OR telefono1 LIKE '" . $query . "%'"
+                        . " OR telefono2 LIKE '" . $query . "%'"
+                        . " OR ca_telefono LIKE '" . $query . "%'"
+                        . " OR observaciones LIKE '%" . $query . "%')";
+                $and = ' AND ';
             } else {
                 $buscar = str_replace(' ', '%', $query);
-                $consulta .= "(lower(ca_nombres) LIKE '%" . $buscar . "%' OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
-                        . " OR lower(ocupacion) LIKE '%" . $buscar . "%' OR lower(profesion) LIKE '%" . $buscar . "%'"
-                        . " OR lower(ca_email) LIKE '%" . $buscar . "%')";
+                $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
+                        . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
+                        . " OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
+                        . " OR lower(ca_nombres) LIKE '%" . $buscar . "%'"
+                        . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
+                        . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
+                        . " OR lower(ca_email) LIKE '%" . $buscar . "%'"
+                        . " OR lower(email) LIKE '%" . $buscar . "%')";
+                $and = ' AND ';
+            }
+            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
+            if ($data) {
+                $this->total_resultados = intval($data[0]['total']);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                if ($data2) {
+                    foreach ($data2 as $d) {
+                        $item = new residentes_edificaciones($d);
+                        $item->nombre = $d['nombre'];
+                        $item->info = $this->residente_informacion->get($d['codcliente']);
+                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $this->resultados[] = $item;
+                    }
+                }
             }
         }
-         * 
-         */
 
-        $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
-        if ($data) {
-            $this->total_resultados = intval($data[0]['total']);
-            $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
-            if ($data2) {
-                foreach ($data2 as $d) {
-                    $item = new residentes_edificaciones($d);
-                    $item->nombre = $d['nombre'];
-                    $item->info = $this->residente_informacion->get($d['codcliente']);
-                    $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                    $this->resultados[] = $item;
+        if($this->query_v){
+            //Buscamos los vehiculos
+            $query = mb_strtolower($this->cliente->no_html($this->query_v), 'UTF8');
+            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
+            $sql .= " JOIN residentes_vehiculos as i ON i.codcliente = r.codcliente ";
+            $and = ' WHERE ';
+            if (is_numeric($query)) {
+                $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
+                        . " OR vehiculo_placa LIKE '%" . $query . "%'"
+                        . " OR CAST(idvehiculo AS CHAR) LIKE '" . $query . "%'"
+                        . " OR telefono2 LIKE '" . $query . "%'"
+                        . " OR observaciones LIKE '%" . $query . "%')";
+                $and = ' AND ';
+            } else {
+                $buscar = str_replace(' ', '%', $query);
+                $sql .= $and . "(lower(vehiculo_marca) LIKE '%" . $buscar . "%'"
+                        . " OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'"
+                        . " OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"
+                        . " OR lower(vehiculo_placa) LIKE '%" . $buscar . "%'"
+                        . " OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%'"
+                        . " OR lower(codigo_tarjeta) LIKE '%" . $buscar . "%')";
+                $and = ' AND ';
+            }
+            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
+            if ($data) {
+                $this->total_resultados = intval($data[0]['total']);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                if ($data2) {
+                    foreach ($data2 as $d) {
+                        $item = new residentes_edificaciones($d);
+                        $item->nombre = $d['nombre'];
+                        $item->info = $this->residente_informacion->get($d['codcliente']);
+                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $this->resultados[] = $item;
+                    }
+                }
+            }
+        }
+
+        if($this->query_i){
+            //Buscamos el inmueble
+            $query = mb_strtolower($this->cliente->no_html($this->query_i), 'UTF8');
+            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
+            $and = ' WHERE ';
+            if (is_numeric($query)) {
+                $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
+                        . " OR cifnif LIKE '%" . $query . "%'"
+                        . " OR codigo LIKE '%" . $query . "%'"
+                        . " OR numero LIKE '%" . $query . "%'"
+                        . " OR CONCAT(codigo, numero) LIKE '%" . $query . "%'"
+                        . " OR telefono1 LIKE '" . $query . "%'"
+                        . " OR telefono2 LIKE '" . $query . "%'"
+                        . " OR observaciones LIKE '%" . $query . "%')";
+                $and = ' AND ';
+            } else {
+                $buscar = str_replace(' ', '%', $query);
+                $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
+                        . " OR lower(codigo) LIKE '%" . $buscar . "%'"
+                        . " OR lower(numero) LIKE '%" . $buscar . "%'"
+                        . " OR CONCAT(lower(codigo), numero) LIKE '%" . $query . "%'"
+                        . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
+                        . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
+                        . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
+                        . " OR lower(email) LIKE '%" . $buscar . "%')";
+                $and = ' AND ';
+            }
+            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
+            if ($data) {
+                $this->total_resultados = intval($data[0]['total']);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                if ($data2) {
+                    foreach ($data2 as $d) {
+                        $item = new residentes_edificaciones($d);
+                        $item->nombre = $d['nombre'];
+                        $item->info = $this->residente_informacion->get($d['codcliente']);
+                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $this->resultados[] = $item;
+                    }
+                }
+            }
+        }
+        if(!$this->query_i AND !$this->query_r AND !$this->query_v){
+            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
+            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
+            if ($data) {
+                $this->total_resultados = intval($data[0]['total']);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                if ($data2) {
+                    foreach ($data2 as $d) {
+                        $item = new residentes_edificaciones($d);
+                        $item->nombre = $d['nombre'];
+                        $item->info = $this->residente_informacion->get($d['codcliente']);
+                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $this->resultados[] = $item;
+                    }
                 }
             }
         }
