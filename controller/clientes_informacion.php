@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
  *

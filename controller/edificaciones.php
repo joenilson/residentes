@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright (C) 2016 Joe Nilson <joenilson at gmail.com>
  *
@@ -484,13 +483,45 @@ class edificaciones extends fs_controller{
                 'params' => ''
             ),
         );
+
         foreach ($extensiones as $ext) {
+            $fsext0 = new fs_extension($ext);
+            if (!$fsext0->delete()) {
+                $this->new_error_msg('Imposible eliminar los datos de la extensión ' . $ext['name'] . '.');
+            }
+        }
+
+        $extensiones2 = array(
+            array(
+                'name' => '001_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/residentes/view/js/1/bootstrap-treeview.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '002_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.'plugins/residentes/view/js/2/residentes.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '003_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/residentes/view/css/bootstrap-treeview.min.css"/>',
+                'params' => ''
+            ),
+        );
+
+        foreach ($extensiones2 as $ext) {
             $fsext0 = new fs_extension($ext);
             if (!$fsext0->save()) {
                 $this->new_error_msg('Imposible guardar los datos de la extensión ' . $ext['name'] . '.');
-            }
-            if($fsext0->name == 'tipo_edificaciones'){
-                $fsext0->delete();
             }
         }
     }

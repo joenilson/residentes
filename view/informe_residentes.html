@@ -1,9 +1,9 @@
 {include="header"}
-{if="$fsc->bloque"}
+{if="$fsc->mapa"}
 <form action="{$fsc->url()}&tipo={$fsc->tipo}" method="post" class="form">
    <div class="container-fluid hidden-print" style="margin-top: 10px;">
       <div class="row">
-         <div class="col-sm-4">
+         <div class="col-sm-2">
             <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
                <span class="glyphicon glyphicon-refresh"></span>
             </a>
@@ -12,6 +12,15 @@
                <span class="glyphicon glyphicon-print"></span> &nbsp; Imprimir
             </button>
          </div>
+          <div class="col-sm-2">
+              {$fsc->padre->descripcion}:
+              <select name="codigo_edificacion" class="form-control" onchange="this.form.submit();">
+                  <option value="">Todo</option>
+                  {loop="$fsc->mapa"}
+                  <option value="{$value->id}" {if="$fsc->codigo_edificacion==$value->id"}selected{/if}>{$fsc->padre->descripcion} {$value->codigo_edificacion}</option>
+                  {/loop}
+              </select>
+          </div>
          <div class="col-md-2">
             <div class="form-group">
                Desde:
@@ -39,6 +48,9 @@
 </form>
 
 <ul class="nav nav-tabs hidden-print">
+   <li role="presentation"{if="$fsc->tipo=='informacion'"} class="active"{/if}>
+      <a href="{$fsc->url()}">Informacion</a>
+   </li>
    <li role="presentation"{if="$fsc->tipo=='mensualidad'"} class="active"{/if}>
       <a href="{$fsc->url()}">Mensualidad</a>
    </li>
@@ -49,7 +61,11 @@
      <a href="{$fsc->url()}&tipo=gas">Gas</a>
   </li>
 </ul>
-
+{if="$fsc->tipo=='informacion'"}
+<div class="row">
+    <div class="col-sm-2">{$fsc->total_resultado}</div>
+</div>
+{/if}
 <!--{$pagado=0}-->
 <!--{$deuda=0}-->
 {if="$fsc->tipo=='mensualidad'"}
@@ -200,7 +216,7 @@
          </a>
       </div>
       <div class="col-sm-11 text-right">
-         <h2 style="margin-top: 0px;">Informes de bloques de residentes</h2>
+         <h2 style="margin-top: 0px;">Informe de residentes</h2>
       </div>
    </div>
    <div class="row">
