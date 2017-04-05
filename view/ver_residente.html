@@ -60,6 +60,17 @@
         recalcular();
     }
 
+    function nueva_factura(cod){
+        if(cod){
+            var url = '{#FS_PATH#}index.php?page=nueva_venta&tipo=factura';
+            var form = $('<form action="' + url + '" method="post">' +
+              '<input type="text" name="cliente" value="' + cod + '" />' +
+              '</form>');
+            $('body').append(form);
+            form.submit();
+        }
+    }
+
     $(document).ready(function () {
         recalcular();
         $("#b_eliminar").click(function (event) {
@@ -120,6 +131,9 @@
                     <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes&cliente={$fsc->residente->codcliente}">
                         <span class="glyphicon glyphicon-zoom-in"></span> &nbsp; Más del cliente
                     </a>
+                    <a class="btn btn-sm btn-success" href="#" onclick="nueva_factura('{$fsc->residente->codcliente}')">
+                        <span class="fa fa-plus"></span>&nbsp;Nueva Factura
+                    </a>
                     {loop="$fsc->extensions"}
                     {if="$value->type=='button'"}
                     <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
@@ -139,49 +153,58 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-5">
+            <div class="col-sm-3">
                 <div class="form-group">
-                    <label class="control-label">Cliente:</label>
+                    <label class="control-label">Cliente: <a target="_blank" href="{#FS_PATH#}index.php?page=ventas_cliente&cod={$fsc->residente->codcliente}">{$fsc->residente->codcliente}</a></label>
                     <div class="input-group">
-                        <input class="form-control" type="text" name="ac_cliente" id="ac_cliente" value="{$fsc->residente->nombre}" placeholder="Buscar" autocomplete="off"/>
-                        <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" onclick="document.f_residente.ac_cliente.value = '';document.f_residente.ac_cliente.focus();">
-                                <span class="glyphicon glyphicon-edit"></span>
-                            </button>
-                        </span>
+                        <input class="form-control" type="text" name="cliente" readonly  value="{$fsc->residente->nombre}" placeholder="Residente" autocomplete="off"/>
                     </div>
                     <p class="help-block"><a href="{$fsc->cliente->url()}#nuevo" target="_blank">Nuevo cliente</a>.</p>
                 </div>
             </div>
-            <div class="col-sm-7">
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label class="control-label">Teléfono:</label>
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="telefono" readonly  value="{$fsc->residente->telefono}" placeholder="Telefono" autocomplete="off"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label class="control-label">Contacto Adicional:</label>
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="ca_cliente" readonly  value="{$fsc->residente->info->ca_nombres} {$fsc->residente->info->ca_apellidos}" placeholder="Buscar" autocomplete="off"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label class="control-label">Teléfono C.A.:</label>
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="ca_telefono" readonly  value="{$fsc->residente->info->ca_telefono}" placeholder="Buscar" autocomplete="off"/>
+                    </div>
+                </div>
             </div>
             <div class="clearfix"></div>
             {loop="$fsc->residente->pertenencia"}
             <div class="col-sm-2">
                 <div class="form-group">
                     <label class="control-label">{$value->desc_id}</label>
-                    <input class="form-control" type="text" name="{$value->id}" value="{$value->valor}" autocomplete="off"/>
+                    <input class="form-control" type="text" name="{$value->id}" readonly value="{$value->valor}" autocomplete="off"/>
                 </div>
             </div>
             {/loop}
             <div class="col-sm-2">
                 <div class="form-group">
                     <label class="control-label">Inmueble:</label>
-                    <input class="form-control" type="text" name="numero" value="{$fsc->residente->numero}" autocomplete="off"/>
+                    <input class="form-control" type="text" name="numero" readonly value="{$fsc->residente->numero}" autocomplete="off"/>
                 </div>
             </div>
             <div class="col-sm-2">
                 <div class="form-group">
                     <label class="control-label">Fecha de alta:</label>
-                    <input class="form-control datepicker" type="text" name="fecha_ocupacion" value="{function="date('d-m-Y',strtotime($fsc->residente->fecha_ocupacion))"}" autocomplete="off"/>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="form-group">
-                    <label class="control-label">Observaciones:</label>
-                    <textarea name="observaciones" class="form-control" rows="4"></textarea>
+                    <input class="form-control datepicker" type="text" readonly name="fecha_ocupacion" value="{function="date('d-m-Y',strtotime($fsc->residente->fecha_ocupacion))"}" autocomplete="off"/>
                 </div>
             </div>
         </div>
@@ -208,21 +231,24 @@
                         <tr>
                             <th></th>
                             <th></th>
-                            <th class="text-left">Código + Número2</th>
-                            <th class="text-left">Observaciones</th>
+                            <th class="text-left">Código + {#FS_NUMERO2#}</th>
+                            <th class="text-left">Cobros + Observaciones</th>
                             <th class="text-right">Total</th>
                             <th class="text-right">Fecha</th>
-                            <th class="text-right">Hora</th>
+                            <th class="text-right">Vence</th>
                         </tr>
                     </thead>
                     <!--{$total=0}-->
                     {loop="$fsc->facturas"}
-                    <tr class="clickableRow{if="$value->total<=0"} bg-warning{/if}" href="{$value->url()}">
+                    <tr class="clickableRow{if="!$value->pagada"} bg-danger{/if}" href="{$value->url()}">
                         <td class="text-center">
                             {if="$value->pagada"}
                             <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
                             {else}
                             <!--{$total=$total+$value->total}-->
+                            {/if}
+                            {if="$value->femail"}
+                            <span class="glyphicon glyphicon-send" title="La factura fue enviada por email el {$value->femail}"></span>
                             {/if}
                         </td>
                         <td class="text-center">
@@ -231,10 +257,10 @@
                             {/if}
                         </td>
                         <td><a href="{$value->url()}">{$value->codigo}</a> {$value->numero2}</td>
-                        <td>{$value->observaciones_resume()}</td>
+                        <td>{$value->referencias} {$value->observaciones_resume()}</td>
                         <td class="text-right">{$fsc->show_precio($value->total, $value->coddivisa)}</td>
                         <td class="text-right">{$value->fecha}</td>
-                        <td class="text-right">{$value->hora}</td>
+                        <td class="text-right">{$value->vencimiento}</td>
                     </tr>
                     {else}
                     <tr class="bg-warning">

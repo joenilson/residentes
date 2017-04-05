@@ -61,7 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <a href="#" onclick="$('#codigo_padre').val('{$value->codigo_edificacion}');$('#padre').val('{$value->id_tipo}');obtener_hijos('{$value->id_tipo}');" data-toggle="modal" data-target="#nuevoHijo" style="margin-right:5px;"><span class="fa fa-plus"></span></a>
                     <a href="{$fsc->url()}&edificacion={$value->codigo_edificacion}&padre={$value->codigo_padre}&tipo={$value->id_tipo}&padretipo={$value->padre_tipo}" role="button" style="margin-right:5px;"><span class="fa fa-eye"></span></a>
                     {if="$value->tiene_hijos()"}
-                    <a href="#" class="text-warning" onclick="alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
+                    <a href="#" class="text-warning" onclick="bootbox.alert('¡Hay {$value->tiene_hijos()} edificaciones internas, no se puede eliminar!')" style="margin-right:5px;"><span class="fa fa-lock"></span></a>
                     {else}
                     <a href="{$fsc->url()}&id={$value->id}&accion=eliminar" class="text-danger" onclick="return confirm('¿Está seguro que quiere eliminar esta Edificación?')" style="margin-right:5px;"><span class="fa fa-trash"></span></a>
                     {/if}

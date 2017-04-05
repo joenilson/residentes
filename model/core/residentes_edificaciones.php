@@ -194,6 +194,8 @@ class residentes_edificaciones extends \fs_model{
             $item->pertenencia = $this->pertenencia($item);
             if($item->codcliente){
                 $item->nombre = $this->cliente->get($item->codcliente)->nombre;
+                $item->telefono = $this->cliente->get($item->codcliente)->telefono1;
+                $item->email = $this->cliente->get($item->codcliente)->email;
                 $item->info = $this->cliente_info->get($item->codcliente);
                 $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
             }

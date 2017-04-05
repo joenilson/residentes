@@ -80,7 +80,19 @@ class ver_residente extends fs_controller
          }
          $this->page->title = 'Residente '.$this->residente->nombre;
          $factura = new factura_cliente();
-         $this->facturas = $factura->all_from_cliente($this->residente->codcliente);
+         $facts = $factura->all_from_cliente($this->residente->codcliente);
+         $this->facturas = array();
+         foreach($facts as $fac){
+             $fac->referencias = "";
+             foreach($fac->get_lineas() as $linea){
+                if($linea->referencia){
+                    $fac->referencias .= $linea->referencia." ";
+                }else{
+                    $fac->referencias .= $linea->descripcion." ";
+                }
+             }
+             $this->facturas[]=$fac;
+         }
       } else {
          $this->new_error_msg('Residente no encontrado.');
       }

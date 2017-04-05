@@ -216,7 +216,7 @@ class lista_residentes extends fs_controller {
             $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
             $and = ' WHERE ';
             if (is_numeric($query)) {
-                $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
+                $sql .= $and . "(r.codcliente LIKE '%" . $query . "%'"
                         . " OR cifnif LIKE '%" . $query . "%'"
                         . " OR codigo LIKE '%" . $query . "%'"
                         . " OR numero LIKE '%" . $query . "%'"

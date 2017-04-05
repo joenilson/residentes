@@ -152,7 +152,8 @@
     <table class="table table-hover">
         <thead>
             <tr>
-                <th class="text-left">Cliente</th>
+                <th class="text-left">Residente</th>
+                <th class="text-left">C. Adicional</th>
                 <th class="text-center">Dpto.</th>
                 <th class="text-left">Propietario</th>
                 <th class="text-center">Vehiculos</th>
@@ -163,7 +164,8 @@
         {loop="$fsc->resultados"}
         <tr>
             <td><a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a></td>
-            <td class="text-center">{$value->codigo} {$value->numero}</td>
+            <td class="text-left">{if="$value->info"}{$value->info->ca_nombres} {$value->info->ca_apellidos}{/if}</td>
+            <td class="text-left">{$value->codigo} {$value->numero}</td>
             <td class="text-left"><a href='#' onclick="informacionResidente('{$value->codcliente}','informacion')">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
             <td class="text-center"><a href='#' onclick="informacionResidente('{$value->codcliente}','vehiculos')">{if="$value->info"}{$value->vehiculos|count}{else}Información Incompleta{/if}</a></td>
             <td class="text-center">{$value->fecha_ocupacion}</td>
