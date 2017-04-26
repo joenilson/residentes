@@ -80,13 +80,15 @@ class informe_residentes extends fs_controller {
             $this->codigo_edificacion = \filter_input(INPUT_POST,'codigo_edificacion');
         }
         $this->desde = Date('01-m-Y');
-        if (isset($_POST['desde']))
+        if (isset($_POST['desde'])){
             $this->desde = $_POST['desde'];
+        }
 
         $this->hasta = Date('t-m-Y');
-        if (isset($_POST['hasta']))
+        if (isset($_POST['hasta'])){
             $this->hasta = $_POST['hasta'];
-
+        }
+        /*
         switch ($this->tipo) {
             case 'agua':
                 $this->resultados = $this->datos_informe_agua();
@@ -100,6 +102,7 @@ class informe_residentes extends fs_controller {
                 $this->resultados = $this->datos_informe_mensualidad();
                 break;
         }
+        */
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
         $this->informacion();
     }
@@ -128,102 +131,6 @@ class informe_residentes extends fs_controller {
             return 'index.php?page=informe_residentes&inmueble=' . $_REQUEST['inmueble'];
         } else
             return parent::url();
-    }
-
-    public function bloques() {
-        $blist = array();
-
-        $data = $this->db->select("SELECT DISTINCT bloque FROM residentes ORDER BY bloque ASC;");
-        if ($data) {
-            foreach ($data as $d) {
-                $blist[] = $d['bloque'];
-            }
-        }
-
-        return $blist;
-    }
-
-    private function datos_informe_mensualidad() {
-        $dlist = array();
-
-        $data = $this->db->select("SELECT l.pvptotal,l.iva,l.idfactura,f.fecha,f.pagada,f.codcliente,f.nombrecliente,i.id,i.piso
-         FROM lineasfacturascli l, facturascli f, residentes i
-         WHERE l.descripcion LIKE 'Mensualidad%' AND l.idfactura = f.idfactura AND f.codcliente = i.codcliente
-         AND fecha >= " . $this->empresa->var2str($this->desde) . " AND fecha <= " . $this->empresa->var2str($this->hasta) . "
-         AND bloque = " . $this->empresa->var2str($this->bloque) . " ORDER BY piso ASC;");
-        if ($data) {
-            foreach ($data as $d) {
-                $aux = array(
-                    'residente' => $d['id'],
-                    'piso' => $d['piso'],
-                    'nombre' => $d['nombrecliente'],
-                    'idfactura' => $d['idfactura'],
-                    'fecha' => date('d-m-Y', strtotime($d['fecha'])),
-                    'importe' => floatval($d['pvptotal']) * (100 + floatval($d['iva'])) / 100,
-                    'pagada' => $this->str2bool($d['pagada'])
-                );
-
-                $dlist[] = $aux;
-            }
-        }
-
-        return $dlist;
-    }
-
-    private function datos_informe_agua() {
-        $dlist = array();
-
-        $data = $this->db->select("SELECT l.cantidad,l.pvptotal,l.iva,l.idfactura,f.fecha,f.pagada,f.codcliente,f.nombrecliente,i.id,i.piso
-         FROM lineasfacturascli l, facturascli f, residentes i
-         WHERE l.descripcion LIKE 'Consumo de agua%' AND l.idfactura = f.idfactura AND f.codcliente = i.codcliente
-         AND fecha >= " . $this->empresa->var2str($this->desde) . " AND fecha <= " . $this->empresa->var2str($this->hasta) . "
-         AND bloque = " . $this->empresa->var2str($this->bloque) . " ORDER BY piso ASC;");
-        if ($data) {
-            foreach ($data as $d) {
-                $aux = array(
-                    'residente' => $d['id'],
-                    'piso' => $d['piso'],
-                    'nombre' => $d['nombrecliente'],
-                    'idfactura' => $d['idfactura'],
-                    'fecha' => date('d-m-Y', strtotime($d['fecha'])),
-                    'consumo' => floatval($d['cantidad']),
-                    'importe' => floatval($d['pvptotal']) * (100 + floatval($d['iva'])) / 100,
-                    'pagada' => $this->str2bool($d['pagada'])
-                );
-
-                $dlist[] = $aux;
-            }
-        }
-
-        return $dlist;
-    }
-
-    private function datos_informe_gas() {
-        $dlist = array();
-
-        $data = $this->db->select("SELECT l.cantidad,l.pvptotal,l.iva,l.idfactura,f.fecha,f.pagada,f.codcliente,f.nombrecliente,i.id,i.piso
-         FROM lineasfacturascli l, facturascli f, residentes i
-         WHERE l.descripcion LIKE 'Consumo de gas%' AND l.idfactura = f.idfactura AND f.codcliente = i.codcliente
-         AND fecha >= " . $this->empresa->var2str($this->desde) . " AND fecha <= " . $this->empresa->var2str($this->hasta) . "
-         AND bloque = " . $this->empresa->var2str($this->bloque) . " ORDER BY piso ASC;");
-        if ($data) {
-            foreach ($data as $d) {
-                $aux = array(
-                    'residente' => $d['id'],
-                    'piso' => $d['piso'],
-                    'nombre' => $d['nombrecliente'],
-                    'idfactura' => $d['idfactura'],
-                    'fecha' => date('d-m-Y', strtotime($d['fecha'])),
-                    'consumo' => floatval($d['cantidad']),
-                    'importe' => floatval($d['pvptotal']) * (100 + floatval($d['iva'])) / 100,
-                    'pagada' => $this->str2bool($d['pagada'])
-                );
-
-                $dlist[] = $aux;
-            }
-        }
-
-        return $dlist;
     }
 
     private function str2bool($v) {
