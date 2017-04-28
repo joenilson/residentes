@@ -1,232 +1,113 @@
 {include="header"}
-{if="$fsc->mapa"}
-<form action="{$fsc->url()}&tipo={$fsc->tipo}" method="post" class="form">
-   <div class="container-fluid hidden-print" style="margin-top: 10px;">
-      <div class="row">
-         <div class="col-sm-2">
+<div class="container-fluid hidden-print" style="margin-top: 10px;">
+    <div class="row">
+        <div class="col-sm-8">
             <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
-               <span class="glyphicon glyphicon-refresh"></span>
+                <span class="glyphicon glyphicon-refresh"></span>
             </a>
-
-            <button type="button" class="btn btn-sm btn-default" onclick="window.print();">
-               <span class="glyphicon glyphicon-print"></span> &nbsp; Imprimir
-            </button>
-         </div>
-          <div class="col-sm-2">
-              {$fsc->padre->descripcion}:
-              <select name="codigo_edificacion" class="form-control" onchange="this.form.submit();">
-                  <option value="">Todo</option>
-                  {loop="$fsc->mapa"}
-                  <option value="{$value->id}" {if="$fsc->codigo_edificacion==$value->id"}selected{/if}>{$fsc->padre->descripcion} {$value->codigo_edificacion}</option>
-                  {/loop}
-              </select>
-          </div>
-         <div class="col-md-2">
-            <div class="form-group">
-               Desde:
-               <input type="text" name="desde" class="form-control datepicker" value="{$fsc->desde}"/>
-            </div>
-         </div>
-         <div class="col-md-2">
-            <div class="form-group">
-               Hasta:
-               <div class="input-group">
-                  <input type="text" name="hasta" class="form-control datepicker" value="{$fsc->hasta}"/>
-                  <span class="input-group-btn">
-                     <button class="btn btn-default" type="submit">
-                        <span class="glyphicon glyphicon-search"></span>
-                     </button>
-                  </span>
-               </div>
-            </div>
-         </div>
-         <div class="col-sm-4 text-right">
-            <h2 style="margin-top: 0px;">Residentes {$fsc->bloque}</h2>
-         </div>
-      </div>
-   </div>
-</form>
-
-<ul class="nav nav-tabs hidden-print">
-   <li role="presentation"{if="$fsc->tipo=='informacion'"} class="active"{/if}>
-      <a href="{$fsc->url()}">Informacion</a>
-   </li>
-   <li role="presentation"{if="$fsc->tipo=='mensualidad'"} class="active"{/if}>
-      <a href="{$fsc->url()}">Mensualidad</a>
-   </li>
-  <li role="presentation"{if="$fsc->tipo=='agua'"} class="active"{/if}>
-     <a href="{$fsc->url()}&tipo=agua">Agua</a>
-  </li>
-  <li role="presentation"{if="$fsc->tipo=='gas'"} class="active"{/if}>
-     <a href="{$fsc->url()}&tipo=gas">Gas</a>
-  </li>
-</ul>
-{if="$fsc->tipo=='informacion'"}
+        </div>
+        <div class="col-sm-4 text-right">
+            <h2 style="margin-top: 0px;">Residentes</h2>
+        </div>
+    </div>
+</div>
+{if="$fsc->mapa"}
 <div class="row">
-    <div class="col-sm-2">{$fsc->total_resultado}</div>
-</div>
-{/if}
-<!--{$pagado=0}-->
-<!--{$deuda=0}-->
-{if="$fsc->tipo=='mensualidad'"}
-<div class="table-responsive">
-   <table class="table table-hover">
-      <thead>
-         <tr>
-            <th>Dpto.</th>
-            <th>Cliente</th>
-            <th class="text-right">Mensualidad</th>
-            <th class="text-right">Importe</th>
-            <th class="text-center">Pagada</th>
-         </tr>
-      </thead>
-      {loop="$fsc->resultados"}
-      <tr{if="!$value['pagada']"} class="bg-danger"{/if}>
-         <td>
-            <a href="index.php?page=ver_residente&id={$value['residente']}" class="hidden-print">{$value['piso']}</a>
-            <span class="visible-print">{$value['piso']}</span>
-         </td>
-         <td>{$value['nombre']}</td>
-         <td class="text-right">
-            <a href="index.php?page=ventas_factura&id={$value['idfactura']}" class="hidden-print">{$value['fecha']}</a>
-            <span class="visible-print">{$value['fecha']}</span>
-         </td>
-         <td class="text-right">{$fsc->show_precio($value['importe'])}</td>
-         <td class="text-center">
-            {if="$value['pagada']"}
-            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-            <!--{$pagado=$pagado+$value['importe']}-->
-            {else}
-            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-            <!--{$deuda=$deuda+$value['importe']}-->
-            {/if}
-         </td>
-      </tr>
-      {else}
-      <tr>
-         <td colspan="5" class="bg-warning">Sin resultados.</td>
-      </tr>
-      {/loop}
-   </table>
-</div>
-{elseif="$fsc->tipo=='agua'"}
-<div class="table-responsive">
-   <table class="table table-hover">
-      <thead>
-         <tr>
-            <th>Dpto.</th>
-            <th>Cliente</th>
-            <th class="text-right">Fecha</th>
-            <th class="text-right">Consumo m<sup>3</sup></th>
-            <th class="text-right">Importe</th>
-            <th class="text-center">Pagado</th>
-         </tr>
-      </thead>
-      {loop="$fsc->resultados"}
-      <tr{if="!$value['pagada']"} class="bg-danger"{/if}>
-         <td>
-            <a href="index.php?page=ver_residente&id={$value['residente']}" class="hidden-print">{$value['piso']}</a>
-            <span class="visible-print">{$value['piso']}</span>
-         </td>
-         <td>{$value['nombre']}</td>
-         <td class="text-right">
-            <a href="index.php?page=ventas_factura&id={$value['idfactura']}" class="hidden-print">{$value['fecha']}</a>
-            <span class="visible-print">{$value['fecha']}</span>
-         </td>
-         <td class="text-right">{$fsc->show_numero($value['consumo'])}</td>
-         <td class="text-right">{$fsc->show_precio($value['importe'])}</td>
-         <td class="text-center">
-            {if="$value['pagada']"}
-            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-            <!--{$pagado=$pagado+$value['importe']}-->
-            {else}
-            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-            <!--{$deuda=$deuda+$value['importe']}-->
-            {/if}
-         </td>
-      </tr>
-      {else}
-      <tr>
-         <td colspan="6" class="bg-warning">Sin resultados.</td>
-      </tr>
-      {/loop}
-   </table>
-</div>
-{elseif="$fsc->tipo=='gas'"}
-<div class="table-responsive">
-   <table class="table table-hover">
-      <thead>
-         <tr>
-            <th>Dpto.</th>
-            <th>Cliente</th>
-            <th class="text-right">Fecha</th>
-            <th class="text-right">Consumo m<sup>3</sup></th>
-            <th class="text-right">Importe</th>
-            <th class="text-center">Pagado</th>
-         </tr>
-      </thead>
-      {loop="$fsc->resultados"}
-      <tr{if="!$value['pagada']"} class="bg-danger"{/if}>
-         <td>
-            <a href="index.php?page=ver_residente&id={$value['residente']}" class="hidden-print">{$value['piso']}</a>
-            <span class="visible-print">{$value['piso']}</span>
-         </td>
-         <td>{$value['nombre']}</td>
-         <td class="text-right">
-            <a href="index.php?page=ventas_factura&id={$value['idfactura']}" class="hidden-print">{$value['fecha']}</a>
-            <span class="visible-print">{$value['fecha']}</span>
-         </td>
-         <td class="text-right">{$fsc->show_numero($value['consumo'])}</td>
-         <td class="text-right">{$fsc->show_precio($value['importe'])}</td>
-         <td class="text-center">
-            {if="$value['pagada']"}
-            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-            <!--{$pagado=$pagado+$value['importe']}-->
-            {else}
-            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-            <!--{$deuda=$deuda+$value['importe']}-->
-            {/if}
-         </td>
-      </tr>
-      {else}
-      <tr>
-         <td colspan="6" class="bg-warning">Sin resultados.</td>
-      </tr>
-      {/loop}
-   </table>
-</div>
-{/if}
+    <form action="{$fsc->url()}" method="post" class="form">
+        <div class="col-sm-1">
 
-<div class="container-fluid">
-   <div class="row">
-      <div class="col-sm-12 text-right">
-         <b>Total pagado: {$fsc->show_precio($pagado)}</b>
-         <br/>
-         <b>Deuda total: {$fsc->show_precio($deuda)}</b>
-      </div>
-   </div>
+        </div>
+        <div class="col-sm-2">
+            {$fsc->padre->descripcion}:
+            <select name="codigo_edificacion" class="form-control" onchange="this.form.submit();">
+                <option value="">Todo</option>
+                {loop="$fsc->mapa"}
+                <option value="{$value->id}" {if="$fsc->codigo_edificacion==$value->id"}selected{/if}>{$fsc->padre->descripcion} {$value->codigo_edificacion}</option>
+                {/loop}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                Desde:
+                <input type="text" name="desde" class="form-control datepicker" value="{$fsc->desde}"/>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                Hasta:
+                <div class="input-group">
+                    <input type="text" name="hasta" class="form-control datepicker" value="{$fsc->hasta}"/>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
+<ul class="nav nav-tabs hidden-print">
+   <li role="presentation" class="active">
+      <a href="#informacion" aria-controls="informacion" role="tab" data-toggle="tab">Informacion General</a>
+   </li>
+   <li role="presentation">
+      <a href="#cobros" aria-controls="cobros" role="tab" data-toggle="tab">Cobros</a>
+   </li>
+</ul>
+<div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="informacion" style="padding: 10px;">
+        <div class="row">
+            <div class="col-sm-2">
+                <canvas height="150" width="150" id="ocupacion"></canvas>
+            </div>
+            <div class="col-sm-3">
+                <ul class="list-group">
+                    <li class="list-group-item active"><span class="fa fa-building-o"></span>&nbsp;Edificaciones</li>
+                    {loop="$fsc->resultado"}
+                    <li class="list-group-item">
+                        {$value->descripcion}
+                        <span class="badge">{$value->cantidad}</span>
+                    </li>
+                    {/loop}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="cobros" style="padding: 10px;">
 
+    </div>
+</div>
+<script>
+    new Chart($('#ocupacion'), {
+        type: 'pie',
+        data: {
+            labels: [
+                "Ocupados {$fsc->inmuebles_ocupados}",
+                "Disponibles {$fsc->inmuebles_libres}"
+            ],
+            datasets: [
+            {
+                data: [{$fsc->inmuebles_ocupados}, {$fsc->inmuebles_libres}],
+                backgroundColor: [
+                    "#FF6384",
+                    "#36A2EB",
+                ],
+                hoverBackgroundColor: [
+                    "#FF6384",
+                    "#36A2EB",
+                ]
+            }]
+        },
+        options: {
+            labels: {
+                position: 'bottom'
+            }
+        }
+    });
+</script>
 {else}
-<div class="container-fluid">
-   <div class="row" style="margin-top: 10px; margin-bottom: 15px;">
-      <div class="col-sm-1">
-         <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
-            <span class="glyphicon glyphicon-refresh"></span>
-         </a>
-      </div>
-      <div class="col-sm-11 text-right">
-         <h2 style="margin-top: 0px;">Informe de residentes</h2>
-      </div>
-   </div>
-   <div class="row">
-      {loop="$fsc->bloques()"}
-      <div class="col-sm-4">
-         <a href="{$fsc->url()}&bloque={$value}" class="btn btn-block btn-default">{$value}</a>
-      </div>
-      {/loop}
-   </div>
-</div>
+<div class="row">Debes crear tu estructura de residentes antes de ver algo aquí. ve a <a href="index.php?page=edificaciones">Edificaciones</a> para esta actividad.</div>
 {/if}
 
 {include="footer"}

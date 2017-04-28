@@ -50,7 +50,8 @@ class informe_residentes extends fs_controller {
     public $codigo_edificacion;
     public $edificaciones_tipo;
     public $edificaciones_mapa;
-
+    public $inmuebles_libres;
+    public $inmuebles_ocupados;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'informes', FALSE, TRUE);
     }
@@ -62,13 +63,9 @@ class informe_residentes extends fs_controller {
         $this->edificaciones = new residentes_edificaciones();
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
+
         /// forzamos la comprobación de la tabla residentes
         $residente = new residentes_edificaciones();
-
-        $this->bloque = NULL;
-        if (isset($_GET['bloque'])) {
-            $this->bloque = $_GET['bloque'];
-        }
 
         $this->tipo = 'informacion';
         if (isset($_GET['tipo'])) {
@@ -88,42 +85,49 @@ class informe_residentes extends fs_controller {
         if (isset($_POST['hasta'])){
             $this->hasta = $_POST['hasta'];
         }
-        /*
-        switch ($this->tipo) {
-            case 'agua':
-                $this->resultados = $this->datos_informe_agua();
-                break;
 
-            case 'gas':
-                $this->resultados = $this->datos_informe_gas();
-                break;
-
-            default:
-                $this->resultados = $this->datos_informe_mensualidad();
-                break;
-        }
-        */
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
-        $this->informacion();
+        $this->informacion_edificaciones();
     }
 
-    public function informacion(){
-        $lista_tipo = $this->edificaciones_tipo->get_by_field('padre', $this->padre->id);
+    public function informacion_edificaciones(){
         $this->resultado = array();
         $this->total_resultado = 0;
-        //$this->new_advice(count($lista_tipo));
         $l = new stdClass();
-        foreach($lista_tipo as $linea){
-            $l->descripcion = $linea->descripcion;
-            $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $linea->id));
-            //$this->new_advice($l->cantidad);
-            $this->resultados[] = $l;
-            $this->total_resultado += count($l);
+        $l->descripcion = $this->padre->descripcion;
+        $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id));
+        $this->resultado[] = $l;
+        $this->total_resultado++;
+        //Buscamos la estructura interna
+        $this->informacion_interna($this->padre->id);
+        //Agregamos los inmuebles
+        $edificaciones = $this->edificaciones->all();
+        if($edificaciones){
+            $l = new stdClass();
+            $l->descripcion = 'Inmueble';
+            $l->cantidad = count($edificaciones);
+            $this->resultado[] = $l;
         }
+        //Verificamos los que están ocupados
+        $edificaciones_ocupadas = $this->edificaciones->all_ocupados();
+        $this->inmuebles_libres = count($edificaciones)-count($edificaciones_ocupadas);
+        $this->inmuebles_ocupados = count($edificaciones_ocupadas);
     }
 
-    public function recursivo(&$listado){
-
+    public function informacion_interna($id){
+        $lista_tipo = $this->edificaciones_tipo->get_by_field('padre', $id);
+        if($lista_tipo){
+            foreach($lista_tipo as $linea){
+                $l = new stdClass();
+                $l->descripcion = $linea->descripcion;
+                $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $linea->id));
+                $this->resultado[] = $l;
+                $this->total_resultado ++;
+                $this->informacion_interna($linea->id);
+            }
+        }else{
+            return true;
+        }
     }
 
     public function url() {
@@ -144,7 +148,7 @@ class informe_residentes extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/Chart.bundle.min.js" type="text/javascript"></script>',
+                'text' => '<script src="' . FS_PATH . 'view/js/chart.bundle.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
         );
