@@ -45,13 +45,13 @@ class informe_residentes extends fs_controller {
     public $total;
     public $total_resultado;
     public $lista;
-    public $ocupados;
-    public $vacios;
+    public $vehiculos;
     public $codigo_edificacion;
     public $edificaciones_tipo;
     public $edificaciones_mapa;
     public $inmuebles_libres;
     public $inmuebles_ocupados;
+    public $total_vehiculos;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'informes', FALSE, TRUE);
     }
@@ -61,6 +61,7 @@ class informe_residentes extends fs_controller {
         $this->edificaciones_tipo = new residentes_edificaciones_tipo();
         $this->edificaciones_mapa = new residentes_edificaciones_mapa();
         $this->edificaciones = new residentes_edificaciones();
+        $this->vehiculos = new residentes_vehiculos();
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
 
@@ -87,6 +88,10 @@ class informe_residentes extends fs_controller {
         }
 
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
+        $this->total_vehiculos = 0;
+        foreach($this->vehiculos->all() as $veh){
+            $this->total_vehiculos++;
+        }
         $this->informacion_edificaciones();
     }
 

@@ -70,6 +70,10 @@
                         <span class="badge">{$value->cantidad}</span>
                     </li>
                     {/loop}
+                    <li class="list-group-item">
+                        Vehiculos
+                        <span class="badge">{$fsc->total_vehiculos}</span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -100,9 +104,7 @@
             }]
         },
         options: {
-            labels: {
-                position: 'bottom'
-            }
+
         }
     });
 </script>
