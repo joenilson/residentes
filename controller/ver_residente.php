@@ -145,7 +145,7 @@ class ver_residente extends fs_controller
             {
                $factura->codcliente = $cliente->codcliente;
                $factura->cifnif = $cliente->cifnif;
-               $factura->nombrecliente = $cliente->razonsocial;
+               $factura->nombrecliente = $cliente->nombre;
                $factura->apartado = $d->apartado;
                $factura->ciudad = $d->ciudad;
                $factura->coddir = $d->id;
