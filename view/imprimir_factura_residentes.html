@@ -1,0 +1,191 @@
+{include="header"}
+<!--
+Copyright (C) 2017 Joe Nilson <joenilson at gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-7">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+            </div>
+            <div class="btn-group">
+                <a class="btn btn-sm btn-success"  data-toggle="modal" data-target="#nuevoResidente" role="button">
+                    <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
+                </a>
+                {loop="$fsc->extensions"}
+                {if="$value->type=='button'"}
+                <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                {/if}
+                {/loop}
+            </div>
+        </div>
+        <div class="col-sm-5 text-right">
+            <h2 style="margin-top: 0px;"><span class="fa fa-print"></span>&nbsp;Imprimir Factura</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <form name="f_propiedades" method="POST" action="{$fsc->url()}">
+            <select id="page_size" name="page_size" class="form-control input-sm" required>
+                <option value="">Tamaño de Papel</option>
+                <option value="letter">Carta</option>
+                <option value="a4">A4</option>
+                <option value="a5">A5</option>
+                <option value="a6">A6</option>
+                <option value="c10">C10</option>
+            </select>
+            <div class="radio">
+                <b>Orientación:</b>
+                <label><input type="radio" name="orientacion" value="p" checked>Horizontal</label>
+                <label><input type="radio" name="orientacion" value="l">Vertical</label>
+            </div>
+            <button id="btn_imprimir" type="button" class="btn btn-sm btn-primary">Imprimir</button>
+            </form>
+        </div>
+        <div class="col-sm-9">
+            <div id="previsualizacion_factura" class="bg-warning col-sm-5" style="width: 284.598425197px; height: 400px; font-size: 0.8em;">
+                <div class="text-center">
+                    <img src="images/logo.png" width="120"></br>
+                    {$fsc->empresa->nombre}</br>
+                    {$fsc->empresa->direccion}</br>
+                    {$fsc->empresa->telefono}</br>
+                </div>
+                <div class="text-left">
+                    <b>Factura:</b> {$fsc->factura->codigo} -
+                    <b>{#FS_NUMERO2#}:</b> {$fsc->factura->numero}<br/>
+                    <b>Cliente:</b> {$fsc->cliente->nombre}<br/>
+                    <b>Dirección:</b> {$fsc->factura->direccion}<br/>
+                    <b>Teléfono:</b> {$fsc->cliente->telefono1}
+                    <hr/>
+                </div>
+                <div class="text-left" style='font-weight: bold;'>
+                    <div class="pull-left">
+                    <b>Descripción</b>
+                    </div>
+                    <div class="pull-right">
+                    <b>Importe</b>
+                    </div>
+                    <br/>
+                </div>
+                {loop="$fsc->factura->get_lineas()"}
+                <div class='text-left'>
+                <div class="pull-left">
+                    {$value->descripcion}
+                </div>
+                <div class="pull-right">
+                    {$fsc->show_numero($value->pvptotal)}
+                </div>
+                <br/>
+                </div>
+                {/loop}
+                <div class='text-left'>
+                    <div class="pull-left">
+                        <b>Neto</b>
+                    </div>
+                    <div class="pull-right">
+                        {$fsc->show_numero($fsc->factura->neto)}
+                    </div>
+                <br/>
+                </div>
+                <div class='text-left'>
+                    <div class="pull-left">
+                        <b>{#FS_IVA#}</b>
+                    </div>
+                    <div class="pull-right">
+                        {$fsc->show_numero($fsc->factura->totaliva)}
+                    </div>
+                <br/>
+                </div>
+                <div class='text-left'>
+                    <div class="pull-left">
+                        <b>Total</b>
+                    </div>
+                    <div class="pull-right">
+                        {$fsc->show_numero($fsc->factura->total)}
+                    </div>
+                <br/>
+                </div>
+            </div>
+            <div class='col-sm-4 bg-info' id='pdf'>
+                    PDF
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(document).ready(function () {
+    $("#btn_imprimir").click(function (event) {
+        event.preventDefault();
+        var orientacion = $("input[name='orientacion']:checked").val();;
+        var page_size = $('#page_size').val();
+        if(orientacion && page_size){
+            createPDFObject(orientacion,page_size,'Hola');
+        }else{
+            bootbox.alert({
+                title: "Datos incompletos",
+                message: "Debes elegir un tamaño de papel y una orientación para imprimir"
+            });
+        }
+    });
+});
+//function createPDFObject(imgData, type, format, compress) {
+function createPDFObject(orientacion,page_size,texto,logo,cabecera,cuerpo,pie_pagina) {
+    var page_size = [79.3,260.21];
+    var doc = new jsPDF(orientacion, 'mm', page_size, true);
+    doc.setFontSize(7);
+    /*
+    doc.addHTML($("#previsualizar_factura"), function(){
+        doc.autoPrint();
+        doc.save('Archivo.pdf');
+    });
+    */
+   var specialElementHandlers = {
+        '#bypassme': function (element, renderer) {
+            return true
+        }
+    };
+    var canvas = doc.canvas;
+    canvas.width = 8.5 * 72;
+    var htmlString = $.trim($("#previsualizacion_factura")[0]);
+    doc.fromHTML($("#previsualizacion_factura")[0], 1, 1, {
+        'width': 284.598425197,
+        'elementHandlers': specialElementHandlers
+    },function (dispose) {
+        doc.save('Archivo.pdf');
+    });
+    //doc.save('Archivo.pdf');
+
+    /*
+    html2pdf(htmlString, doc,function(doc) {
+        //var iframe = $("#pdf").createElement('iframe');
+        //iframe.setAttribute('style','position:absolute;right:0; top:0; bottom:0; height:100%; width:500px');
+        //$("#pdf").appendChild(iframe);
+        //iframe.src = doc.output('datauristring');
+        //doc.save('Archivo.pdf');
+        //
+        //var div = $("#pdf").createElement('pre');
+        //div.innerText=doc.output();
+        //$("#pdf").appendChild(div);
+        doc.output('dataurlnewwindow');
+    });
+    */
+
+
+}
+</script>
+{include="footer"}

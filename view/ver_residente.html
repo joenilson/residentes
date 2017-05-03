@@ -23,13 +23,13 @@
         var total_importe = 0;
 
         {loop="$fsc->familia->get_articulos()"}
-            total_neto += parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
-            impuesto{$value->referencia}=buscar_impuesto(document.f_nueva_factura.impuesto_{$value->referencia}.value);
+            total_neto += parseFloat(document.f_nueva_factura.importe_{$counter}.value);
+            impuesto{$counter}=buscar_impuesto(document.f_nueva_factura.impuesto_{$counter}.value);
         {/loop}
         {loop="$fsc->familia->get_articulos()"}
-            total_impuestos += parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value)*((impuesto{$value->referencia})/100);
-            total_importe += (parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value)*((impuesto{$value->referencia}/100)))+parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
-            document.f_nueva_factura.total_{$value->referencia}.value = (parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value)*((impuesto{$value->referencia}/100)))+parseFloat(document.f_nueva_factura.importe_{$value->referencia}.value);
+            total_impuestos += parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter})/100);
+            total_importe += (parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter}/100)))+parseFloat(document.f_nueva_factura.importe_{$counter}.value);
+            document.f_nueva_factura.total_{$counter}.value = fs_round((parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter}/100)))+parseFloat(document.f_nueva_factura.importe_{$counter}.value),{#FS_NF0_ART#});
         {/loop}
 
         total_neto += parseFloat(document.f_nueva_factura.otro.value)+0;
@@ -41,8 +41,8 @@
         total_impuestos += parseFloat(document.f_nueva_factura.otro.value)*((codimpuesto_otro)/100);
         total_impuestos += parseFloat(document.f_nueva_factura.otro2.value)*((codimpuesto_otro2)/100);
 
-        total_importe += (parseFloat(document.f_nueva_factura.otro.value)*((codimpuesto_otro)/100))+parseFloat(document.f_nueva_factura.otro.value);
-        total_importe += (parseFloat(document.f_nueva_factura.otro2.value)*((codimpuesto_otro2)/100))+parseFloat(document.f_nueva_factura.otro2.value);
+        total_importe += fs_round((parseFloat(document.f_nueva_factura.otro.value)*((codimpuesto_otro)/100))+parseFloat(document.f_nueva_factura.otro.value),{#FS_NF0#});
+        total_importe += fs_round((parseFloat(document.f_nueva_factura.otro2.value)*((codimpuesto_otro2)/100))+parseFloat(document.f_nueva_factura.otro2.value),{#FS_NF0#});
         document.f_nueva_factura.total_neto.value = fs_round(total_neto, fs_nf0_art);
         document.f_nueva_factura.total_impuestos.value = fs_round(total_impuestos, fs_nf0_art);
         document.f_nueva_factura.total_importe.value = fs_round(total_importe, fs_nf0);
@@ -170,6 +170,7 @@
                     </div>
                 </div>
             </div>
+            {if="$fsc->residente->info"}
             <div class="col-sm-3">
                 <div class="form-group">
                     <label class="control-label">Contacto Adicional:</label>
@@ -186,6 +187,7 @@
                     </div>
                 </div>
             </div>
+            {/if}
             <div class="clearfix"></div>
             {loop="$fsc->residente->pertenencia"}
             <div class="col-sm-2">
@@ -292,21 +294,23 @@
                         <div class="col-sm-2">Total</div>
                     </div>
                     <div class="row">
+                        <!--{$totalLineas=2}-->
                         {loop="$fsc->familia->get_articulos()"}
                         <div class="col-sm-2">
                             {$value->referencia}
+                            <input type="hidden" name="referencia_{$counter}" value="{$value->referencia}">
                         </div>
                         <div class="col-sm-4">
                             {$value->descripcion}:
                         </div>
                         <div class="col-sm-2">
                             <div class="form-group">
-                                <input class="form-control" type="text" name="importe_{$value->referencia}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
+                                <input class="form-control" type="text" name="importe_{$counter}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
                             </div>
                         </div>
                         <div class="col-sm-2">
                             <div class="form-group">
-                                <select name="impuesto_{$value->referencia}" class="form-control">
+                                <select name="impuesto_{$counter}" class="form-control">
                                     {loop="$fsc->impuesto->all()"}
                                     <option value="{$value2->codimpuesto}"{if="$value2->codimpuesto==$value1->codimpuesto"} selected="selected"{/if}>{$value2->descripcion}</option>
                                     {/loop}
@@ -315,10 +319,12 @@
                         </div>
                         <div class="col-sm-2">
                             <div class="form-group">
-                                <input class="form-control" type="text" name="total_{$value->referencia}" value="{$value->pvp_iva()}" autocomplete="off" onkeyup="recalcular()"/>
+                                <input class="form-control" type="text" name="total_{$counter}" value="{$value->pvp_iva()}" autocomplete="off" onkeyup="recalcular()"/>
                             </div>
                         </div>
+                        <!--{$totalLineas++}-->
                         {/loop}
+                        <input type="hidden" name="numlineas" value="{$totalLineas}">
                     </div>
                     <div class="row">
                         <div class="col-sm-2">

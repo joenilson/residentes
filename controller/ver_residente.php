@@ -159,21 +159,28 @@ class ver_residente extends fs_controller
 
          if( $factura->save() )
          {
-            foreach($this->familia->get_articulos() as $art){
-                $importe = \filter_input(INPUT_POST, 'importe_'.$art->referencia);
-                $impuesto = \filter_input(INPUT_POST, 'impuesto_'.$art->referencia);
+            $art0 = new articulo();
+            $lineas = \filter_input(INPUT_POST, 'numlineas');
+            for($x=0; $x<$lineas;$x++)
+            {
+                $referencia = \filter_input(INPUT_POST, 'referencia_'.$x);
+                $importe = \filter_input(INPUT_POST, 'importe_'.$x);
+                $impuesto = \filter_input(INPUT_POST, 'impuesto_'.$x);
+                $art = $art0->get($referencia);
                 if(floatval($importe)){
                     $linea = new linea_factura_cliente();
                     $linea->idfactura = $factura->idfactura;
-                    $linea->referencia = $art->referencia;
-                    $linea->descripcion = $art->descripcion;
+                    $linea->referencia = $referencia;
+                    $linea->descripcion = ($art)?$art->descripcion:$referencia.' Articulo libre';
                     $linea->cantidad = 1;
                     $imp = $this->impuesto->get($impuesto);
                     if($imp)
                     {
                        $linea->codimpuesto = $imp->codimpuesto;
                        $linea->iva = $imp->iva;
-                       $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval($importe))/(100 + $imp->iva);
+                       $linea->pvpsindto = $importe;
+                       $linea->pvpunitario = $importe;
+                       $linea->pvptotal = $linea->pvpunitario * $linea->cantidad;
                        if( $linea->save() )
                        {
                           $factura->neto += $linea->pvptotal;
@@ -182,8 +189,6 @@ class ver_residente extends fs_controller
                     }
                 }
             }
-
-            $art0 = new articulo();
 
             if($_POST['desc_otro'] != '')
             {
@@ -254,12 +259,13 @@ class ver_residente extends fs_controller
             $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
             $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
 
-            if( abs(floatval($_POST['total_neto']) - $factura->total) > .01 )
+            if( abs(floatval($_POST['total_importe']) - $factura->total) > .01 )
             {
-               $this->new_error_msg("El total difiere entre la vista y el controlador (".$_POST['total'].
+               $this->new_error_msg("El total difiere entre la vista y el controlador (".$_POST['total_importe'].
                        " frente a ".$factura->total."). Debes informar del error.");
                $factura->delete();
             }
+            
             else if( $factura->save() )
             {
                $this->generar_asiento($factura);
