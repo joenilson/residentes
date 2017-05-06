@@ -28,8 +28,11 @@ class imprimir_factura_residentes extends fs_controller {
     public $imprimir;
     public $id;
     public $factura;
+    public $facturas_pendientes;
     public $cliente;
     public $articulo;
+    public $sizeFactura;
+    public $total_facturas_pendientes;
     public function __construct() {
         parent::__construct(__CLASS__, 'Factura Residente', 'ventas', TRUE, FALSE, FALSE);
     }
@@ -39,11 +42,34 @@ class imprimir_factura_residentes extends fs_controller {
         $id_p = \filter_input(INPUT_POST, 'id');
         $id_g = \filter_input(INPUT_GET, 'id');
         $this->id = ($id_p)?$id_p:$id_g;
+        $this->facturas_pendientes = array();
+        $this->total_facturas_pendientes = 0;
+        $this->sizeFactura = 90;
         if($this->id){
             $fac = new factura_cliente();
             $this->factura = $fac->get($this->id);
+            //Agregamos la cantidad de lineas multiplicadas por 4
+            $this->sizeFactura+= count($this->factura->get_lineas())*4;
+            //Agregamos la linea de separación del total
+            $this->sizeFactura+=4;
+            //Agregamos las 3 lineas de Neto, FS_IVA y Total
+            $this->sizeFactura+=12;
+            //Agregamos un espacio de 4 lineas aprox
+            $this->sizeFactura+=20;
             $cli = new cliente();
             $this->cliente = $cli->get($this->factura->codcliente);
+            $facturas = $fac->all_from_cliente($this->factura->codcliente);
+            if($facturas){
+                foreach($facturas as $f)
+                {
+                    if(!$f->pagada){
+                        $this->facturas_pendientes[] = array('factura'=>$f->codigo,'fecha'=>$f->fecha,'monto'=>$f->total);
+                        $this->sizeFactura+=4;
+                        $this->total_facturas_pendientes += $f->total;
+                    }
+                }
+            }
+            $this->sizeFactura+=20;
         }
     }
 
@@ -76,7 +102,7 @@ class imprimir_factura_residentes extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jsPDF/libs/html2pdf.js" type="text/javascript"></script>',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jsPDF/plugins/split_text_to_size.js" type="text/javascript"></script>',
                 'params' => ''
             ),
         );
