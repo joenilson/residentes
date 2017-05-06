@@ -24,9 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </a>
             </div>
             <div class="btn-group">
-                <a class="btn btn-sm btn-success"  data-toggle="modal" data-target="#nuevoResidente" role="button">
-                    <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
-                </a>
                 {loop="$fsc->extensions"}
                 {if="$value->type=='button'"}
                 <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
