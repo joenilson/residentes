@@ -44,12 +44,12 @@ class imprimir_factura_residentes extends fs_controller {
         $this->id = ($id_p)?$id_p:$id_g;
         $this->facturas_pendientes = array();
         $this->total_facturas_pendientes = 0;
-        $this->sizeFactura = 90;
+        $this->sizeFactura = 100;
         if($this->id){
             $fac = new factura_cliente();
             $this->factura = $fac->get($this->id);
             //Agregamos la cantidad de lineas multiplicadas por 4
-            $this->sizeFactura+= count($this->factura->get_lineas())*4;
+            $this->sizeFactura+= count($this->factura->get_lineas())*8;
             //Agregamos la linea de separación del total
             $this->sizeFactura+=4;
             //Agregamos las 3 lineas de Neto, FS_IVA y Total
@@ -94,7 +94,7 @@ class imprimir_factura_residentes extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jspdf.debug.js" type="text/javascript"></script>',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jspdf.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
