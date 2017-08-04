@@ -28,6 +28,7 @@ class imprimir_factura_residentes extends fs_controller {
     public $imprimir;
     public $id;
     public $factura;
+    public $factura_logo_uri;
     public $facturas_pendientes;
     public $cliente;
     public $articulo;
@@ -45,6 +46,23 @@ class imprimir_factura_residentes extends fs_controller {
         $this->facturas_pendientes = array();
         $this->total_facturas_pendientes = 0;
         $this->sizeFactura = 100;
+
+        $logo = FALSE;
+        if( file_exists(FS_MYDOCS.'images/logo.png') )
+        {
+           $logo = FS_MYDOCS.'images/logo.png';
+        }
+        else if( file_exists(FS_MYDOCS.'images/logo.jpg') )
+        {
+           $logo = FS_MYDOCS.'images/logo.jpg';
+        }
+        
+        if($logo){
+            $type = pathinfo($logo, PATHINFO_EXTENSION);
+            $data = file_get_contents($logo);
+            $this->factura_logo_uri = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
         if($this->id){
             $fac = new factura_cliente();
             $this->factura = $fac->get($this->id);
