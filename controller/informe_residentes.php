@@ -52,21 +52,25 @@ class informe_residentes extends fs_controller {
     public $inmuebles_libres;
     public $inmuebles_ocupados;
     public $total_vehiculos;
+    public $limit;
+    public $offset;
+    public $order;
+    public $search;
+    public $sort;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'informes', FALSE, TRUE);
     }
 
     protected function private_core() {
         $this->shared_extensions();
-        $this->edificaciones_tipo = new residentes_edificaciones_tipo();
-        $this->edificaciones_mapa = new residentes_edificaciones_mapa();
-        $this->edificaciones = new residentes_edificaciones();
-        $this->vehiculos = new residentes_vehiculos();
+        $this->init_variables();
+        $this->init_filters();
+
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
 
         /// forzamos la comprobación de la tabla residentes
-        $residente = new residentes_edificaciones();
+        new residentes_edificaciones();
 
         $this->tipo = 'informacion';
         if (isset($_GET['tipo'])) {
@@ -77,22 +81,45 @@ class informe_residentes extends fs_controller {
         if (\filter_input(INPUT_POST,'codigo_edificacion')) {
             $this->codigo_edificacion = \filter_input(INPUT_POST,'codigo_edificacion');
         }
-        $this->desde = Date('01-m-Y');
-        if (isset($_POST['desde'])){
-            $this->desde = $_POST['desde'];
-        }
 
-        $this->hasta = Date('t-m-Y');
-        if (isset($_POST['hasta'])){
-            $this->hasta = $_POST['hasta'];
-        }
 
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
-        $this->total_vehiculos = 0;
-        foreach($this->vehiculos->all() as $veh){
-            $this->total_vehiculos++;
-        }
+        $this->total_vehiculos = count($this->vehiculos->all());
+
         $this->informacion_edificaciones();
+
+        if($this->filter_request('lista')){
+            $this->procesarLista($this->filter_request('lista'));
+        }
+    }
+
+    public function init_variables()
+    {
+        $this->edificaciones_tipo = new residentes_edificaciones_tipo();
+        $this->edificaciones_mapa = new residentes_edificaciones_mapa();
+        $this->edificaciones = new residentes_edificaciones();
+        $this->vehiculos = new residentes_vehiculos();
+    }
+
+    public function init_filters()
+    {
+        $this->desde = \Date('01-m-Y');
+        if ($this->filter_request('desde')){
+            $this->desde = $this->filter_request('desde');
+        }
+
+        $this->hasta = \Date('t-m-Y');
+        if ($this->filter_request('hasta')){
+            $this->hasta = $this->filter_request('hasta');
+        }
+
+        $sort = $this->filter_request('sort');
+        $order = $this->filter_request('order');
+        $this->offset = $this->confirmarValor($this->filter_request('offset'),0);
+        $this->limit = $this->confirmarValor($this->filter_request('limit'),FS_ITEM_LIMIT);
+        $this->search = $this->confirmarValor($this->filter_request('search'),false);
+        $this->sort = ($sort and $sort!='undefined')?$sort:'codigo, numero';
+        $this->order = ($order and $order!='undefined')?$order:'ASC';
     }
 
     public function informacion_edificaciones(){
@@ -119,6 +146,49 @@ class informe_residentes extends fs_controller {
         $this->inmuebles_ocupados = count($edificaciones_ocupadas);
     }
 
+    public function procesarLista($lista)
+    {
+        $this->template = false;
+        $resultados = array();
+        switch ($lista) {
+            case 'informe_residentes':
+                $resultados = $this->lista_residentes();
+                break;
+            case 'informe_inmuebles':
+                $resultados = $this->lista_inmuebles();
+                break;
+            case 'informe_cobros':
+                $resultados = $this->lista_cobros();
+                break;
+            default:
+                break;
+        }
+        header('Content-Type: application/json');
+        $data['rows'] = $resultados;
+        $data['total'] = count($resultados);
+        echo json_encode($data);
+    }
+
+    public function lista_residentes()
+    {
+        $sql = " select r.codcliente, c.nombre, codigo, numero, fecha_ocupacion ".
+            " from residentes_edificaciones as r, clientes as c ".
+            " where r.codcliente = c.codcliente ".
+            " order by ".$this->sort." ".$this->order;
+        $data = $this->db->select_limit($sql, $this->limit, $this->offset);
+        return $data;
+    }
+
+    public function lista_inmuebles()
+    {
+        return array();
+    }
+
+    public function lista_cobros()
+    {
+        return array();
+    }
+
     public function informacion_interna($id){
         $lista_tipo = $this->edificaciones_tipo->get_by_field('padre', $id);
         if($lista_tipo){
@@ -135,6 +205,57 @@ class informe_residentes extends fs_controller {
         }
     }
 
+    /**
+     * Función para devolver un valor u otro dependiendo si está presente
+     * el primer valor y si la variable existe
+     * @param string $variable
+     * @param string $valor_si
+     * @param string $valor_no
+     * @return string
+     */
+    public function setValor($variable, $valor_si, $valor_no)
+    {
+        $valor = $valor_no;
+        if(!empty($variable) and ($variable == $valor_si)){
+            $valor = $valor_si;
+        }
+        return $valor;
+    }
+
+    /**
+     * Función para devolver el valor que no esté vacio
+     * @param string $valor1
+     * @param string $valor2
+     * @return string
+     */
+    public function confirmarValor($valor1, $valor2)
+    {
+        $valor = $valor2;
+        if(!empty($valor1)){
+            $valor = $valor1;
+        }
+        return $valor;
+    }
+
+    /**
+     * Función para devolver el valor de una variable pasada ya sea por POST o GET
+     * @param type string
+     * @return type string
+     */
+    public function filter_request($nombre)
+    {
+        $nombre_post = \filter_input(INPUT_POST, $nombre);
+        $nombre_get = \filter_input(INPUT_GET, $nombre);
+        return ($nombre_post) ? $nombre_post : $nombre_get;
+    }
+
+    public function filter_request_array($nombre)
+    {
+        $nombre_post = \filter_input(INPUT_POST, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+        $nombre_get = \filter_input(INPUT_GET, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+        return ($nombre_post) ? $nombre_post : $nombre_get;
+    }
+
     public function url() {
         if (isset($_REQUEST['inmueble'])) {
             return 'index.php?page=informe_residentes&inmueble=' . $_REQUEST['inmueble'];
@@ -149,11 +270,59 @@ class informe_residentes extends fs_controller {
     public function shared_extensions() {
         $extensiones = array(
             array(
+                'name' => '001_informe_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/1/bootstrap-table.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '002_informe_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/1/bootstrap-table-locale-all.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '003_informe_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/plugins/bootstrap-table-filter.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '004_informe_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/plugins/bootstrap-table-toolbar.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '005_informe_edificaciones_js',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/plugins/bootstrap-table-mobile.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
                 'name' => '009_informe_edificaciones_js',
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
                 'text' => '<script src="' . FS_PATH . 'view/js/chart.bundle.min.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '001_informe_edificaciones_css',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/residentes/view/css/bootstrap-table.min.css"/>',
                 'params' => ''
             ),
         );

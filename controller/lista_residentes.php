@@ -56,16 +56,10 @@ class lista_residentes extends fs_controller {
     }
 
     protected function private_core() {
-        $this->bloque = '';
-        $this->cliente = new cliente();
-        $this->residente = new residentes_edificaciones();
-        $this->residente_informacion = new residentes_informacion();
-        $this->residente_vehiculo = new residentes_vehiculos();
-        $this->edificacion_tipo = new residentes_edificaciones_tipo();
-        $this->edificacion_mapa = new residentes_edificaciones_mapa();
-        $this->tipo_edificaciones = $this->edificacion_tipo->all();
 
-        $this->offset = 0;
+        $this->init_variables();
+        $this->filters();
+
         if (isset($_REQUEST['offset'])) {
             $this->offset = intval($_REQUEST['offset']);
         }
@@ -100,11 +94,25 @@ class lista_residentes extends fs_controller {
                 $this->new_error_msg('Inquilino no encontrado.');
         }
 
-        $this->offset = 0;
-        if (isset($_GET['offset'])) {
-            $this->offset = intval($_GET['offset']);
-        }
 
+        $this->buscar();
+    }
+
+    public function init_variables()
+    {
+        $this->bloque = '';
+        $this->cliente = new cliente();
+        $this->residente = new residentes_edificaciones();
+        $this->residente_informacion = new residentes_informacion();
+        $this->residente_vehiculo = new residentes_vehiculos();
+        $this->edificacion_tipo = new residentes_edificaciones_tipo();
+        $this->edificacion_mapa = new residentes_edificaciones_mapa();
+        $this->tipo_edificaciones = $this->edificacion_tipo->all();
+        $this->offset = 0;
+    }
+
+    public function filters()
+    {
         $this->query_r = '';
         if (isset($_REQUEST['query_r'])) {
             $this->query_r = $_REQUEST['query_r'];
@@ -120,12 +128,10 @@ class lista_residentes extends fs_controller {
             $this->query_i = $_REQUEST['query_i'];
         }
 
-        $this->orden = 'c.nombre ASC';
+        $this->orden = 'r.codigo, r.numero ASC';
         if (isset($_REQUEST['orden'])) {
             $this->orden = $_REQUEST['orden'];
         }
-
-        $this->buscar();
     }
 
     public function buscar(){
