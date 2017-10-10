@@ -149,23 +149,22 @@ class informe_residentes extends fs_controller {
     public function procesarLista($lista)
     {
         $this->template = false;
-        $resultados = array();
         switch ($lista) {
             case 'informe_residentes':
-                $resultados = $this->lista_residentes();
+                list($resultados, $cantidad) = $this->lista_residentes();
                 break;
             case 'informe_inmuebles':
-                $resultados = $this->lista_inmuebles();
+                list($resultados, $cantidad) = $this->lista_inmuebles();
                 break;
             case 'informe_cobros':
-                $resultados = $this->lista_cobros();
+                list($resultados, $cantidad) = $this->lista_cobros();
                 break;
             default:
                 break;
         }
         header('Content-Type: application/json');
         $data['rows'] = $resultados;
-        $data['total'] = count($resultados);
+        $data['total'] = $cantidad;
         echo json_encode($data);
     }
 
@@ -176,7 +175,11 @@ class informe_residentes extends fs_controller {
             " where r.codcliente = c.codcliente ".
             " order by ".$this->sort." ".$this->order;
         $data = $this->db->select_limit($sql, $this->limit, $this->offset);
-        return $data;
+        $sql_cantidad = "select count(*) as total ".
+            " from residentes_edificaciones ".
+            " where codcliente != ''";
+        $data_cantidad = $this->db->select($sql_cantidad);
+        return array($data, $data_cantidad[0]['total']);
     }
 
     public function lista_inmuebles()
