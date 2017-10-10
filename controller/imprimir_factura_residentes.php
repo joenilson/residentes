@@ -120,7 +120,7 @@ class imprimir_factura_residentes extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jsPDF/plugins/split_text_to_size.js" type="text/javascript"></script>',
+                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jsPDF/plugins/split_text_to_size.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
         );
