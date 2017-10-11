@@ -58,35 +58,10 @@ class edificaciones extends fs_controller{
                 $this->tratar_edificaciones();
                 break;
             case "eliminar":
-                $id = \filter_input(INPUT_GET, 'id');
-                $edificacion = $this->edificaciones->get($id);
-                if($edificacion->ocupado){
-                    $this->new_error_msg('Esta edificacion tiene un residente, primero debe quitar al residente para proceder a eliminar esta edificacion.');
-                }else{
-                    try {
-                        $edificacion->delete();
-                        $this->new_message('Edificación eliminada correctamente.');
-                    } catch (\Exception $ex) {
-                        $this->new_error_msg('Ocurrió un error intentando eliminar la edificación');
-                        $this->new_error_msg($ex->getTraceAsString());
-                    }
-                }
+                $this->eliminar();
                 break;
             case "desocupar":
-                $id = \filter_input(INPUT_GET, 'id');
-                $edificacion = $this->edificaciones->get($id);
-                if($edificacion->ocupado){
-                    $edificacion->ocupado = FALSE;
-                    $edificacion->codcliente = '';
-                    $edificacion->fecha_disponibilidad = NULL;
-                    $edificacion->fecha_ocupacion = NULL;
-                    try{
-                        $edificacion->save();
-                        $this->new_message('Inmueble desocupado exitosamente.');
-                    } catch (Exception $ex) {
-                        $this->new_error_msg('Ocurrio un error al intentar desocupar el inmueble, intentelo nuevamente.');
-                    }
-                }
+                $this->desocupar();
                 break;
             case "agregar_inmueble":
                 $this->agregar_inmueble();
@@ -164,6 +139,41 @@ class edificaciones extends fs_controller{
 
     public function parent_url(){
         return 'index.php?page='.__CLASS__;
+    }
+
+    public function desocupar()
+    {
+        $id = \filter_input(INPUT_GET, 'id');
+        $edificacion = $this->edificaciones->get($id);
+        if($edificacion->ocupado){
+            $edificacion->ocupado = FALSE;
+            $edificacion->codcliente = '';
+            $edificacion->fecha_disponibilidad = NULL;
+            $edificacion->fecha_ocupacion = NULL;
+            try{
+                $edificacion->save();
+                $this->new_message('Inmueble desocupado exitosamente.');
+            } catch (Exception $ex) {
+                $this->new_error_msg('Ocurrio un error al intentar desocupar el inmueble, intentelo nuevamente.');
+            }
+        }
+    }
+
+    public function eliminar()
+    {
+        $id = \filter_input(INPUT_GET, 'id');
+        $edificacion = $this->edificaciones->get($id);
+        if($edificacion->ocupado){
+            $this->new_error_msg('Esta edificacion tiene un residente, primero debe quitar al residente para proceder a eliminar esta edificacion.');
+        }else{
+            try {
+                $edificacion->delete();
+                $this->new_message('Edificación eliminada correctamente.');
+            } catch (\Exception $ex) {
+                $this->new_error_msg('Ocurrió un error intentando eliminar la edificación');
+                $this->new_error_msg($ex->getTraceAsString());
+            }
+        }
     }
 
     private function buscar_cliente() {
