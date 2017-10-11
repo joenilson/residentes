@@ -289,6 +289,73 @@ class informe_residentes extends fs_controller {
         $nombre_get = \filter_input(INPUT_GET, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
         return ($nombre_post) ? $nombre_post : $nombre_get;
     }
+    
+    public function crearXLSX($hoja_nombre, $header,$headerText,$data)
+    {
+        $this->carpetasPlugin();
+        $this->archivoXLSX = $this->exportDir . DIRECTORY_SEPARATOR . $this->archivo . "_" . $this->user->nick . ".xlsx";
+        $this->archivoXLSXPath = $this->publicPath . DIRECTORY_SEPARATOR . $this->archivo . "_" . $this->user->nick . ".xlsx";
+        if (file_exists($this->archivoXLSX)) {
+            unlink($this->archivoXLSX);
+        }
+        $style_header = array('border'=>'left,right,top,bottom','font'=>'Arial','font-size'=>10,'font-style'=>'bold');
+        $header = array('Código'=>'string','Residente'=>'string','Ubicación'=>'string', 'Inmueble'=>'string',
+            'Fecha de Ocupación'=>'date');
+        $headerText = array('codcliente'=>'Código','nombrecliente'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble','fecha_ocupacion'=>'Fecha Ocupación');
+        $writer = new XLSXWriter();
+        foreach($this->vencimientos as $dias){
+            $hoja_nombre = ($dias!==121)?'Facturas a '.$dias.' dias':'Facturas a mas de 120 dias';
+            $writer->writeSheetRow($hoja_nombre, $headerText, $style_header);
+            $writer->writeSheetHeader($hoja_nombre, $header, true);
+            //$writer->writeSheetRow($hoja_nombre, $headerText, $style_header);
+            $datos = $this->listado_facturas($dias);
+            $this->agregarDatosXLSX($writer, $hoja_nombre, $datos['resultados'], $headerText);
+        }
+        $writer->writeToFile($this->archivoXLSXPath);
+        $this->fileXLSX = $this->archivoXLSXPath;
+    }
+
+    public function agregarDatosXLSX(&$writer, $hoja_nombre, $datos, $indice)
+    {
+        $style_footer = array('border'=>'left,right,top,bottom','font'=>'Arial','font-size'=>10,'font-style'=>'bold','color'=>'#fff','fill'=>'#000');
+        $total_importe = 0;
+        if($datos){
+            $total_documentos = count($datos);
+            foreach($datos as $linea){
+                $data = $this->prepararDatosXLSX($linea, $indice, $total_importe);
+                $writer->writeSheetRow($hoja_nombre, $data);
+            }
+            $writer->writeSheetRow($hoja_nombre, array('','','',$total_documentos.' Documentos',$total_importe,'','',''), $style_footer);
+        }
+    }
+
+    public function prepararDatosXLSX($linea, $indice, &$total_importe)
+    {
+        //var_dump($linea);
+        $item = array();
+        foreach($indice as $idx=>$desc){
+            $item[] = $linea[$idx];
+            if($idx == 'total'){
+                $total_importe += $linea['total'];
+            }
+        }
+        return $item;
+    }
+    
+    public function carpetasPlugin()
+    {
+        $basepath = dirname(dirname(dirname(__DIR__)));
+        $this->documentosDir = $basepath . DIRECTORY_SEPARATOR . FS_MYDOCS . 'documentos';
+        $this->exportDir = $this->documentosDir . DIRECTORY_SEPARATOR . "informes_residentes";
+        $this->publicPath = FS_PATH . FS_MYDOCS . 'documentos' . DIRECTORY_SEPARATOR . 'informes_residentes';
+        if (!is_dir($this->documentosDir)) {
+            mkdir($this->documentosDir);
+        }
+
+        if (!is_dir($this->exportDir)) {
+            mkdir($this->exportDir);
+        }
+    }
 
     public function url() {
         if (isset($_REQUEST['inmueble'])) {
