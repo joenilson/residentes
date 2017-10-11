@@ -49,43 +49,8 @@ class edificaciones extends fs_controller{
 
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
-
-        $accion_p = filter_input(INPUT_POST, 'accion');
-        $accion_g = filter_input(INPUT_GET, 'accion');
-        $accion = ($accion_p)?$accion_p:$accion_g;
-        switch ($accion){
-            case "agregar":
-                $this->tratar_edificaciones();
-                break;
-            case "eliminar":
-                $this->eliminar();
-                break;
-            case "desocupar":
-                $this->desocupar();
-                break;
-            case "agregar_inmueble":
-                $this->agregar_inmueble();
-                break;
-            case "agregar_residente":
-                $this->agregar_residente();
-                break;
-            case "agregar_hijo":
-                $id = \filter_input(INPUT_POST, 'id_hijo');
-                $objeto = $this->edificaciones_tipo->get($id);
-                $this->agregar($objeto);
-                break;
-            case "tratar_tipo":
-                $this->tratar_tipo_edificaciones();
-                break;
-            case "cambiar_datos":
-                $nombre = filter_input(INPUT_POST, 'nombre_edificacion');
-                $residentes_config = array(
-                    'residentes_nombre_edificacion' => trim($nombre)
-                );
-                $this->fsvar->array_save($residentes_config);
-            default:
-                break;
-        }
+        $accion = $this->filter_request('accion');
+        $this->verificar_accion($accion);
 
         $tipo = \filter_input(INPUT_GET, 'type');
         if($tipo=='select-hijos'){
@@ -123,6 +88,40 @@ class edificaciones extends fs_controller{
         }
 
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
+    }
+
+    public function verificar_accion($accion)
+    {
+        switch ($accion){
+            case "agregar":
+                $this->tratar_edificaciones();
+                break;
+            case "eliminar":
+                $this->eliminar();
+                break;
+            case "desocupar":
+                $this->desocupar();
+                break;
+            case "agregar_inmueble":
+                $this->agregar_inmueble();
+                break;
+            case "agregar_residente":
+                $this->agregar_residente();
+                break;
+            case "agregar_hijo":
+                $objeto = $this->edificaciones_tipo->get(\filter_input(INPUT_POST, 'id_hijo'));
+                $this->agregar($objeto);
+                break;
+            case "tratar_tipo":
+                $this->tratar_tipo_edificaciones();
+                break;
+            case "cambiar_datos":
+                $nombre = filter_input(INPUT_POST, 'nombre_edificacion');
+                $residentes_config = array('residentes_nombre_edificacion' => trim($nombre));
+                $this->fsvar->array_save($residentes_config);
+            default:
+                break;
+        }
     }
 
     public function url(){
@@ -535,4 +534,17 @@ class edificaciones extends fs_controller{
             }
         }
     }
+
+    /**
+     * Función para devolver el valor de una variable pasada ya sea por POST o GET
+     * @param type string
+     * @return type string
+     */
+    public function filter_request($nombre)
+    {
+        $nombre_post = \filter_input(INPUT_POST, $nombre);
+        $nombre_get = \filter_input(INPUT_GET, $nombre);
+        return ($nombre_post) ? $nombre_post : $nombre_get;
+    }
+
 }

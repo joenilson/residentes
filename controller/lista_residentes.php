@@ -323,11 +323,9 @@ class lista_residentes extends fs_controller {
     private function buscar_cliente_avanzado() {
         /// desactivamos la plantilla HTML
         $this->template = FALSE;
-
         $json = array();
         //Buscamos en la lista de clientes
         foreach ($this->cliente->search($_REQUEST['buscar_cliente_avanzado']) as $cli) {
-
             $lista = $this->residente->get_by_field('codcliente', $cli->codcliente);
             if($lista){
                 foreach($lista as $residente){
@@ -349,7 +347,6 @@ class lista_residentes extends fs_controller {
                 $json[$cli->codcliente] = array('value' => $cli->nombre.' '.$cli->vehiculo_placa." ".$cli->vehiculo_marca.''.$cli->vehiculo_modelo, 'data' => $cli->codcliente);
             }
         }
-
         //Buscamos en las residencias
         foreach($this->residente->search($_REQUEST['buscar_cliente_avanzado']) as $cli){
             if(!empty($cli)){

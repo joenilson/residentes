@@ -10,7 +10,6 @@
             <h2 style="margin-top: 0px;">Residentes</h2>
         </div>
     </div>
-</div>
 {if="$fsc->mapa"}
 <div class="row">
     <form action="{$fsc->url()}" id="f_informe_residentes"  name="f_informe_residentes" method="post" class="form">
@@ -314,7 +313,6 @@
                         rows: data.rows
                     });
                 }, 1000);
-
             },
             error: function (er) {
                 params.error(er);
@@ -322,6 +320,7 @@
         });
     }
 </script>
+</div>
 {else}
 <div class="row">Debes crear tu estructura de residentes antes de ver algo aquí. ve a <a href="index.php?page=edificaciones">Edificaciones</a> para esta actividad.</div>
 {/if}

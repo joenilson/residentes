@@ -115,10 +115,9 @@
         });
     });
 </script>
-
+<div class="container-fluid">
 <form name="f_residente" action="{$fsc->url()}" method="post" class="form">
     <input type="hidden" name="cliente" value="{$fsc->residente->codcliente}"/>
-    <div class="container-fluid">
         <div class="row" style="margin-top: 10px; margin-bottom: 10px;">
             <div class="col-sm-6">
                 <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
@@ -210,8 +209,8 @@
                 </div>
             </div>
         </div>
-    </div>
 </form>
+
 {/if}
 
 <div role="tabpanel">
@@ -424,5 +423,5 @@
         </div>
     </div>
 </div>
-
+</div>
 {include="footer"}
