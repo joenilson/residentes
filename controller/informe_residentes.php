@@ -84,7 +84,7 @@ class informe_residentes extends fs_controller {
 
 
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
-        $this->total_vehiculos = count($this->vehiculos->all());
+
 
         $this->informacion_edificaciones();
 
@@ -125,25 +125,49 @@ class informe_residentes extends fs_controller {
     public function informacion_edificaciones(){
         $this->resultado = array();
         $this->total_resultado = 0;
-        $l = new stdClass();
-        $l->descripcion = $this->padre->descripcion;
-        $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id));
-        $this->resultado[] = $l;
-        $this->total_resultado++;
-        //Buscamos la estructura interna
-        $this->informacion_interna($this->padre->id);
-        //Agregamos los inmuebles
-        $edificaciones = $this->edificaciones->all();
-        if($edificaciones){
+        list($edificaciones, $inmuebles, $vehiculos, $inmuebles_ocupados) = $this->datosInformacion();
+
+        foreach($edificaciones as $edif){
             $l = new stdClass();
-            $l->descripcion = 'Inmueble';
-            $l->cantidad = count($edificaciones);
+            $l->descripcion = $edif['descripcion'];
+            $l->cantidad = $edif['total'];
             $this->resultado[] = $l;
         }
+
+        //$this->total_resultado++;
+
+        if($inmuebles){
+            $l = new stdClass();
+            $l->descripcion = 'Inmueble';
+            $l->cantidad = $inmuebles;
+            $this->resultado[] = $l;
+        }
+
         //Verificamos los que están ocupados
-        $edificaciones_ocupadas = $this->edificaciones->all_ocupados();
-        $this->inmuebles_libres = count($edificaciones)-count($edificaciones_ocupadas);
-        $this->inmuebles_ocupados = count($edificaciones_ocupadas);
+        $this->inmuebles_libres = $inmuebles-$inmuebles_ocupados;
+        $this->inmuebles_ocupados = $inmuebles_ocupados;
+        $this->total_vehiculos = $vehiculos;
+    }
+
+    public function datosInformacion()
+    {
+        //Cantidad de Edificaciones
+        $sql_edificaciones = " select ret.id,ret.descripcion, count(rme.id) as total from residentes_edificaciones_tipo as ret ".
+            " join residentes_mapa_edificaciones as rme on (rme.id_tipo = ret.id) ".
+            " group by ret.id,ret.descripcion ";
+            " order by ret.padre;";
+        $data_edificaciones = $this->db->select($sql_edificaciones);
+        //cantidad de Inmuebles
+        $sql_inmuebles = "select count(*) as total from residentes_edificaciones;";
+        $data_inmuebles = $this->db->select($sql_inmuebles);
+        //cantidad de Inmuebles Ocupados
+        $sql_inmuebles_ocupados = "select count(*) as total from residentes_edificaciones WHERE ocupado = true;";
+        $data_inmuebles_ocupados = $this->db->select($sql_inmuebles_ocupados);
+        //cantidad de Vehiculos
+        $sql_vehiculos = "select count(*) as total from residentes_vehiculos;";
+        $data_vehiculos = $this->db->select($sql_vehiculos);
+
+        return array($data_edificaciones, $data_inmuebles[0]['total'],$data_vehiculos[0]['total'],$data_inmuebles_ocupados[0]['total']);
     }
 
     public function procesarLista($lista)
@@ -184,7 +208,18 @@ class informe_residentes extends fs_controller {
 
     public function lista_inmuebles()
     {
-        return array();
+        $sql = "select re.id, re.codcliente, c.nombre, re.codigo, re.numero, case when re.ocupado then 'Si' else 'NO' end as ocupado, rme.padre_id, ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
+            " from residentes_edificaciones as re ".
+            " join residentes_mapa_edificaciones as rme on (re.id_edificacion = rme.id) ".
+            " join residentes_edificaciones_tipo as ret on (rme.padre_tipo = ret.id) ".
+            " join residentes_edificaciones_tipo as ret2 on (rme.id_tipo = ret2.id) ".
+            " left join clientes as c on (re.codcliente = c.codcliente) ".
+            " order by ".$this->sort." ".$this->order;
+        $data = $this->db->select_limit($sql, $this->limit, $this->offset);
+        $sql_cantidad = "select count(*) as total ".
+            " from residentes_edificaciones ";
+        $data_cantidad = $this->db->select($sql_cantidad);
+        return array($data, $data_cantidad[0]['total']);
     }
 
     public function lista_cobros()

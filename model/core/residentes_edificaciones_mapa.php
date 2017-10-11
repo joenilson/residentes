@@ -142,13 +142,14 @@ class residentes_edificaciones_mapa extends \fs_model{
      */
     public function get_by_field($field,$value){
         $query = (is_string($value))?$this->var2str($value):$this->intval($value);
-        $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query." order by codigo_edificacion ASC;";
+        $sql = "SELECT rem.*, ret.descripcion FROM ".$this->table_name." as rem, residentes_edificaciones_tipo as ret ".
+                " WHERE ".strtoupper(trim($field))." = ".$query." AND rem.id_tipo = ret.id order by codigo_edificacion ASC;";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
             foreach($data as $d){
                 $item = new residentes_edificaciones_mapa($d);
-                $item->desc_id = $this->edificaciones_tipo->get($item->id_tipo)->descripcion;
+                $item->desc_id = $d['descripcion'];
                 $lista[] = $item;
             }
             return $lista;

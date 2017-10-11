@@ -175,9 +175,9 @@ class residentes_edificaciones extends \fs_model{
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
-                $item->nombre = $this->cliente->get($item->codcliente)->nombre;
-                $item->info = $this->cliente_info->get($item->codcliente);
-                $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                $item->nombre = ($item->codcliente)?$this->cliente->get($item->codcliente)->nombre:false;
+                $item->info = ($item->codcliente)?$this->cliente_info->get($item->codcliente):false;
+                $item->vehiculos = ($item->codcliente)?$this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente):false;
                 $lista[] = $item;
             }
             return $lista;
