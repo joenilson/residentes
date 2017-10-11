@@ -124,7 +124,6 @@ class informe_residentes extends fs_controller {
 
     public function informacion_edificaciones(){
         $this->resultado = array();
-        $this->total_resultado = 0;
         list($edificaciones, $inmuebles, $vehiculos, $inmuebles_ocupados) = $this->datosInformacion();
 
         foreach($edificaciones as $edif){
@@ -133,9 +132,6 @@ class informe_residentes extends fs_controller {
             $l->cantidad = $edif['total'];
             $this->resultado[] = $l;
         }
-
-        //$this->total_resultado++;
-
         if($inmuebles){
             $l = new stdClass();
             $l->descripcion = 'Inmueble';

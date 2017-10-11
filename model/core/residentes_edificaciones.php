@@ -168,16 +168,18 @@ class residentes_edificaciones extends \fs_model{
     }
 
     public function all_ocupados(){
-        $sql = "SELECT * FROM ".$this->table_name." WHERE ocupado = TRUE ORDER BY codigo_interno,numero";
+        $sql = "SELECT re.*, c.nombre FROM ".$this->table_name." as re, clientes as c ".
+               " WHERE ocupado = TRUE and re.codcliente != '' and re.codcliente = c.codlciente ".
+               " ORDER BY codigo_interno,numero";
         $data = $this->db->select($sql);
         if($data){
             $lista = array();
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
-                $item->nombre = ($item->codcliente)?$this->cliente->get($item->codcliente)->nombre:false;
-                $item->info = ($item->codcliente)?$this->cliente_info->get($item->codcliente):false;
-                $item->vehiculos = ($item->codcliente)?$this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente):false;
+                $item->nombre = $d['nombre'];
+                $item->info = $this->cliente_info->get($item->codcliente);
+                $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
                 $lista[] = $item;
             }
             return $lista;
