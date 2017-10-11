@@ -169,7 +169,7 @@ class residentes_edificaciones extends \fs_model{
 
     public function all_ocupados(){
         $sql = "SELECT re.*, c.nombre FROM ".$this->table_name." as re, clientes as c ".
-               " WHERE ocupado = TRUE and re.codcliente != '' and re.codcliente = c.codlciente ".
+               " WHERE ocupado = TRUE and re.codcliente != '' and re.codcliente = c.codcliente ".
                " ORDER BY codigo_interno,numero";
         $data = $this->db->select($sql);
         if($data){
