@@ -154,6 +154,7 @@ class edificaciones extends fs_controller{
                 $this->new_message('Inmueble desocupado exitosamente.');
             } catch (Exception $ex) {
                 $this->new_error_msg('Ocurrio un error al intentar desocupar el inmueble, intentelo nuevamente.');
+                $this->new_error_msg($ex->getTraceAsString());
             }
         }
     }
@@ -217,62 +218,21 @@ class edificaciones extends fs_controller{
     public function agregar_inmueble(){
         $inicio = \filter_input(INPUT_POST, 'inicio');
         $final_p = \filter_input(INPUT_POST, 'final');
-        $id = \filter_input(INPUT_POST, 'id');
-        $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
         $cantidad = \filter_input(INPUT_POST, 'cantidad');
         $incremento = \filter_input(INPUT_POST, 'incremento');
-        $codigo_mapa = $this->crear_codigo($id_edificacion);
-        $codigo_interno = $this->crear_codigo($id_edificacion,1);
-        $codigo = implode("",$codigo_mapa);
-        $codigo_interno = "{".implode(",",$codigo_interno)."}";
-        $ubicacion = "";
-        $codcliente = "";
-        $ocupado = FALSE;
         $final=(!empty($final_p))?$final_p:$inicio;
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
         if($inicio == $final){
-            $item = (is_int($inicio))?str_pad($inicio,3,"0",STR_PAD_LEFT):$inicio;
-            $edif0 = new residentes_edificaciones();
-            $edif0->id = $id;
-            $edif0->id_edificacion = $id_edificacion;
-            $edif0->codigo = $codigo;
-            $edif0->codigo_interno = $codigo_interno;
-            $edif0->numero = $item;
-            $edif0->ubicacion = trim($ubicacion);
-            $edif0->codcliente = trim($codcliente);
-            $edif0->ocupado = ($ocupado)?TRUE:FALSE;
-            try {
-                $edif0->save();
-                $inmuebles++;
-            } catch (Exception $exc) {
-                $this->new_error_msg($exc->getTraceAsString());
-                $error++;
-            }
+            $this->inmueble($inicio, $inmuebles, $error);
         }else{
             for ($i = $inicio; $i<=($final); $i++){
                 if($linea==$cantidad AND $cantidad!=0){
                     $i = ($i-$cantidad)+$incremento;
                     $linea = 0;
                 }
-                $item = (is_int($i))?str_pad($i,3,"0",STR_PAD_LEFT):$i;
-                $edif0 = new residentes_edificaciones();
-                $edif0->id = $id;
-                $edif0->id_edificacion = $id_edificacion;
-                $edif0->codigo = $codigo;
-                $edif0->codigo_interno = $codigo_interno;
-                $edif0->numero = $item;
-                $edif0->ubicacion = trim($ubicacion);
-                $edif0->codcliente = trim($codcliente);
-                $edif0->ocupado = ($ocupado)?TRUE:FALSE;
-                try {
-                    $edif0->save();
-                    $inmuebles++;
-                } catch (Exception $exc) {
-                    $this->new_error_msg($exc->getTraceAsString());
-                    $error++;
-                }
+                $this->inmueble($i,$inmuebles, $error);
                 $linea++;
             }
         }
@@ -280,6 +240,34 @@ class edificaciones extends fs_controller{
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
         }if($inmuebles){
             $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
+        }
+    }
+
+    public function inmueble($inicio,&$inmuebles, &$error)
+    {
+        $codigo_mapa = $this->crear_codigo(\filter_input(INPUT_POST, 'id_edificacion'));
+        $codigo_interno = $this->crear_codigo(\filter_input(INPUT_POST, 'id_edificacion'),1);
+        $codigo = implode("",$codigo_mapa);
+        $codigo_interno = "{".implode(",",$codigo_interno)."}";
+        $ubicacion = "";
+        $codcliente = "";
+        $ocupado = FALSE;
+        $item = (is_int($inicio))?str_pad($inicio,3,"0",STR_PAD_LEFT):$inicio;
+        $edif0 = new residentes_edificaciones();
+        $edif0->id = \filter_input(INPUT_POST, 'id');
+        $edif0->id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
+        $edif0->codigo = $codigo;
+        $edif0->codigo_interno = $codigo_interno;
+        $edif0->numero = $item;
+        $edif0->ubicacion = trim($ubicacion);
+        $edif0->codcliente = trim($codcliente);
+        $edif0->ocupado = ($ocupado)?TRUE:FALSE;
+        try {
+            $edif0->save();
+            $inmuebles++;
+        } catch (Exception $exc) {
+            $this->new_error_msg($exc->getTraceAsString());
+            $error++;
         }
     }
 

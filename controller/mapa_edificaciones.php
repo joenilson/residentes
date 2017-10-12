@@ -89,45 +89,16 @@ class mapa_edificaciones extends fs_controller{
     public function agregar($objeto){
         $inicio = \filter_input(INPUT_POST, 'inicio');
         $final_p = \filter_input(INPUT_POST, 'final');
-        $id = \filter_input(INPUT_POST, 'id');
-        $codigo_padre = \filter_input(INPUT_POST, 'codigo_padre');
-        $padre_id = \filter_input(INPUT_POST, 'padre_id');
         $final=(!empty($final_p))?$final_p:$inicio;
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
         if($inicio == $final){
-            $item = (is_int($inicio))?str_pad($inicio,3,"0",STR_PAD_LEFT):$inicio;
-            $punto = new residentes_edificaciones_mapa();
-            $punto->id = $id;
-            $punto->id_tipo = $objeto->id;
-            $punto->codigo_edificacion = $item;
-            $punto->codigo_padre = $codigo_padre;
-            $punto->padre_tipo = $objeto->padre;
-            $punto->padre_id = $padre_id;
-            $punto->numero = '';
-            if($punto->save()){
-                $inmuebles++;
-            }else{
-                $error++;
-            }
+            $this->edificacion($inicio, $inmuebles, $error, $objeto);
             $linea++;
         }else{
             foreach(range($inicio,$final) as $item){
-                $item = (is_int($item))?str_pad($item,3,"0",STR_PAD_LEFT):$item;
-                $punto = new residentes_edificaciones_mapa();
-                $punto->id = $id;
-                $punto->id_tipo = $objeto->id;
-                $punto->codigo_edificacion = $item;
-                $punto->codigo_padre = $codigo_padre;
-                $punto->padre_tipo = $objeto->padre;
-                $punto->padre_id = $padre_id;
-                $punto->numero = '';
-                if($punto->save()){
-                    $inmuebles++;
-                }else{
-                    $error++;
-                }
+                $this->edificacion($item, $inmuebles, $error, $objeto);
                 $linea++;
             }
         }
@@ -135,6 +106,27 @@ class mapa_edificaciones extends fs_controller{
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
         }
         $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
+    }
+
+    public function edificacion($i, &$inmuebles, &$error, $objeto)
+    {
+        $id = \filter_input(INPUT_POST, 'id');
+        $codigo_padre = \filter_input(INPUT_POST, 'codigo_padre');
+        $padre_id = \filter_input(INPUT_POST, 'padre_id');
+        $item = (is_int($i))?str_pad($i,3,"0",STR_PAD_LEFT):$i;
+        $punto = new residentes_edificaciones_mapa();
+        $punto->id = $id;
+        $punto->id_tipo = $objeto->id;
+        $punto->codigo_edificacion = $item;
+        $punto->codigo_padre = $codigo_padre;
+        $punto->padre_tipo = $objeto->padre;
+        $punto->padre_id = $padre_id;
+        $punto->numero = '';
+        if($punto->save()){
+            $inmuebles++;
+        }else{
+            $error++;
+        }
     }
 
     public function obtener_hijos(){

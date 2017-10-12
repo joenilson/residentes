@@ -26,7 +26,7 @@ require_model('residentes_informacion.php');
 require_model('residentes_vehiculos.php');
 require_model('residentes_edificaciones_tipo.php');
 require_model('residentes_edificaciones_mapa.php');
-
+require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 /**
  * Description of informe_residentes
  *
@@ -57,6 +57,12 @@ class informe_residentes extends fs_controller {
     public $order;
     public $search;
     public $sort;
+    public $archivo = 'Residentes';
+    public $archivoXLSX;
+    public $archivoXLSXPath;
+    public $documentosDir;
+    public $exportDir;
+    public $publicPath;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'informes', FALSE, TRUE);
     }
@@ -82,9 +88,7 @@ class informe_residentes extends fs_controller {
             $this->codigo_edificacion = \filter_input(INPUT_POST,'codigo_edificacion');
         }
 
-
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
-
 
         $this->informacion_edificaciones();
 
@@ -118,14 +122,13 @@ class informe_residentes extends fs_controller {
         $this->offset = $this->confirmarValor($this->filter_request('offset'),0);
         $this->limit = $this->confirmarValor($this->filter_request('limit'),FS_ITEM_LIMIT);
         $this->search = $this->confirmarValor($this->filter_request('search'),false);
-        $this->sort = ($sort and $sort!='undefined')?$sort:'codigo, numero';
+        $this->sort = ($sort and $sort!='undefined')?$sort:'r.codigo, r.numero';
         $this->order = ($order and $order!='undefined')?$order:'ASC';
     }
 
     public function informacion_edificaciones(){
         $this->resultado = array();
         list($edificaciones, $inmuebles, $vehiculos, $inmuebles_ocupados) = $this->datosInformacion();
-
         foreach($edificaciones as $edif){
             $l = new stdClass();
             $l->descripcion = $edif['descripcion'];
@@ -143,6 +146,32 @@ class informe_residentes extends fs_controller {
         $this->inmuebles_libres = $inmuebles-$inmuebles_ocupados;
         $this->inmuebles_ocupados = $inmuebles_ocupados;
         $this->total_vehiculos = $vehiculos;
+        $this->carpetasPlugin();
+        $this->generarArchivoExcel();
+    }
+
+    public function generarArchivoExcel()
+    {
+        $this->archivoXLSX = $this->exportDir . DIRECTORY_SEPARATOR . $this->archivo . "_" . $this->user->nick . ".xlsx";
+        $this->archivoXLSXPath = $this->publicPath . DIRECTORY_SEPARATOR . $this->archivo . "_" . $this->user->nick . ".xlsx";
+        if (file_exists($this->archivoXLSX)) {
+            unlink($this->archivoXLSX);
+        }
+        $writer = new XLSXWriter();
+        $headerR = array('Código'=>'string','Residente'=>'string','Ubicación'=>'string', 'Inmueble'=>'string','Fecha de Ocupación'=>'date');
+        $headerTextR = array('codcliente'=>'Código','nombre'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble','fecha_ocupacion'=>'Fecha Ocupación');
+        $dataResidentes = $this->lista_residentes(TRUE);
+        $this->crearXLSX($writer, 'Residentes', $headerR, $headerTextR, $dataResidentes[0]);
+        $headerI = array('Pertenece'=>'string','Edificación'=>'string','Código'=>'string', 'Residente'=>'string','Ubicación'=>'string','Inmueble Nro'=>'integer','Fecha de Ocupación'=>'date','Ocupado'=>'string');
+        $headerTextI = array('padre_desc'=>'Pertenece','edif_desc'=>'Edificacion','codcliente'=>'Código','nombre'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble Nro','fecha_ocupacion'=>'Fecha Ocupación','ocupado'=>'Ocupado');
+        $dataInmuebles = $this->lista_inmuebles(TRUE);
+        $this->crearXLSX($writer, 'Inmuebles', $headerI, $headerTextI, $dataInmuebles[0]);
+        $headerC = array('Código'=>'string','Residente'=>'string','Ubicación'=>'string', 'Inmueble'=>'string','Pagado'=>'price','Pendiente'=>'price');
+        $headerTextC = array('codcliente'=>'Código','nombre'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble','pagado'=>'Pagado','pendiente'=>'Pendiente');
+        $dataCobros = $this->lista_cobros(TRUE);
+        $this->crearXLSX($writer, 'Cobros', $headerC, $headerTextC, $dataCobros[0]);
+        $writer->writeToFile($this->archivoXLSXPath);
+        $this->fileXLSX = $this->archivoXLSXPath;
     }
 
     public function datosInformacion()
@@ -188,13 +217,17 @@ class informe_residentes extends fs_controller {
         echo json_encode($data);
     }
 
-    public function lista_residentes()
+    public function lista_residentes($todo = false)
     {
         $sql = " select r.codcliente, c.nombre, codigo, numero, fecha_ocupacion ".
             " from residentes_edificaciones as r, clientes as c ".
             " where r.codcliente = c.codcliente ".
             " order by ".$this->sort." ".$this->order;
-        $data = $this->db->select_limit($sql, $this->limit, $this->offset);
+        if($todo){
+            $data = $this->db->select($sql);
+        }else{
+            $data = $this->db->select_limit($sql, $this->limit, $this->offset);
+        }
         $sql_cantidad = "select count(*) as total ".
             " from residentes_edificaciones ".
             " where codcliente != ''";
@@ -202,25 +235,47 @@ class informe_residentes extends fs_controller {
         return array($data, $data_cantidad[0]['total']);
     }
 
-    public function lista_inmuebles()
+    public function lista_inmuebles($todo = false)
     {
-        $sql = "select re.id, re.codcliente, c.nombre, re.codigo, re.numero, case when re.ocupado then 'Si' else 'NO' end as ocupado, rme.padre_id, ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
-            " from residentes_edificaciones as re ".
-            " join residentes_mapa_edificaciones as rme on (re.id_edificacion = rme.id) ".
+        $sql = "select r.id, r.codcliente, c.nombre, r.codigo, r.numero, case when r.ocupado then 'Si' else 'NO' end as ocupado, r.fecha_ocupacion, rme.padre_id, ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
+            " from residentes_edificaciones as r ".
+            " join residentes_mapa_edificaciones as rme on (r.id_edificacion = rme.id) ".
             " join residentes_edificaciones_tipo as ret on (rme.padre_tipo = ret.id) ".
             " join residentes_edificaciones_tipo as ret2 on (rme.id_tipo = ret2.id) ".
-            " left join clientes as c on (re.codcliente = c.codcliente) ".
+            " left join clientes as c on (r.codcliente = c.codcliente) ".
             " order by ".$this->sort." ".$this->order;
-        $data = $this->db->select_limit($sql, $this->limit, $this->offset);
+        if($todo){
+            $data = $this->db->select($sql);
+        }else{
+            $data = $this->db->select_limit($sql, $this->limit, $this->offset);
+        }
+
         $sql_cantidad = "select count(*) as total ".
             " from residentes_edificaciones ";
         $data_cantidad = $this->db->select($sql_cantidad);
         return array($data, $data_cantidad[0]['total']);
     }
 
-    public function lista_cobros()
+    public function lista_cobros($todo = false)
     {
-        return array();
+        $sql = "select r.codcliente, c.nombre, r.codigo, r.numero, sum(f1.total) as pagado, sum(f2.total) as pendiente ".
+            " from residentes_edificaciones as r ".
+            " join clientes as c on (r.codcliente = c.codcliente) ".
+            " left join facturascli as f1 on (r.codcliente = f1.codcliente and f1.anulada = false and f1.pagada = true) ".
+            " left join facturascli as f2 on (r.codcliente = f2.codcliente and f2.anulada = false and f2.pagada = false) ".
+            " group by r.codcliente, c.nombre, r.codigo, r.numero ".
+            " order by ".$this->sort." ".$this->order;
+        if($todo){
+            $data = $this->db->select($sql);
+        }else{
+            $data = $this->db->select_limit($sql, $this->limit, $this->offset);
+        }
+
+        $sql_cantidad = "select count(*) as total ".
+            " from residentes_edificaciones ".
+            " where codcliente != ''";
+        $data_cantidad = $this->db->select($sql_cantidad);
+        return array($data, $data_cantidad[0]['total']);
     }
 
     public function informacion_interna($id){
@@ -231,7 +286,7 @@ class informe_residentes extends fs_controller {
                 $l->descripcion = $linea->descripcion;
                 $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $linea->id));
                 $this->resultado[] = $l;
-                $this->total_resultado ++;
+                $this->total_resultado++;
                 $this->informacion_interna($linea->id);
             }
         }else{
@@ -289,49 +344,28 @@ class informe_residentes extends fs_controller {
         $nombre_get = \filter_input(INPUT_GET, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
         return ($nombre_post) ? $nombre_post : $nombre_get;
     }
-    
-    public function crearXLSX($hoja_nombre, $header,$headerText,$data)
+
+    public function crearXLSX(&$writer, $hoja_nombre, $header,$headerText, $data)
     {
-        $this->carpetasPlugin();
-        $this->archivoXLSX = $this->exportDir . DIRECTORY_SEPARATOR . $this->archivo . "_" . $this->user->nick . ".xlsx";
-        $this->archivoXLSXPath = $this->publicPath . DIRECTORY_SEPARATOR . $this->archivo . "_" . $this->user->nick . ".xlsx";
-        if (file_exists($this->archivoXLSX)) {
-            unlink($this->archivoXLSX);
-        }
         $style_header = array('border'=>'left,right,top,bottom','font'=>'Arial','font-size'=>10,'font-style'=>'bold');
-        $header = array('Código'=>'string','Residente'=>'string','Ubicación'=>'string', 'Inmueble'=>'string',
-            'Fecha de Ocupación'=>'date');
-        $headerText = array('codcliente'=>'Código','nombrecliente'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble','fecha_ocupacion'=>'Fecha Ocupación');
-        $writer = new XLSXWriter();
-        foreach($this->vencimientos as $dias){
-            $hoja_nombre = ($dias!==121)?'Facturas a '.$dias.' dias':'Facturas a mas de 120 dias';
-            $writer->writeSheetRow($hoja_nombre, $headerText, $style_header);
-            $writer->writeSheetHeader($hoja_nombre, $header, true);
-            //$writer->writeSheetRow($hoja_nombre, $headerText, $style_header);
-            $datos = $this->listado_facturas($dias);
-            $this->agregarDatosXLSX($writer, $hoja_nombre, $datos['resultados'], $headerText);
-        }
-        $writer->writeToFile($this->archivoXLSXPath);
-        $this->fileXLSX = $this->archivoXLSXPath;
+        $writer->writeSheetRow($hoja_nombre, $headerText, $style_header);
+        $writer->writeSheetHeader($hoja_nombre, $header, true);
+        $this->agregarDatosXLSX($writer, $hoja_nombre, $data, $headerText);
     }
 
     public function agregarDatosXLSX(&$writer, $hoja_nombre, $datos, $indice)
     {
-        $style_footer = array('border'=>'left,right,top,bottom','font'=>'Arial','font-size'=>10,'font-style'=>'bold','color'=>'#fff','fill'=>'#000');
         $total_importe = 0;
         if($datos){
-            $total_documentos = count($datos);
             foreach($datos as $linea){
                 $data = $this->prepararDatosXLSX($linea, $indice, $total_importe);
                 $writer->writeSheetRow($hoja_nombre, $data);
             }
-            $writer->writeSheetRow($hoja_nombre, array('','','',$total_documentos.' Documentos',$total_importe,'','',''), $style_footer);
         }
     }
 
     public function prepararDatosXLSX($linea, $indice, &$total_importe)
     {
-        //var_dump($linea);
         $item = array();
         foreach($indice as $idx=>$desc){
             $item[] = $linea[$idx];
@@ -341,7 +375,7 @@ class informe_residentes extends fs_controller {
         }
         return $item;
     }
-    
+
     public function carpetasPlugin()
     {
         $basepath = dirname(dirname(dirname(__DIR__)));
