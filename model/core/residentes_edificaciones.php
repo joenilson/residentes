@@ -55,37 +55,37 @@ class residentes_edificaciones extends \fs_model{
     public $codigo_interno;
     /**
      * Este es el número del Inmueble
-     * @var type string
+     * @var string
      */
     public $numero;
     /**
      * @todo En un futuro si se necesita colocar la ubicación del edificio, como la calle o avenida interna
-     * @var type string
+     * @var string
      */
     public $ubicacion;
     /**
      * Si se van a agregar las coordenadas del inmueble pueden colocarse aquí
-     * @var type varchar(64)
+     * @var varchar(64)
      */
     public $coordenadas;
     /**
      * Si la edificación esta ocupada entonces se coloca aquí el código del Residente o Cliente
-     * @var type string
+     * @var string
      */
     public $codcliente;
     /**
      * Con esto sabremos si un edificio está o no ocupado en el listado de edificios
-     * @var type boolean
+     * @var boolean
      */
     public $ocupado;
     /**
      *
-     * @var type date
+     * @var string
      */
     public $fecha_ocupacion;
     /**
      *
-     * @var type
+     * @var string
      */
     public $fecha_disponibilidad;
     //Datos auxiliares

@@ -44,6 +44,12 @@
                 </div>
             </div>
         </div>
+        <div class="col-sm-3 col-md-2 col-lg-2">
+            {if="$fsc->fileXLSX"}
+            <br/>
+            <a class="btn btn-sm btn-default" href="{#FS_PATH#}{$fsc->fileXLSX}" download><span class="fa fa-download"></span>&nbsp;Descargar Reporte</a>
+            {/if}
+        </div>
     </form>
 </div>
 <ul class="nav nav-tabs hidden-print">
@@ -156,10 +162,11 @@
             <thead>
                 <tr>
                     <th data-sortable="true" data-field="codcliente">Código</th>
-                    <th data-sortable="true" data-field="nombrecliente">Residente</th>
+                    <th data-sortable="true" data-field="nombre">Residente</th>
                     <th data-sortable="true" data-field="codigo">Ubicación</th>
                     <th data-sortable="true" data-field="numero">Inmueble Nro</th>
-                    <th data-sortable="true" data-field="condicion">Ocupado</th>
+                    <th data-sortable="true" data-falign="right" data-align="right" data-formatter="numberFormatter" data-field="pagado">Pagado</th>
+                    <th data-sortable="true" data-falign="right" data-align="right" data-formatter="numberFormatter" data-field="pendiente">Pendiente</th>
                 </tr>
             </thead>
         </table>
@@ -204,6 +211,7 @@
     }
 
     function numberFormatter(value, row, index) {
+        value = (value === null)?0:value;
         return parseFloat(value).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
     }
 

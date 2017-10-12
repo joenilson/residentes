@@ -141,26 +141,8 @@ class lista_residentes extends fs_controller {
             $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON r.codcliente = c.codcliente";
             $sql .= " JOIN residentes_informacion as i ON i.codcliente = r.codcliente ";
             $and = ' WHERE ';
-            if (is_numeric($query)) {
-                $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
-                        . " OR cifnif LIKE '%" . $query . "%'"
-                        . " OR telefono1 LIKE '" . $query . "%'"
-                        . " OR telefono2 LIKE '" . $query . "%'"
-                        . " OR ca_telefono LIKE '" . $query . "%'"
-                        . " OR observaciones LIKE '%" . $query . "%')";
-                $and = ' AND ';
-            } else {
-                $buscar = str_replace(' ', '%', $query);
-                $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
-                        . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
-                        . " OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
-                        . " OR lower(ca_nombres) LIKE '%" . $buscar . "%'"
-                        . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
-                        . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
-                        . " OR lower(ca_email) LIKE '%" . $buscar . "%'"
-                        . " OR lower(email) LIKE '%" . $buscar . "%')";
-                $and = ' AND ';
-            }
+            $this->buscar_residentes($query,$sql,$and);
+
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
@@ -183,23 +165,7 @@ class lista_residentes extends fs_controller {
             $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
             $sql .= " JOIN residentes_vehiculos as i ON i.codcliente = r.codcliente ";
             $and = ' WHERE ';
-            if (is_numeric($query)) {
-                $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
-                        . " OR vehiculo_placa LIKE '%" . $query . "%'"
-                        . " OR CAST(idvehiculo AS CHAR) LIKE '" . $query . "%'"
-                        . " OR telefono2 LIKE '" . $query . "%'"
-                        . " OR observaciones LIKE '%" . $query . "%')";
-                $and = ' AND ';
-            } else {
-                $buscar = str_replace(' ', '%', $query);
-                $sql .= $and . "(lower(vehiculo_marca) LIKE '%" . $buscar . "%'"
-                        . " OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'"
-                        . " OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"
-                        . " OR lower(vehiculo_placa) LIKE '%" . $buscar . "%'"
-                        . " OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%'"
-                        . " OR lower(codigo_tarjeta) LIKE '%" . $buscar . "%')";
-                $and = ' AND ';
-            }
+            $this->buscar_vehiculos($query, $sql, $and);
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
@@ -221,28 +187,7 @@ class lista_residentes extends fs_controller {
             $query = mb_strtolower($this->cliente->no_html($this->query_i), 'UTF8');
             $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
             $and = ' WHERE ';
-            if (is_numeric($query)) {
-                $sql .= $and . "(r.codcliente LIKE '%" . $query . "%'"
-                        . " OR cifnif LIKE '%" . $query . "%'"
-                        . " OR codigo LIKE '%" . $query . "%'"
-                        . " OR numero LIKE '%" . $query . "%'"
-                        . " OR CONCAT(codigo, numero) LIKE '%" . $query . "%'"
-                        . " OR telefono1 LIKE '" . $query . "%'"
-                        . " OR telefono2 LIKE '" . $query . "%'"
-                        . " OR observaciones LIKE '%" . $query . "%')";
-                $and = ' AND ';
-            } else {
-                $buscar = str_replace(' ', '%', $query);
-                $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
-                        . " OR lower(codigo) LIKE '%" . $buscar . "%'"
-                        . " OR lower(numero) LIKE '%" . $buscar . "%'"
-                        . " OR CONCAT(lower(codigo), numero) LIKE '%" . $query . "%'"
-                        . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
-                        . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
-                        . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
-                        . " OR lower(email) LIKE '%" . $buscar . "%')";
-                $and = ' AND ';
-            }
+            $this->buscar_inmuebles($query, $sql, $and);
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
@@ -258,6 +203,7 @@ class lista_residentes extends fs_controller {
                 }
             }
         }
+
         if(!$this->query_i AND !$this->query_r AND !$this->query_v){
             $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
@@ -274,6 +220,71 @@ class lista_residentes extends fs_controller {
                     }
                 }
             }
+        }
+    }
+
+    public function buscar_residentes(&$query, &$sql, &$and)
+    {
+        if (is_numeric($query)) {
+            $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
+                    . " OR cifnif LIKE '%" . $query . "%'"
+                    . " OR telefono1 LIKE '" . $query . "%'"
+                    . " OR telefono2 LIKE '" . $query . "%'"
+                    . " OR ca_telefono LIKE '" . $query . "%'"
+                    . " OR observaciones LIKE '%" . $query . "%')";
+        } else {
+            $buscar = str_replace(' ', '%', $query);
+            $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
+                    . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ca_nombres) LIKE '%" . $buscar . "%'"
+                    . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
+                    . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ca_email) LIKE '%" . $buscar . "%'"
+                    . " OR lower(email) LIKE '%" . $buscar . "%')";
+        }
+    }
+
+    public function buscar_inmuebles(&$query, &$sql, &$and)
+    {
+        if (is_numeric($query)) {
+            $sql .= $and . "(r.codcliente LIKE '%" . $query . "%'"
+                    . " OR cifnif LIKE '%" . $query . "%'"
+                    . " OR codigo LIKE '%" . $query . "%'"
+                    . " OR numero LIKE '%" . $query . "%'"
+                    . " OR CONCAT(codigo, numero) LIKE '%" . $query . "%'"
+                    . " OR telefono1 LIKE '" . $query . "%'"
+                    . " OR telefono2 LIKE '" . $query . "%'"
+                    . " OR observaciones LIKE '%" . $query . "%')";
+        } else {
+            $buscar = str_replace(' ', '%', $query);
+            $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
+                    . " OR lower(codigo) LIKE '%" . $buscar . "%'"
+                    . " OR lower(numero) LIKE '%" . $buscar . "%'"
+                    . " OR CONCAT(lower(codigo), numero) LIKE '%" . $query . "%'"
+                    . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
+                    . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
+                    . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
+                    . " OR lower(email) LIKE '%" . $buscar . "%')";
+        }
+    }
+
+    public function buscar_vehiculos(&$query, &$sql, &$and)
+    {
+        if (is_numeric($query)) {
+            $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
+                    . " OR vehiculo_placa LIKE '%" . $query . "%'"
+                    . " OR CAST(idvehiculo AS CHAR) LIKE '" . $query . "%'"
+                    . " OR telefono2 LIKE '" . $query . "%'"
+                    . " OR observaciones LIKE '%" . $query . "%')";
+        } else {
+            $buscar = str_replace(' ', '%', $query);
+            $sql .= $and . "(lower(vehiculo_marca) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_placa) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%'"
+                    . " OR lower(codigo_tarjeta) LIKE '%" . $buscar . "%')";
         }
     }
 
