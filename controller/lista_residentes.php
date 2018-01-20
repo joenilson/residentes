@@ -146,11 +146,12 @@ class lista_residentes extends fs_controller {
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
                 if ($data2) {
                     foreach ($data2 as $d) {
                         $item = new residentes_edificaciones($d);
                         $item->nombre = $d['nombre'];
+                        $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
                         $this->resultados[] = $item;
@@ -169,11 +170,12 @@ class lista_residentes extends fs_controller {
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
                 if ($data2) {
                     foreach ($data2 as $d) {
                         $item = new residentes_edificaciones($d);
                         $item->nombre = $d['nombre'];
+                        $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
                         $this->resultados[] = $item;
@@ -191,11 +193,12 @@ class lista_residentes extends fs_controller {
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
                 if ($data2) {
                     foreach ($data2 as $d) {
                         $item = new residentes_edificaciones($d);
                         $item->nombre = $d['nombre'];
+                        $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
                         $this->resultados[] = $item;
@@ -209,11 +212,12 @@ class lista_residentes extends fs_controller {
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
                 if ($data2) {
                     foreach ($data2 as $d) {
                         $item = new residentes_edificaciones($d);
                         $item->nombre = $d['nombre'];
+                        $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
                         $this->resultados[] = $item;

@@ -150,6 +150,7 @@
         <thead>
             <tr>
                 <th class="text-left">Residente</th>
+                <th class="text-left">Teléfono</th>
                 <th class="text-left">C. Adicional</th>
                 <th class="text-center">Dpto.</th>
                 <th class="text-left">Propietario</th>
@@ -161,6 +162,7 @@
         {loop="$fsc->resultados"}
         <tr>
             <td><a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a></td>
+            <td class="text-center">{$value->telefono1}</td>
             <td class="text-left">{if="$value->info"}{$value->info->ca_nombres} {$value->info->ca_apellidos}{/if}</td>
             <td class="text-left">{$value->codigo} {$value->numero}</td>
             <td class="text-left"><a href='#' onclick="informacionResidente('{$value->codcliente}','informacion')">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
