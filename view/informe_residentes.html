@@ -21,7 +21,7 @@
             <select name="codigo_edificacion" class="form-control" onchange="this.form.submit();">
                 <option value="">Todo</option>
                 {loop="$fsc->mapa"}
-                <option value="{$value->id}" {if="$fsc->codigo_edificacion==$value->id"}selected{/if}>{$fsc->padre->descripcion} {$value->codigo_edificacion}</option>
+                <option value="{$value->codigo_edificacion}" {if="$fsc->codigo_edificacion==$value->codigo_edificacion"}selected{/if}>{$fsc->padre->descripcion} {$value->codigo_edificacion}</option>
                 {/loop}
             </select>
         </div>
@@ -108,6 +108,9 @@
                 <tr>
                     <th data-sortable="true" data-field="codcliente">Código</th>
                     <th data-sortable="true" data-field="nombre">Residente</th>
+                    <th data-sortable="true" data-field="cifnif">{#FS_CIFNIF#}</th>
+                    <th data-sortable="true" data-field="telefono1">Teléfono</th>
+                    <th data-sortable="true" data-field="email">Email</th>
                     <th data-sortable="true" data-field="codigo">Ubicación</th>
                     <th data-sortable="true" data-field="numero">Inmueble Nro</th>
                     <th data-sortable="true" data-field="fecha_ocupacion">Fecha Ocupación</th>

@@ -356,16 +356,21 @@ class residentes_edificaciones extends \fs_model{
         return $mapa;
     }
 
-    public function search($query){
+    public function search($query, $type=""){
         $sql = "SELECT * FROM ".$this->table_name." WHERE ";
         $OR = "";
-        if(is_int($query)){
-            $sql.=" id_edificacion LIKE '%".$query."%' ";
-            $sql.=" id LIKE '%".$query."%' ";
-            $OR = "OR";
+        if($type=='inmueble'){
+            $sql.=" numero LIKE '%".strtoupper($query)."%' ";
+            $sql.=" OR codigo LIKE '%".strtoupper($query)."%' ";
+        }else{
+            if(is_int($query)){
+                $sql.=" id_edificacion LIKE '%".$query."%' ";
+                $sql.=" id LIKE '%".$query."%' ";
+                $OR = "OR";
+            }
+            $sql.=" $OR numero LIKE '%".strtoupper($query)."%' ";
+            $sql.=" OR codigo LIKE '%".strtoupper($query)."%' ";
         }
-        $sql.=" $OR numero LIKE '%".strtoupper($query)."%' ";
-        $sql.=" OR codigo LIKE '%".strtoupper($query)."%' ";
         $sql.=" ORDER BY codigo,numero";
         $data = $this->db->select($sql);
         $lista = array();

@@ -248,24 +248,14 @@ class lista_residentes extends fs_controller {
     public function buscar_inmuebles(&$query, &$sql, &$and)
     {
         if (is_numeric($query)) {
-            $sql .= $and . "(r.codcliente LIKE '%" . $query . "%'"
-                    . " OR cifnif LIKE '%" . $query . "%'"
-                    . " OR codigo LIKE '%" . $query . "%'"
+            $sql .= $and . "codigo LIKE '%" . $query . "%'"
                     . " OR numero LIKE '%" . $query . "%'"
-                    . " OR CONCAT(codigo, numero) LIKE '%" . $query . "%'"
-                    . " OR telefono1 LIKE '" . $query . "%'"
-                    . " OR telefono2 LIKE '" . $query . "%'"
-                    . " OR observaciones LIKE '%" . $query . "%')";
+                    . " OR CONCAT(codigo, numero) LIKE '%" . $query . "%'";
         } else {
             $buscar = str_replace(' ', '%', $query);
-            $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
-                    . " OR lower(codigo) LIKE '%" . $buscar . "%'"
+            $sql .= $and . "lower(codigo) LIKE '%" . $buscar . "%'"
                     . " OR lower(numero) LIKE '%" . $buscar . "%'"
-                    . " OR CONCAT(lower(codigo), numero) LIKE '%" . $query . "%'"
-                    . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
-                    . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
-                    . " OR lower(observaciones) LIKE '%" . $buscar . "%'"
-                    . " OR lower(email) LIKE '%" . $buscar . "%')";
+                    . " OR CONCAT(lower(codigo), numero) LIKE '%" . $query . "%'";
         }
     }
 
@@ -374,7 +364,7 @@ class lista_residentes extends fs_controller {
         $this->template = FALSE;
 
         $json = array();
-        foreach ($this->residente->search($_REQUEST['buscar_inmueble']) as $inmueble) {
+        foreach ($this->residente->search($_REQUEST['buscar_inmueble'],'inmueble') as $inmueble) {
             if(!$inmueble->ocupado){
                 $json[] = array('value' => $inmueble->codigo.$inmueble->numero, 'data' => $inmueble->id);
             }

@@ -63,6 +63,7 @@ class informe_residentes extends fs_controller {
     public $documentosDir;
     public $exportDir;
     public $publicPath;
+    public $where_code;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'informes', FALSE, TRUE);
     }
@@ -84,8 +85,12 @@ class informe_residentes extends fs_controller {
         }
 
         $this->codigo_edificacion = NULL;
-        if (\filter_input(INPUT_POST,'codigo_edificacion')) {
-            $this->codigo_edificacion = \filter_input(INPUT_POST,'codigo_edificacion');
+        if ($this->filter_request('codigo_edificacion')) {
+            $this->codigo_edificacion = $this->filter_request('codigo_edificacion');
+        }
+
+        if ($this->codigo_edificacion) {
+           $this->where_code =  " AND r.codigo like '".$this->codigo_edificacion."%' ";
         }
 
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
@@ -158,8 +163,8 @@ class informe_residentes extends fs_controller {
             unlink($this->archivoXLSX);
         }
         $writer = new XLSXWriter();
-        $headerR = array('Código'=>'string','Residente'=>'string','Ubicación'=>'string', 'Inmueble'=>'string','Fecha de Ocupación'=>'date');
-        $headerTextR = array('codcliente'=>'Código','nombre'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble','fecha_ocupacion'=>'Fecha Ocupación');
+        $headerR = array('Código'=>'string','Residente'=>'string',FS_CIFNIF=>'string','Teléfono'=>'string','Email'=>'string','Ubicación'=>'string', 'Inmueble'=>'string','Fecha de Ocupación'=>'date');
+        $headerTextR = array('codcliente'=>'Código','nombre'=>'Residente','cifnif'=>FS_CIFNIF,'telefono1'=>'Teléfono','email'=>'Email','codigo'=>'Ubicación','numero'=>'Inmueble','fecha_ocupacion'=>'Fecha Ocupación');
         $dataResidentes = $this->lista_residentes(TRUE);
         $this->crearXLSX($writer, 'Residentes', $headerR, $headerTextR, $dataResidentes[0]);
         $headerI = array('Pertenece'=>'string','Edificación'=>'string','Código'=>'string', 'Residente'=>'string','Ubicación'=>'string','Inmueble Nro'=>'integer','Fecha de Ocupación'=>'date','Ocupado'=>'string');
@@ -219,18 +224,18 @@ class informe_residentes extends fs_controller {
 
     public function lista_residentes($todo = false)
     {
-        $sql = " select r.codcliente, c.nombre, codigo, numero, fecha_ocupacion ".
+        $sql = " select r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, codigo, numero, fecha_ocupacion ".
             " from residentes_edificaciones as r, clientes as c ".
-            " where r.codcliente = c.codcliente ".
+            " where r.codcliente = c.codcliente ".$this->where_code.
             " order by ".$this->sort." ".$this->order;
         if($todo){
             $data = $this->db->select($sql);
         }else{
             $data = $this->db->select_limit($sql, $this->limit, $this->offset);
         }
-        $sql_cantidad = "select count(*) as total ".
-            " from residentes_edificaciones ".
-            " where codcliente != ''";
+        $sql_cantidad = "select count(r.id) as total ".
+            " from residentes_edificaciones as r ".
+            " where r.codcliente != '' ".$this->where_code;
         $data_cantidad = $this->db->select($sql_cantidad);
         return array($data, $data_cantidad[0]['total']);
     }
@@ -239,7 +244,7 @@ class informe_residentes extends fs_controller {
     {
         $sql = "select r.id, r.codcliente, c.nombre, r.codigo, r.numero, case when r.ocupado then 'Si' else 'NO' end as ocupado, r.fecha_ocupacion, rme.padre_id, ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
             " from residentes_edificaciones as r ".
-            " join residentes_mapa_edificaciones as rme on (r.id_edificacion = rme.id) ".
+            " join residentes_mapa_edificaciones as rme on (r.id_edificacion = rme.id ".$this->where_code.") ".
             " join residentes_edificaciones_tipo as ret on (rme.padre_tipo = ret.id) ".
             " join residentes_edificaciones_tipo as ret2 on (rme.id_tipo = ret2.id) ".
             " left join clientes as c on (r.codcliente = c.codcliente) ".
@@ -250,8 +255,11 @@ class informe_residentes extends fs_controller {
             $data = $this->db->select_limit($sql, $this->limit, $this->offset);
         }
 
-        $sql_cantidad = "select count(*) as total ".
-            " from residentes_edificaciones ";
+        $sql_cantidad = "select count(r.id) as total ".
+            " from residentes_edificaciones as r";
+        if($this->where_code){
+            $sql_cantidad.=" WHERE r.codigo!='' ".$this->where_code;
+        }
         $data_cantidad = $this->db->select($sql_cantidad);
         return array($data, $data_cantidad[0]['total']);
     }
@@ -260,7 +268,7 @@ class informe_residentes extends fs_controller {
     {
         $sql = "select r.codcliente, c.nombre, r.codigo, r.numero, sum(f1.total) as pagado, sum(f2.total) as pendiente ".
             " from residentes_edificaciones as r ".
-            " join clientes as c on (r.codcliente = c.codcliente) ".
+            " join clientes as c on (r.codcliente = c.codcliente ".$this->where_code.") ".
             " left join facturascli as f1 on (r.codcliente = f1.codcliente and f1.anulada = false and f1.pagada = true) ".
             " left join facturascli as f2 on (r.codcliente = f2.codcliente and f2.anulada = false and f2.pagada = false) ".
             " group by r.codcliente, c.nombre, r.codigo, r.numero ".
@@ -271,9 +279,9 @@ class informe_residentes extends fs_controller {
             $data = $this->db->select_limit($sql, $this->limit, $this->offset);
         }
 
-        $sql_cantidad = "select count(*) as total ".
-            " from residentes_edificaciones ".
-            " where codcliente != ''";
+        $sql_cantidad = "select count(r.id) as total ".
+            " from residentes_edificaciones as r".
+            " where r.codcliente != '' ".$this->where_code;
         $data_cantidad = $this->db->select($sql_cantidad);
         return array($data, $data_cantidad[0]['total']);
     }
