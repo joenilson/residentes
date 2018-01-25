@@ -139,6 +139,9 @@
                     <th data-sortable="true" data-field="edif_desc">Edificacion</th>
                     <th data-sortable="true" data-field="codcliente">Código</th>
                     <th data-sortable="true" data-field="nombre">Residente</th>
+                    <th data-sortable="true" data-field="cifnif">{#FS_CIFNIF#}</th>
+                    <th data-sortable="true" data-field="telefono1">Teléfono</th>
+                    <th data-sortable="true" data-field="email">Email</th>
                     <th data-sortable="true" data-field="codigo">Ubicación</th>
                     <th data-sortable="true" data-field="numero">Inmueble Nro</th>
                     <th data-sortable="true" data-field="fecha_ocupacion">Fecha Ocupación</th>
@@ -166,10 +169,14 @@
                 <tr>
                     <th data-sortable="true" data-field="codcliente">Código</th>
                     <th data-sortable="true" data-field="nombre">Residente</th>
+                    <th data-sortable="true" data-field="cifnif">{#FS_CIFNIF#}</th>
+                    <th data-sortable="true" data-field="telefono1">Teléfono</th>
+                    <th data-sortable="true" data-field="email">Email</th>
                     <th data-sortable="true" data-field="codigo">Ubicación</th>
                     <th data-sortable="true" data-field="numero">Inmueble Nro</th>
                     <th data-sortable="true" data-falign="right" data-align="right" data-formatter="numberFormatter" data-field="pagado">Pagado</th>
                     <th data-sortable="true" data-falign="right" data-align="right" data-formatter="numberFormatter" data-field="pendiente">Pendiente</th>
+                    <th data-formatter="TableActions">&nbsp;</th>
                 </tr>
             </thead>
         </table>
@@ -200,6 +207,25 @@
 
         }
     });
+
+    function TableActions (value, row, index) {
+        return [
+            '<button class="btn btn-sm btn-info" onclick="showDataResidente(\''+row.codcliente+'\')">',
+            '<i class="fa fa-eye fa-fw"></i>',
+            '<span>Ver Detalle</span>',
+            '</a> ',
+        ].join('');
+    }
+
+    function showDataResidente(codcliente) {
+        $('#modal_cobros_residente').modal('show');
+        $("#mostrar_informacion_residente").detach();
+        $("<iframe id='mostrar_informacion_residente' />")
+          .attr('src', '{$fsc->url()}&tipo=mostrar_informacion_residente&codcliente='+codcliente)
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_cobros_residente_body');
+    }
 
     function runningFormatter(value, row, index) {
         return index;
@@ -331,6 +357,19 @@
         });
     }
 </script>
+</div>
+<div class="modal" id="modal_cobros_residente">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Cobros al Residente</h4>
+            </div>
+            <div class="modal-body" id='modal_cobros_residente_body'>
+
+            </div>
+        </div>
+    </div>
 </div>
 {else}
 <div class="row">Debes crear tu estructura de residentes antes de ver algo aquí. ve a <a href="index.php?page=edificaciones">Edificaciones</a> para esta actividad.</div>

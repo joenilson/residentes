@@ -36,6 +36,7 @@ require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
 class informe_residentes extends fs_controller {
 
     public $bloque;
+    public $cliente;
     public $desde;
     public $hasta;
     public $resultados;
@@ -84,6 +85,10 @@ class informe_residentes extends fs_controller {
             $this->tipo = $_GET['tipo'];
         }
 
+        if($this->tipo === 'mostrar_informacion_residente'){
+            $this->mostrar_informacion_residente();
+        }
+
         $this->codigo_edificacion = NULL;
         if ($this->filter_request('codigo_edificacion')) {
             $this->codigo_edificacion = $this->filter_request('codigo_edificacion');
@@ -100,6 +105,14 @@ class informe_residentes extends fs_controller {
         if($this->filter_request('lista')){
             $this->procesarLista($this->filter_request('lista'));
         }
+    }
+
+
+    public function mostrar_informacion_residente(){
+        $this->template = 'mostrar_informacion_residente';
+        $cod = $this->filter_request('codcliente');
+        $cli = new cliente();
+        $this->cliente = $cli->get($cod);
     }
 
     public function init_variables()
@@ -167,12 +180,12 @@ class informe_residentes extends fs_controller {
         $headerTextR = array('codcliente'=>'Código','nombre'=>'Residente','cifnif'=>FS_CIFNIF,'telefono1'=>'Teléfono','email'=>'Email','codigo'=>'Ubicación','numero'=>'Inmueble','fecha_ocupacion'=>'Fecha Ocupación');
         $dataResidentes = $this->lista_residentes(TRUE);
         $this->crearXLSX($writer, 'Residentes', $headerR, $headerTextR, $dataResidentes[0]);
-        $headerI = array('Pertenece'=>'string','Edificación'=>'string','Código'=>'string', 'Residente'=>'string','Ubicación'=>'string','Inmueble Nro'=>'integer','Fecha de Ocupación'=>'date','Ocupado'=>'string');
-        $headerTextI = array('padre_desc'=>'Pertenece','edif_desc'=>'Edificacion','codcliente'=>'Código','nombre'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble Nro','fecha_ocupacion'=>'Fecha Ocupación','ocupado'=>'Ocupado');
+        $headerI = array('Pertenece'=>'string','Edificación'=>'string','Código'=>'string', 'Residente'=>'string',FS_CIFNIF=>'string','Teléfono'=>'string','Email'=>'string','Ubicación'=>'string','Inmueble Nro'=>'integer','Fecha de Ocupación'=>'date','Ocupado'=>'string');
+        $headerTextI = array('padre_desc'=>'Pertenece','edif_desc'=>'Edificacion','codcliente'=>'Código','nombre'=>'Residente','cifnif'=>FS_CIFNIF,'telefono1'=>'Teléfono','email'=>'Email','codigo'=>'Ubicación','numero'=>'Inmueble Nro','fecha_ocupacion'=>'Fecha Ocupación','ocupado'=>'Ocupado');
         $dataInmuebles = $this->lista_inmuebles(TRUE);
         $this->crearXLSX($writer, 'Inmuebles', $headerI, $headerTextI, $dataInmuebles[0]);
-        $headerC = array('Código'=>'string','Residente'=>'string','Ubicación'=>'string', 'Inmueble'=>'string','Pagado'=>'price','Pendiente'=>'price');
-        $headerTextC = array('codcliente'=>'Código','nombre'=>'Residente','codigo'=>'Ubicación','numero'=>'Inmueble','pagado'=>'Pagado','pendiente'=>'Pendiente');
+        $headerC = array('Código'=>'string','Residente'=>'string',FS_CIFNIF=>'string','Teléfono'=>'string','Email'=>'string','Ubicación'=>'string', 'Inmueble'=>'string','Pagado'=>'price','Pendiente'=>'price');
+        $headerTextC = array('codcliente'=>'Código','nombre'=>'Residente','cifnif'=>FS_CIFNIF,'telefono1'=>'Teléfono','email'=>'Email','codigo'=>'Ubicación','numero'=>'Inmueble','pagado'=>'Pagado','pendiente'=>'Pendiente');
         $dataCobros = $this->lista_cobros(TRUE);
         $this->crearXLSX($writer, 'Cobros', $headerC, $headerTextC, $dataCobros[0]);
         $writer->writeToFile($this->archivoXLSXPath);
@@ -242,7 +255,7 @@ class informe_residentes extends fs_controller {
 
     public function lista_inmuebles($todo = false)
     {
-        $sql = "select r.id, r.codcliente, c.nombre, r.codigo, r.numero, case when r.ocupado then 'Si' else 'NO' end as ocupado, r.fecha_ocupacion, rme.padre_id, ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
+        $sql = "select r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, case when r.ocupado then 'Si' else 'NO' end as ocupado, r.fecha_ocupacion, rme.padre_id, ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
             " from residentes_edificaciones as r ".
             " join residentes_mapa_edificaciones as rme on (r.id_edificacion = rme.id ".$this->where_code.") ".
             " join residentes_edificaciones_tipo as ret on (rme.padre_tipo = ret.id) ".
@@ -266,7 +279,7 @@ class informe_residentes extends fs_controller {
 
     public function lista_cobros($todo = false)
     {
-        $sql = "select r.codcliente, c.nombre, r.codigo, r.numero, sum(f1.total) as pagado, sum(f2.total) as pendiente ".
+        $sql = "select r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, sum(f1.total) as pagado, sum(f2.total) as pendiente ".
             " from residentes_edificaciones as r ".
             " join clientes as c on (r.codcliente = c.codcliente ".$this->where_code.") ".
             " left join facturascli as f1 on (r.codcliente = f1.codcliente and f1.anulada = false and f1.pagada = true) ".
