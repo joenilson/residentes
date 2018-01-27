@@ -77,6 +77,16 @@
           .appendTo('#modal_body_info_residente');
     }
 
+    function showDataResidente(codcliente) {
+        $('#modal_cobros_residente').modal('show');
+        $("#mostrar_informacion_residente").detach();
+        $("<iframe id='mostrar_informacion_residente' />")
+          .attr('src', '{$fsc->url()}&accion=mostrar_informacion_deuda&codcliente='+codcliente+'&'+$("#f_informe_residentes").serialize())
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_cobros_residente_body');
+    }
+
 </script>
 <div class="container-fluid" style="margin-top: 10px;">
     <div class="row">
@@ -168,7 +178,7 @@
             <td class="text-left"><a href='#' onclick="informacionResidente('{$value->codcliente}','informacion')">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
             <td class="text-center"><a href='#' onclick="informacionResidente('{$value->codcliente}','vehiculos')">{if="$value->info"}{$value->vehiculos|count}{else}Información Incompleta{/if}</a></td>
             <td class="text-center">{$value->fecha_ocupacion}</td>
-            <td class="text-right"></td>
+            <td class="text-right"><a href="#" class="btn btn-sn btn-link" onclick="showDataResidente('{$value->codcliente}')">{$fsc->show_numero($value->deuda)}</a></td>
         </tr>
         {else}
         <tr class="bg-warning">
@@ -254,4 +264,5 @@
         </div>
     </div>
 </div>
+{include="modal_informacion_residente"}
 {include="footer"}

@@ -20,13 +20,6 @@
  * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-require_model('cliente.php');
-
-require_model('residentes_edificaciones.php');
-require_model('residentes_informacion.php');
-require_model('residentes_vehiculos.php');
-require_model('residentes_edificaciones_tipo.php');
-require_model('residentes_edificaciones_mapa.php');
 
 /**
  * Description of lista_residentes
@@ -51,6 +44,7 @@ class lista_residentes extends fs_controller {
     public $tipo_edificaciones;
     public $residente_informacion;
     public $residente_vehiculo;
+    public $cli;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'residentes', FALSE, TRUE);
     }
@@ -64,11 +58,13 @@ class lista_residentes extends fs_controller {
             $this->offset = intval($_REQUEST['offset']);
         }
 
-        $accion = filter_input(INPUT_POST, 'accion');
+        $accion = $this->filter_request('accion');
         switch ($accion) {
             case "agregar_residente":
                 $this->agregar_residente();
                 break;
+            case "mostrar_informacion_deuda":
+                $this->mostrar_informacion_deuda();
             default:
                 break;
         }
@@ -96,6 +92,51 @@ class lista_residentes extends fs_controller {
 
 
         $this->buscar();
+    }
+
+    public function mostrar_informacion_deuda()
+    {
+        $this->template = 'mostrar_informacion_residente';
+        $cod = $this->filter_request('codcliente');
+        $this->cli = $this->cliente->get($cod);
+        $this->pagos_pendientes = $this->pagosFactura(false);
+        $this->pagos_realizados = $this->pagosFactura(true);
+    }
+
+    public function pagosFactura($pagada=false)
+    {
+        $tipo_pagada = ($pagada)?'TRUE':'FALSE';
+        $sql = "SELECT f.idfactura, f.numero2, f.vencimiento, lf.referencia, lf.descripcion, f.fecha, lf.pvpsindto, lf.dtopor, lf.pvptotal".
+            " FROM facturascli as f left join lineasfacturascli as lf ON (f.idfactura = lf.idfactura)".
+            " WHERE f.anulada = FALSE AND f.pagada = ".$tipo_pagada.
+            " AND f.codcliente = ".$this->empresa->var2str($this->cli->codcliente).
+            " ORDER BY f.fecha,f.idfactura;";
+        $data = $this->db->select($sql);
+        $lista = [];
+        $fact = new factura_cliente();
+        foreach($data as $l){
+            $linea = (object) $l;
+            $linea->f_pago = $linea->fecha;
+            $linea->dias_atraso = ($pagada)?0:$this->diasAtraso($linea->vencimiento, \date('d-m-Y'));
+            if(in_array('tesoreria', $GLOBALS['plugins'])){
+
+            }
+            if($pagada){
+                $f = $fact->get($linea->idfactura);
+                $fp = $f->get_asiento_pago();
+                $linea->f_pago = ($fp)?$fp->fecha:$linea->f_pago;
+            }
+            $lista[] = $linea;
+        }
+        return $lista;
+
+    }
+
+    public function diasAtraso($f1,$f2)
+    {
+        $date1 = new DateTime($f1);
+        $date2 = new DateTime($f2);
+        return $date2->diff($date1)->format("%a");
     }
 
     public function init_variables()
@@ -136,6 +177,16 @@ class lista_residentes extends fs_controller {
 
     public function buscar(){
         $this->total_resultados = 0;
+        $sql_deudas = "SELECT r.codcliente, sum(total) as deuda ".
+                        " FROM residentes_edificaciones as r ".
+                        " LEFT JOIN facturascli as f ON (f.codcliente = r.codcliente AND f.pagada = FALSE AND f.anulada = FALSE) ".
+                        " GROUP BY r.codcliente;";
+        $data_deudas = $this->db->select($sql_deudas);
+        $lista_deudas = array();
+        foreach($data_deudas as $deuda){
+            $lista_deudas[$deuda['codcliente']] = $deuda['deuda'];
+        }
+
         if($this->query_r){
             $query = mb_strtolower($this->cliente->no_html($this->query_r), 'UTF8');
             $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON r.codcliente = c.codcliente";
@@ -154,6 +205,7 @@ class lista_residentes extends fs_controller {
                         $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
                         $this->resultados[] = $item;
                     }
                 }
@@ -178,6 +230,7 @@ class lista_residentes extends fs_controller {
                         $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
                         $this->resultados[] = $item;
                     }
                 }
@@ -201,6 +254,7 @@ class lista_residentes extends fs_controller {
                         $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
                         $this->resultados[] = $item;
                     }
                 }
@@ -220,6 +274,7 @@ class lista_residentes extends fs_controller {
                         $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
                         $this->resultados[] = $item;
                     }
                 }
@@ -424,6 +479,18 @@ class lista_residentes extends fs_controller {
         } else {
             return array();
         }
+    }
+
+    /**
+     * Función para devolver el valor de una variable pasada ya sea por POST o GET
+     * @param type string
+     * @return type string
+     */
+    public function filter_request($nombre)
+    {
+        $nombre_post = \filter_input(INPUT_POST, $nombre);
+        $nombre_get = \filter_input(INPUT_GET, $nombre);
+        return ($nombre_post) ? $nombre_post : $nombre_get;
     }
 
 }
