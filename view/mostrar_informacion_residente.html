@@ -15,5 +15,72 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<b>{$fsc->cliente->codcliente}</b>
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <h3 class="panel-title">Pagos Pendientes</h3>
+    </div>
+    <div class="panel-body table-responsive">
+        <table class='table table-hover'>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Fecha</th>
+                    <th>Vencimiento</th>
+                    <th>Monto</th>
+                    <th>Descuento</th>
+                    <th>Total</th>
+                    <th>Atraso</th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop="$fsc->pagos_pendientes"}
+                <tr>
+                    <td>{$value->descripcion}</td>
+                    <td>{$value->fecha}</td>
+                    <td>{$value->vencimiento}</td>
+                    <td>{$value->pvpsindto}</td>
+                    <td>{$value->dtopor}</td>
+                    <td>{$value->pvptotal}</td>
+                    <td>{$value->dias_atraso}</td>
+                </tr>
+                {else}
+                <tr>
+                    <td colspan="7" class="text-center bg-warning">No hay pagos pendientes</td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Pagos Realizados</h3>
+    </div>
+    <div class="panel-body table-responsive">
+        <table class='table table-hover'>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>F. Pago</th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop="$fsc->pagos_realizados"}
+                <tr>
+                    <td>{$value->descripcion}</td>
+                    <td>{$value->fecha}</td>
+                    <td>{$value->pvptotal}</td>
+                    <td>{$value->f_pago}</td>
+                </tr>
+                {else}
+                <tr>
+                    <td colspan="4" class="text-center bg-warning">No hay pagos realizados</td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+    </div>
+</div>
 {include="footer2"}

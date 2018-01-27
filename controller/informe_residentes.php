@@ -37,6 +37,7 @@ class informe_residentes extends fs_controller {
 
     public $bloque;
     public $cliente;
+    public $clientes;
     public $desde;
     public $hasta;
     public $resultados;
@@ -65,6 +66,8 @@ class informe_residentes extends fs_controller {
     public $exportDir;
     public $publicPath;
     public $where_code;
+    public $pagos_pendientes;
+    public $pagos_realizados;
     public function __construct() {
         parent::__construct(__CLASS__, 'Residentes', 'informes', FALSE, TRUE);
     }
@@ -98,9 +101,10 @@ class informe_residentes extends fs_controller {
            $this->where_code =  " AND r.codigo like '".$this->codigo_edificacion."%' ";
         }
 
-        $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
-
-        $this->informacion_edificaciones();
+        if($this->tipo === 'informacion'){
+            $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
+            $this->informacion_edificaciones();
+        }
 
         if($this->filter_request('lista')){
             $this->procesarLista($this->filter_request('lista'));
@@ -111,8 +115,46 @@ class informe_residentes extends fs_controller {
     public function mostrar_informacion_residente(){
         $this->template = 'mostrar_informacion_residente';
         $cod = $this->filter_request('codcliente');
-        $cli = new cliente();
-        $this->cliente = $cli->get($cod);
+        $this->cliente = $this->clientes->get($cod);
+        $this->pagos_pendientes = $this->pagosFactura(false);
+        $this->pagos_realizados = $this->pagosFactura(true);
+    }
+
+    public function pagosFactura($pagada=false)
+    {
+        $tipo_pagada = ($pagada)?'TRUE':'FALSE';
+        $sql = "SELECT f.idfactura, f.numero2, f.vencimiento, lf.referencia, lf.descripcion, f.fecha, lf.pvpsindto, lf.dtopor, lf.pvptotal".
+            " FROM facturascli as f left join lineasfacturascli as lf ON (f.idfactura = lf.idfactura)".
+            " WHERE f.anulada = FALSE AND f.pagada = ".$tipo_pagada.
+            " AND f.codcliente = ".$this->empresa->var2str($this->cliente->codcliente).
+            " AND f.fecha between ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->desde))). " AND ".
+            $this->empresa->var2str(\date('Y-m-d',strtotime($this->hasta)))." ORDER BY f.fecha,f.idfactura;";
+        $data = $this->db->select($sql);
+        $lista = [];
+        $fact = new factura_cliente();
+        foreach($data as $l){
+            $linea = (object) $l;
+            $linea->f_pago = $linea->fecha;
+            $linea->dias_atraso = ($pagada)?0:$this->diasAtraso($linea->vencimiento, \date('d-m-Y'));
+            if(in_array('tesoreria', $GLOBALS['plugins'])){
+
+            }
+            if($pagada){
+                $f = $fact->get($linea->idfactura);
+                $fp = $f->get_asiento_pago();
+                $linea->f_pago = ($fp)?$fp->fecha:$linea->f_pago;
+            }
+            $lista[] = $linea;
+        }
+        return $lista;
+
+    }
+
+    public function diasAtraso($f1,$f2)
+    {
+        $date1 = new DateTime($f1);
+        $date2 = new DateTime($f2);
+        return $date2->diff($date1)->format("%a");
     }
 
     public function init_variables()
@@ -121,6 +163,7 @@ class informe_residentes extends fs_controller {
         $this->edificaciones_mapa = new residentes_edificaciones_mapa();
         $this->edificaciones = new residentes_edificaciones();
         $this->vehiculos = new residentes_vehiculos();
+        $this->clientes = new cliente();
     }
 
     public function init_filters()
