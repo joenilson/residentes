@@ -81,7 +81,7 @@
         $('#modal_cobros_residente').modal('show');
         $("#mostrar_informacion_residente").detach();
         $("<iframe id='mostrar_informacion_residente' />")
-          .attr('src', '{$fsc->url()}&accion=mostrar_informacion_deuda&codcliente='+codcliente+'&'+$("#f_informe_residentes").serialize())
+          .attr('src', '{$fsc->url()}&accion=mostrar_informacion_residente&codcliente='+codcliente+'&'+$("#f_informe_residentes").serialize())
           .attr('width', '100%')
           .attr('height', '500')
           .appendTo('#modal_cobros_residente_body');

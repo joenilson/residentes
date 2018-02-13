@@ -20,14 +20,14 @@
  * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-
+require_once 'plugins/residentes/extras/residentes_controller.php';
 /**
  * Description of lista_residentes
  *
  * @author carlos <neorazorx@gmail.com>
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class lista_residentes extends fs_controller {
+class lista_residentes extends residentes_controller {
 
     public $bloque;
     public $cliente;
@@ -50,7 +50,7 @@ class lista_residentes extends fs_controller {
     }
 
     protected function private_core() {
-
+        parent::private_core();
         $this->init_variables();
         $this->filters();
 
@@ -58,16 +58,7 @@ class lista_residentes extends fs_controller {
             $this->offset = intval($_REQUEST['offset']);
         }
 
-        $accion = $this->filter_request('accion');
-        switch ($accion) {
-            case "agregar_residente":
-                $this->agregar_residente();
-                break;
-            case "mostrar_informacion_deuda":
-                $this->mostrar_informacion_deuda();
-            default:
-                break;
-        }
+
 
         if (isset($_REQUEST['buscar_cliente'])) {
             $this->buscar_cliente();
@@ -90,54 +81,21 @@ class lista_residentes extends fs_controller {
                 $this->new_error_msg('Inquilino no encontrado.');
         }
 
-
-        $this->buscar();
-    }
-
-    public function mostrar_informacion_deuda()
-    {
-        $this->template = 'mostrar_informacion_residente';
-        $cod = $this->filter_request('codcliente');
-        $this->cli = $this->cliente->get($cod);
-        $this->pagos_pendientes = $this->pagosFactura(false);
-        $this->pagos_realizados = $this->pagosFactura(true);
-    }
-
-    public function pagosFactura($pagada=false)
-    {
-        $tipo_pagada = ($pagada)?'TRUE':'FALSE';
-        $sql = "SELECT f.idfactura, f.numero2, f.vencimiento, lf.referencia, lf.descripcion, f.fecha, lf.pvpsindto, lf.dtopor, lf.pvptotal".
-            " FROM facturascli as f left join lineasfacturascli as lf ON (f.idfactura = lf.idfactura)".
-            " WHERE f.anulada = FALSE AND f.pagada = ".$tipo_pagada.
-            " AND f.codcliente = ".$this->empresa->var2str($this->cli->codcliente).
-            " ORDER BY f.fecha,f.idfactura;";
-        $data = $this->db->select($sql);
-        $lista = [];
-        $fact = new factura_cliente();
-        foreach($data as $l){
-            $linea = (object) $l;
-            $linea->f_pago = $linea->fecha;
-            $linea->dias_atraso = ($pagada)?0:$this->diasAtraso($linea->vencimiento, \date('d-m-Y'));
-            if(in_array('tesoreria', $GLOBALS['plugins'])){
-
-            }
-            if($pagada){
-                $f = $fact->get($linea->idfactura);
-                $fp = $f->get_asiento_pago();
-                $linea->f_pago = ($fp)?$fp->fecha:$linea->f_pago;
-            }
-            $lista[] = $linea;
+        $accion = $this->filter_request('accion');
+        switch ($accion) {
+            case "agregar_residente":
+                $this->agregar_residente();
+                break;
+            case "mostrar_informacion_residente":
+                $this->mostrar_informacion_residente();
+                break;
+            default:
+                $this->buscar();
+                break;
         }
-        return $lista;
 
     }
 
-    public function diasAtraso($f1,$f2)
-    {
-        $date1 = new DateTime($f1);
-        $date2 = new DateTime($f2);
-        return $date2->diff($date1)->format("%a");
-    }
 
     public function init_variables()
     {

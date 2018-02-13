@@ -120,13 +120,15 @@ class residentes_edificaciones extends \fs_model{
             $this->fecha_ocupacion = NULL;
             $this->fecha_disponibilidad = NULL;
         }
-        $this->edificaciones_tipo = new residentes_edificaciones_tipo();
-        $this->cliente = new cliente();
-        $this->cliente_info = new residentes_informacion();
-        $this->cliente_vehiculo = new residentes_vehiculos();
+
     }
 
-    public function install(){
+    public function install()
+    {
+        new cliente();
+        new residentes_edificaciones_tipo();
+        new residentes_informacion();
+        new residentes_vehiculos();
         $familias_sql = "INSERT INTO familias (descripcion,codfamilia) VALUES ('Servicios Residentes','RESIDENT');";
         $articulos_sql = "INSERT INTO articulos (referencia, descripcion, codfamilia, nostock, controlstock, secompra, sevende, bloqueado) VALUES ".
                 "('RES_CUOTA','Cuota Mensual','RESIDENT',TRUE,TRUE,FALSE, TRUE, FALSE),".
@@ -146,6 +148,21 @@ class residentes_edificaciones extends \fs_model{
         }
     }
 
+    public function info($item)
+    {
+        $cliente = new cliente();
+        $cliente_info = new residentes_informacion();
+        $cliente_vehiculo = new residentes_vehiculos();
+        if($item->codcliente){
+            $item->nombre = $cliente->get($item->codcliente)->nombre;
+            $item->telefono = $cliente->get($item->codcliente)->telefono1;
+            $item->email = $cliente->get($item->codcliente)->email;
+            $item->info = $cliente_info->get($item->codcliente);
+            $item->vehiculos = $cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+        }
+
+    }
+
     public function all(){
         $sql = "SELECT * FROM ".$this->table_name." ORDER BY codigo_interno,numero";
         $data = $this->db->select($sql);
@@ -154,11 +171,8 @@ class residentes_edificaciones extends \fs_model{
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
-                if($item->codcliente){
-                    $item->nombre = $this->cliente->get($item->codcliente)->nombre;
-                    $item->info = $this->cliente_info->get($item->codcliente);
-                    $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                }
+                $this->info($item);
+
                 $lista[] = $item;
             }
             return $lista;
@@ -178,8 +192,9 @@ class residentes_edificaciones extends \fs_model{
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
                 $item->nombre = $d['nombre'];
-                $item->info = $this->cliente_info->get($item->codcliente);
-                $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
+                $this->info($item);
+                //$item->info = $this->cliente_info->get($item->codcliente);
+                //$item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
                 $lista[] = $item;
             }
             return $lista;
@@ -194,13 +209,7 @@ class residentes_edificaciones extends \fs_model{
         if($data){
             $item = new residentes_edificaciones($data[0]);
             $item->pertenencia = $this->pertenencia($item);
-            if($item->codcliente){
-                $item->nombre = $this->cliente->get($item->codcliente)->nombre;
-                $item->telefono = $this->cliente->get($item->codcliente)->telefono1;
-                $item->email = $this->cliente->get($item->codcliente)->email;
-                $item->info = $this->cliente_info->get($item->codcliente);
-                $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
-            }
+            $this->info($item);
             return $item;
         }else{
             return false;
@@ -222,11 +231,7 @@ class residentes_edificaciones extends \fs_model{
             foreach($data as $d){
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
-                if($item->codcliente){
-                    $item->nombre = $this->cliente->get($item->codcliente)->nombre;
-                    $item->info = $this->cliente_info->get($item->codcliente);
-                    $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                }
+                $this->info($item);
                 $lista[] = $item;
             }
             return $lista;
@@ -284,14 +289,15 @@ class residentes_edificaciones extends \fs_model{
     }
 
     private function pertenencia($d){
+        $edificaciones_tipo = new residentes_edificaciones_tipo();
         $codigo_interno = $d->codigo_interno;
         $piezas = \json_decode($codigo_interno);
         $lista = array();
         foreach($piezas as $id=>$data){
             $pertenencia = new \stdClass();
             $pertenencia->id = $id;
-            $pertenencia->desc_id = $this->edificaciones_tipo->get($id)->descripcion;
-            $pertenencia->padre = $this->edificaciones_tipo->get($id)->padre;
+            $pertenencia->desc_id = $edificaciones_tipo->get($id)->descripcion;
+            $pertenencia->padre = $edificaciones_tipo->get($id)->padre;
             $pertenencia->valor = $data;
             $lista[] = $pertenencia;
         }
@@ -341,9 +347,10 @@ class residentes_edificaciones extends \fs_model{
     }
 
     public function generar_mapa(){
+        $edificaciones_tipo = new residentes_edificaciones_tipo();
         $mapa = array();
         $linea = 0;
-        foreach($this->edificaciones_tipo->all() as $data){
+        foreach($edificaciones_tipo->all() as $data){
             if($linea==1){
                 break;
             }
@@ -381,11 +388,7 @@ class residentes_edificaciones extends \fs_model{
                 $item->nombre = 'Libre';
                 $item->info = '';
                 $item->vehiculos = '';
-                if($item->codcliente){
-                    $item->nombre = $this->cliente->get($item->codcliente)->nombre;
-                    $item->info = $this->cliente_info->get($item->codcliente);
-                    $item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                }
+                $this->info($item);
                 $lista[] = $item;
             }
         }

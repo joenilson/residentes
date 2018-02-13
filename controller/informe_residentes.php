@@ -27,13 +27,14 @@ require_model('residentes_vehiculos.php');
 require_model('residentes_edificaciones_tipo.php');
 require_model('residentes_edificaciones_mapa.php');
 require_once 'plugins/facturacion_base/extras/xlsxwriter.class.php';
+require_once 'plugins/residentes/extras/residentes_controller.php';
 /**
  * Description of informe_residentes
  *
  * @author carlos <neorazorx@gmail.com>
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class informe_residentes extends fs_controller {
+class informe_residentes extends residentes_controller {
 
     public $bloque;
     public $cliente;
@@ -80,9 +81,6 @@ class informe_residentes extends fs_controller {
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
 
-        /// forzamos la comprobación de la tabla residentes
-        new residentes_edificaciones();
-
         $this->tipo = 'informacion';
         if (isset($_GET['tipo'])) {
             $this->tipo = $_GET['tipo'];
@@ -111,11 +109,12 @@ class informe_residentes extends fs_controller {
         }
     }
 
-
+    /*
     public function mostrar_informacion_residente(){
         $this->template = 'mostrar_informacion_residente';
         $cod = $this->filter_request('codcliente');
         $this->cliente = $this->clientes->get($cod);
+        $this->cliente->residente = $this->edificaciones->get_by_field('codcliente',$cod);
         $this->pagos_pendientes = $this->pagosFactura(false);
         $this->pagos_realizados = $this->pagosFactura(true);
     }
@@ -156,6 +155,8 @@ class informe_residentes extends fs_controller {
         $date2 = new DateTime($f2);
         return $date2->diff($date1)->format("%a");
     }
+     *
+     */
 
     public function init_variables()
     {
@@ -325,9 +326,9 @@ class informe_residentes extends fs_controller {
         $sql = "select r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, sum(f1.total) as pagado, sum(f2.total) as pendiente ".
             " from residentes_edificaciones as r ".
             " join clientes as c on (r.codcliente = c.codcliente ".$this->where_code.") ".
-            " left join facturascli as f1 on (r.codcliente = f1.codcliente and f1.anulada = false and f1.pagada = true) ".
-            " left join facturascli as f2 on (r.codcliente = f2.codcliente and f2.anulada = false and f2.pagada = false) ".
-            " group by r.codcliente, c.nombre, r.codigo, r.numero ".
+            " left join (select codcliente,anulada,pagada, sum(total) as total from facturascli group by codcliente,anulada, pagada ) as f1 on (r.codcliente = f1.codcliente and f1.anulada = false and f1.pagada = true) ".
+            " left join (select codcliente,anulada,pagada, sum(total) as total from facturascli group by codcliente,anulada, pagada ) as f2 on (r.codcliente = f2.codcliente and f2.anulada = false and f2.pagada = false) ".
+            " group by r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
             " order by ".$this->sort." ".$this->order;
         if($todo){
             $data = $this->db->select($sql);
