@@ -109,55 +109,6 @@ class informe_residentes extends residentes_controller {
         }
     }
 
-    /*
-    public function mostrar_informacion_residente(){
-        $this->template = 'mostrar_informacion_residente';
-        $cod = $this->filter_request('codcliente');
-        $this->cliente = $this->clientes->get($cod);
-        $this->cliente->residente = $this->edificaciones->get_by_field('codcliente',$cod);
-        $this->pagos_pendientes = $this->pagosFactura(false);
-        $this->pagos_realizados = $this->pagosFactura(true);
-    }
-
-    public function pagosFactura($pagada=false)
-    {
-        $tipo_pagada = ($pagada)?'TRUE':'FALSE';
-        $sql = "SELECT f.idfactura, f.numero2, f.vencimiento, lf.referencia, lf.descripcion, f.fecha, lf.pvpsindto, lf.dtopor, lf.pvptotal".
-            " FROM facturascli as f left join lineasfacturascli as lf ON (f.idfactura = lf.idfactura)".
-            " WHERE f.anulada = FALSE AND f.pagada = ".$tipo_pagada.
-            " AND f.codcliente = ".$this->empresa->var2str($this->cliente->codcliente).
-            " AND f.fecha between ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->desde))). " AND ".
-            $this->empresa->var2str(\date('Y-m-d',strtotime($this->hasta)))." ORDER BY f.fecha,f.idfactura;";
-        $data = $this->db->select($sql);
-        $lista = [];
-        $fact = new factura_cliente();
-        foreach($data as $l){
-            $linea = (object) $l;
-            $linea->f_pago = $linea->fecha;
-            $linea->dias_atraso = ($pagada)?0:$this->diasAtraso($linea->vencimiento, \date('d-m-Y'));
-            if(in_array('tesoreria', $GLOBALS['plugins'])){
-
-            }
-            if($pagada){
-                $f = $fact->get($linea->idfactura);
-                $fp = $f->get_asiento_pago();
-                $linea->f_pago = ($fp)?$fp->fecha:$linea->f_pago;
-            }
-            $lista[] = $linea;
-        }
-        return $lista;
-
-    }
-
-    public function diasAtraso($f1,$f2)
-    {
-        $date1 = new DateTime($f1);
-        $date2 = new DateTime($f2);
-        return $date2->diff($date1)->format("%a");
-    }
-     *
-     */
-
     public function init_variables()
     {
         $this->edificaciones_tipo = new residentes_edificaciones_tipo();

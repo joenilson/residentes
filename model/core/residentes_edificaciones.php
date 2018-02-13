@@ -193,8 +193,6 @@ class residentes_edificaciones extends \fs_model{
                 $item->pertenencia = $this->pertenencia($item);
                 $item->nombre = $d['nombre'];
                 $this->info($item);
-                //$item->info = $this->cliente_info->get($item->codcliente);
-                //$item->vehiculos = $this->cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
                 $lista[] = $item;
             }
             return $lista;
