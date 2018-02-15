@@ -302,6 +302,17 @@ class residentes_edificaciones extends \fs_model{
         return $lista;
     }
 
+    public function codigo_externo()
+    {
+        $edificaciones_tipo = new residentes_edificaciones_tipo();
+        $piezas = \json_decode($this->codigo_interno);
+        $codigo_externo = '';
+        foreach($piezas as $id=>$data){
+            $codigo_externo .= $edificaciones_tipo->get($id)->descripcion.' '.$data.' ';
+        }
+        return $codigo_externo;
+    }
+
     public function buscar_ubicacion_inmueble($id,$linea){
         $inicio_busqueda = ($linea==0)?"{\"":"{%\"";
         $sql = "SELECT * FROM ".$this->table_name." WHERE codigo_interno LIKE '".$inicio_busqueda.$id."\":%}' ORDER BY codigo;";

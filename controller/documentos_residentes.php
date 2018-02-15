@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_once 'plugins/facturacion_base/extras/fs_pdf.php';
+require_once 'plugins/residentes/extras/residentes_pdf.php';
 require_once 'extras/phpmailer/class.phpmailer.php';
 require_once 'extras/phpmailer/class.smtp.php';
 require_once 'plugins/residentes/extras/residentes_controller.php';
@@ -43,6 +43,12 @@ class documentos_residentes extends residentes_controller
         $cod = filter_input(INPUT_POST, 'codcliente');
         $cliente = new cliente();
         $this->cliente_residente = $cliente->get($cod);
+        $residente_informacion = new residentes_informacion();
+        $informacion = $residente_informacion->get($cod);
+        $residente_edificacion = new residentes_edificaciones();
+        $residente = $residente_edificacion->get_by_field('codcliente', $cod);
+        $this->cliente_residente->inmueble = $residente[0];
+        $this->cliente_residente->informacion = $informacion;
         $info_accion = filter_input(INPUT_POST, 'info_accion');
         $tipo_documento = filter_input(INPUT_POST, 'tipo_documento');
         if($this->cliente_residente AND $info_accion)
@@ -64,7 +70,8 @@ class documentos_residentes extends residentes_controller
 
     public function crear_documento($tipo_documento)
     {
-        $this->documento = new fs_pdf('letter');
+        $this->documento = new residentes_pdf('letter');
+
         switch($tipo_documento)
         {
             case 'informacion_cobros':
@@ -84,19 +91,22 @@ class documentos_residentes extends residentes_controller
     {
         $this->pendiente = $this->pagosFactura(false);
         $this->pagado = $this->pagosFactura(true);
-        
+
         $linea_actual = 0;
         $pagina = 1;
         while($linea_actual < count($this->pendiente)){
-            $lppag = 35; /// líneas por página
+            $lppag = 30; /// líneas por página
             /// salto de página
             if ($linea_actual > 0) {
                 $this->documento->pdf->ezNewPage();
             }
+            //$this->documento->set_y($this->documento->pdf->y-40);
             $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
-            $this->documento->set_y($this->documento->pdf->y-10);
+
+            $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
+            //$this->documento->set_y($this->documento->pdf->y-40);
             $this->generar_pdf_lineas($this->documento, $this->pendiente, $linea_actual, $lppag, 'cobros');
-            $this->documento->set_y(80);
+            //$this->documento->set_y(80);
             $pagina++;
         }
         $archivo = \date('dmYhis').'.pdf';
@@ -115,7 +125,69 @@ class documentos_residentes extends residentes_controller
     {
         $this->crear_documento($tipo_documento);
     }
-    
+
+    public function generar_datos_residente(&$pdf_doc, $tipo_documento, &$lppag)
+    {
+        $width_campo1 = 110;
+        $tipo_doc = ucfirst(str_replace('_',' ',$tipo_documento));
+        $tipo_residente = ($this->cliente_residente->informacion->propietario)?'Propietario':'Inquilino';
+        /*
+         * Esta es la tabla con los datos del cliente:
+         * Informe Cobros           Fecha:
+         * Cliente:        Tipo Residente:
+         * Dirección:           Teléfonos:
+         */
+        $pdf_doc->new_table();
+        $pdf_doc->add_table_row(
+            array(
+                'campo1' => "<b>" . $tipo_doc . "</b>",
+                'dato1' => '',
+                'campo2' => "<b>Fecha Impresión:</b> " . \date('d-m-Y H:i:s')
+            )
+        );
+
+        $pdf_doc->add_table_row(
+            array(
+                'campo1' => "<b>Residente:</b>",
+                'dato1' => fs_fix_html($this->cliente_residente->nombre),
+                'campo2' => "<b>Tipo Residente:</b> " . $tipo_residente
+            )
+        );
+
+        $row = array(
+            'campo1' => "<b>Inmueble:</b>",
+            'dato1' => fs_fix_html($this->cliente_residente->inmueble->codigo_externo().' - '.$this->cliente_residente->inmueble->numero),
+            'campo2' => ''
+        );
+
+        if (!$this->cliente_residente) {
+            /// nada
+        } else if ($this->cliente_residente->telefono1) {
+            $row['campo2'] = "<b>Teléfonos:</b> " . $this->cliente_residente->telefono1;
+            if ($this->cliente_residente->telefono2) {
+                $row['campo2'] .= "\n" . $this->cliente_residente->telefono2;
+                $lppag -= 2;
+            }
+        } else if ($this->cliente_residente->telefono2) {
+            $row['campo2'] = "<b>Teléfonos:</b> " . $this->cliente_residente->telefono2;
+        }
+        $pdf_doc->add_table_row($row);
+
+        $pdf_doc->save_table(
+            array(
+                'cols' => array(
+                    'campo1' => array('width' => $width_campo1, 'justification' => 'right'),
+                    'dato1' => array('justification' => 'left'),
+                    'campo2' => array('justification' => 'right')
+                ),
+                'showLines' => 0,
+                'width' => 580,
+                'shaded' => 0
+            )
+        );
+        $pdf_doc->pdf->ezText("\n", 10);
+    }
+
     public function generar_pdf_lineas(&$pdf_doc, &$items, &$linea_actual, &$lppag, $tipo)
     {
         /// calculamos el número de páginas
@@ -152,7 +224,7 @@ class documentos_residentes extends residentes_controller
                 $this->numpaginas = 1;
             }
         }
-        
+
         /// leemos las líneas para ver si hay que mostrar los tipos de iva, re o irpf
         foreach ($items as $i => $lin) {
             /// restamos líneas al documento en función del tamaño de la descripción
@@ -174,7 +246,7 @@ class documentos_residentes extends residentes_controller
                 }
             }
         }
-        
+
         /*
          * Creamos la tabla con las lineas de pendientes
          */
@@ -213,7 +285,7 @@ class documentos_residentes extends residentes_controller
             );
         }
         $pdf_doc->add_table_header($table_header);
-        
+
         for ($i = $linea_actual; (($linea_actual < ($lppag + $i)) && ( $linea_actual < count($items)));) {
             $descripcion = fs_fix_html($items[$linea_actual]->descripcion);
             if($tipo === 'cobros'){
@@ -237,10 +309,10 @@ class documentos_residentes extends residentes_controller
             $pdf_doc->add_table_row($fila);
             $linea_actual++;
         }
-        
+
         $pdf_doc->save_table(
             array(
-                'fontSize' => 8,
+                'fontSize' => 9,
                 'cols' => $array_cols,
                 'width' => 520,
                 'shaded' => 1,
