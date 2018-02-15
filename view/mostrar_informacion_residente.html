@@ -26,16 +26,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <input type="hidden" name="tipo_documento" value="informacion_cobros">
 
             <div class='form-group'>
-            <button class='btn btn-sm btn-primary' name='info_accion' value='imprimir'>
-                <span class="fa fa-print fa-fw"></span>
-                <span aria-hidden='true'>Imprimir</span>
-            </button>
-            {if="$fsc->cliente_residente->email AND $fsc->empresa->can_send_mail()"}
-            <button class='btn btn-sm btn-success' name='info_accion' value='enviar'>
-                <span class="fa fa-envelope fa-fw"></span>
-                <span aria-hidden='true'>Enviar</span>
-            </button>
-            {/if}
+                <button class='btn btn-sm btn-primary' type="submit" name='info_accion' value='imprimir'>
+                    <span class="fa fa-print fa-fw"></span>
+                    <span aria-hidden='true'>Imprimir</span>
+                </button>
+                {if="$fsc->cliente_residente->email AND $fsc->empresa->can_send_mail()"}
+                <button type="button" class='btn btn-sm btn-success' name='info_accion' value='enviar' data-toggle="modal" data-target="#modal_enviar">
+                    <span class="fa fa-envelope fa-fw"></span>
+                    <span aria-hidden='true'>Enviar</span>
+                </button>
+                {/if}
             </div>
         </form>
     </div>
@@ -108,4 +108,97 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </table>
     </div>
 </div>
+{if="$fsc->empresa->can_send_mail()"}
+<form class="form" role="form" name="f_enviar_email" action="{#FS_PATH#}index.php?page=documentos_residentes" method="post" enctype="multipart/form-data">
+   <input type="hidden" name="codcliente" value="{$fsc->cliente_residente->codcliente}"/>
+   <input type="hidden" name="tipo_documento" value="informacion_cobros">
+   <div class="modal" id="modal_enviar">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+               <h4 class="modal-title">
+                  <span class="glyphicon glyphicon-envelope"></span>&nbsp;
+                  Enviar Informe de Cobros
+               </h4>
+            </div>
+            <div class="modal-body">
+               <div class="form-group">
+                  <div class="input-group">
+                     <span class="input-group-addon">De</span>
+                     <select name="de" class="form-control">
+                        {if="$fsc->user->email"}
+                        <option>{$fsc->user->email}</option>
+                        {/if}
+                        <option>{$fsc->empresa->email}</option>
+                     </select>
+                  </div>
+               </div>
+               <div class="form-group">
+                  <div class="input-group">
+                     <span class="input-group-addon">Para</span>
+                     {if="$fsc->cliente_residente"}
+                     <input id="ac_email" class="form-control" type="text" name="email" value="{$fsc->cliente_residente->email}" autocomplete="off"/>
+                     <span class="input-group-addon" title="Asignar email al cliente">
+                        <input type="checkbox" name="guardar" value="TRUE"/>
+                        <span class="glyphicon glyphicon-floppy-disk"></span>
+                     </span>
+                     {else}
+                     <input id="ac_email" class="form-control" type="text" name="email" autocomplete="off"/>
+                     {/if}
+                  </div>
+               </div>
+               <div class="form-group">
+                  <div class="input-group">
+                     <span class="input-group-addon">Copia</span>
+                     <input id="ac_email2" class="form-control" type="text" name="email_copia" autocomplete="off"/>
+                     <span class="input-group-addon" title="Copia de carbón oculta">
+                        <input type="checkbox" name="cco" value="TRUE"/>
+                        <span class="glyphicon glyphicon-eye-close"></span>
+                     </span>
+                  </div>
+               </div>
+               <div class="form-group">
+                   <textarea class="form-control" name="mensaje" rows="6">Estimado vecino, ver anexo su informe de cobros. {function="chr(13)"}{function="chr(13)"} Cordialmente, {function="chr(13)"}{function="chr(13)"} {$fsc->empresa->email_config['mail_firma']}</textarea>
+                  <p class="help-block">
+                     <a href="index.php?page=admin_empresa#email">Editar la firma</a>
+                  </p>
+               </div>
+               <div class="form-group">
+                  <input name="adjunto" type="file"/>
+                  <p class="help-block">
+                     Se va a adjuntar el informe, pero si lo deseas
+                     puedes añadir otro archivo de hasta {$fsc->get_max_file_upload()} MB
+                  </p>
+               </div>
+               <div class="btn-group">
+                  <button type="submit" class="btn btn-sm btn-primary" name='info_accion' value='enviar'>
+                     <span class="fa fa-send fa-fw"></span>
+                     <span aria-hidden="true">Enviar</span>
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</form>
+{else}
+<div class="modal" id="modal_enviar">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">
+               <span class="glyphicon glyphicon-envelope"></span>&nbsp; Enviar por email
+            </h4>
+         </div>
+         <div class="modal-body">
+            <a href='index.php?page=admin_empresa#email' class="btn btn-sm btn-warning">
+               <span class="glyphicon glyphicon-wrench"></span>&nbsp; Configurar
+            </a>
+         </div>
+      </div>
+   </div>
+</div>
+{/if}
 {include="footer2"}

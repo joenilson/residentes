@@ -45,6 +45,16 @@ class residentes_controller extends fs_controller
     {
         $this->clientes = new cliente();
         $this->edificaciones = new residentes_edificaciones();
+        $this->init_templates();
+    }
+    
+    public function init_templates()
+    {
+        $fsvar = new fs_var();
+        $residentes_email_plantillas = array();
+        $residentes_email_plantillas['mail_informe_residentes'] = "Buenos días, le adjunto su #DOCUMENTO#.\n\n#FIRMA# 4";
+        $email_plantillas = $fsvar->array_get($residentes_email_plantillas, FALSE);
+        $fsvar->array_save($email_plantillas);
     }
 
     public function mostrar_informacion_residente(){
@@ -68,10 +78,9 @@ class residentes_controller extends fs_controller
             " FROM facturascli as f left join lineasfacturascli as lf ON (f.idfactura = lf.idfactura)".
             " WHERE f.anulada = FALSE AND f.pagada = ".$tipo_pagada.
             " AND f.codcliente = ".$this->empresa->var2str($this->cliente_residente->codcliente).
-            //$fecha.
             " ORDER BY f.fecha,f.idfactura;";
         $data = $this->db->select($sql);
-        $lista = [];
+        $lista = array();
         $fact = new factura_cliente();
         foreach($data as $l){
             $linea = (object) $l;

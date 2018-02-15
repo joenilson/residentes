@@ -26,6 +26,7 @@ require_once 'plugins/residentes/extras/residentes_controller.php';
  */
 class documentos_residentes extends residentes_controller
 {
+    public $archivo;
     public $cliente_residente;
     public $documento;
     public $numpaginas;
@@ -70,6 +71,7 @@ class documentos_residentes extends residentes_controller
 
     public function crear_documento($tipo_documento)
     {
+        $this->archivo = \date('dmYhis').'.pdf';
         $this->documento = new residentes_pdf('letter');
 
         switch($tipo_documento)
@@ -100,22 +102,35 @@ class documentos_residentes extends residentes_controller
             if ($linea_actual > 0) {
                 $this->documento->pdf->ezNewPage();
             }
-            //$this->documento->set_y($this->documento->pdf->y-40);
             $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
-
             $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
-            //$this->documento->set_y($this->documento->pdf->y-40);
-            $this->generar_pdf_lineas($this->documento, $this->pendiente, $linea_actual, $lppag, 'cobros');
-            //$this->documento->set_y(80);
-            $pagina++;
+            $this->generar_pdf_lineas($this->documento, $this->pendiente, $linea_actual, $lppag, 'pendiente');
+            $this->documento->set_y($this->documento->pdf->y-16);
         }
-        $archivo = \date('dmYhis').'.pdf';
+        
+        $linea_actual = 0;
+        while($linea_actual < count($this->pagado)){
+            if ($lppag < 1) {
+                $pagina++;
+                $this->documento->pdf->ezNewPage();
+                $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
+                $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
+            }
+            $this->generar_pdf_lineas($this->documento, $this->pagado, $linea_actual, $lppag, 'pagado');
+            
+        }
+        $this->documento->set_y(80);
+        if ($this->empresa->pie_factura) {
+            $this->documento->pdf->addText(20, 40, 8, fs_fix_html('<b>Generado por:</b> '.$this->user->get_agente_fullname()), 0);
+            $this->documento->pdf->addText(10, 30, 8, $this->documento->center_text(fs_fix_html($this->empresa->pie_factura), 180));
+        }
+        
         if (filter_input(INPUT_POST, 'info_accion') === 'enviar') {
             if (!file_exists('tmp/' . FS_TMP_NAME . 'enviar')) {
                 mkdir('tmp/' . FS_TMP_NAME . 'enviar');
             }
 
-            $this->documento->save('tmp/' . FS_TMP_NAME . 'enviar/' . $archivo);
+            $this->documento->save('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
         } else {
             $this->documento->show('documento_cobros_' . \date('dmYhis') . '.pdf');
         }
@@ -124,12 +139,56 @@ class documentos_residentes extends residentes_controller
     public function enviar_documento($tipo_documento)
     {
         $this->crear_documento($tipo_documento);
+        $tipo_doc = $this->generar_tipo_doc($tipo_documento);
+        if (file_exists('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo)) {
+            $mail = $this->empresa->new_mail();
+            $mail->FromName = $this->user->get_agente_fullname();
+
+            if ($_POST['de'] != $mail->From) {
+                $mail->addReplyTo($_POST['de'], $mail->FromName);
+            }
+
+            $mail->addAddress($_POST['email'], $this->cliente_residente->nombre);
+            if ($_POST['email_copia']) {
+                if (isset($_POST['cco'])) {
+                    $mail->addBCC($_POST['email_copia'], $this->cliente_residente->nombre);
+                } else {
+                    $mail->addCC($_POST['email_copia'], $this->cliente_residente->nombre);
+                }
+            }
+            
+            $mail->Subject = $this->empresa->nombre . ': ' .$tipo_doc;
+            
+            if ($this->is_html($_POST['mensaje'])) {
+                $mail->AltBody = strip_tags($_POST['mensaje']);
+                $mail->msgHTML($_POST['mensaje']);
+                $mail->isHTML(TRUE);
+            } else {
+                $mail->Body = $_POST['mensaje'];
+            }
+
+            $mail->addAttachment('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
+            if (is_uploaded_file($_FILES['adjunto']['tmp_name'])) {
+                $mail->addAttachment($_FILES['adjunto']['tmp_name'], $_FILES['adjunto']['name']);
+            }
+
+            if ($this->empresa->mail_connect($mail) && $mail->send()) {
+                $this->new_message('Mensaje enviado correctamente.');
+                $this->empresa->save_mail($mail);
+            } else {
+                $this->new_error_msg("Error al enviar el email: " . $mail->ErrorInfo);
+            }
+
+            unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
+        } else {
+            $this->new_error_msg('Imposible generar el PDF.');
+        }
     }
 
     public function generar_datos_residente(&$pdf_doc, $tipo_documento, &$lppag)
     {
         $width_campo1 = 110;
-        $tipo_doc = ucfirst(str_replace('_',' ',$tipo_documento));
+        $tipo_doc = $this->generar_tipo_doc($tipo_documento);
         $tipo_residente = ($this->cliente_residente->informacion->propietario)?'Propietario':'Inquilino';
         /*
          * Esta es la tabla con los datos del cliente:
@@ -251,9 +310,9 @@ class documentos_residentes extends residentes_controller
          * Creamos la tabla con las lineas de pendientes
          */
         $pdf_doc->new_table();
-        if($tipo === 'cobros'){
+        if($tipo === 'pendiente'){
             $table_header = array(
-                'item' => '<b>Item.</b>',
+                'item' => '<b>Pendiente de Pago</b>',
                 'fecha' => '<b>Fecha</b>',
                 'vencimiento' => '<b>Vencimiento</b>',
                 'importe' => '<b>Monto</b>',
@@ -270,9 +329,9 @@ class documentos_residentes extends residentes_controller
                 'total' => array('justification' => 'right'),
                 'atraso' => array('justification' => 'center')
             );
-        }elseif($tipo === 'pagos'){
+        }elseif($tipo === 'pagado'){
             $table_header = array(
-                'item' => '<b>Item.</b>',
+                'item' => '<b>Pagos Realizados</b>',
                 'fecha' => '<b>Fecha</b>',
                 'importe' => '<b>Monto</b>',
                 'f_pago' => '<b>F. Pago</b>'
@@ -288,7 +347,7 @@ class documentos_residentes extends residentes_controller
 
         for ($i = $linea_actual; (($linea_actual < ($lppag + $i)) && ( $linea_actual < count($items)));) {
             $descripcion = fs_fix_html($items[$linea_actual]->descripcion);
-            if($tipo === 'cobros'){
+            if($tipo === 'pendiente'){
                 $fila = array(
                     'item' => $descripcion,
                     'fecha' => $items[$linea_actual]->fecha,
@@ -298,12 +357,12 @@ class documentos_residentes extends residentes_controller
                     'total' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, TRUE, FS_NF0),
                     'atraso' => $items[$linea_actual]->dias_atraso
                 );
-            }elseif($tipo === 'cobros'){
+            }elseif($tipo === 'pagado'){
                 $fila = array(
                     'item' => $descripcion,
                     'fecha' => $items[$linea_actual]->fecha,
                     'importe' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, TRUE, FS_NF0),
-                    'atraso' => $items[$linea_actual]->f_pago
+                    'f_pago' => $items[$linea_actual]->f_pago
                 );
             }
             $pdf_doc->add_table_row($fila);
@@ -321,6 +380,11 @@ class documentos_residentes extends residentes_controller
             )
         );
     }
+    
+    public function generar_tipo_doc($tipo_documento)
+    {
+        return ucfirst(str_replace('_',' ',$tipo_documento));
+    }
 
     public function imprimir_documento($tipo_documento)
     {
@@ -331,5 +395,10 @@ class documentos_residentes extends residentes_controller
     public function init_variables()
     {
 
+    }
+    
+    public function is_html($txt)
+    {
+        return ( $txt != strip_tags($txt) ) ? TRUE : FALSE;
     }
 }
