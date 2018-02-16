@@ -28,6 +28,7 @@ class residentes_controller extends fs_controller
     public $edificaciones;
     public $desde;
     public $hasta;
+    public $tesoreria;
     protected function private_core()
     {
         parent::private_core();
@@ -40,6 +41,40 @@ class residentes_controller extends fs_controller
         $date2 = new DateTime($f2);
         return $date2->diff($date1)->format("%a");
     }
+    
+    public function existe_tesoreria()
+    {
+        $this->tesoreria = false;
+        //revisamos si esta el plugin de tesoreria
+        $disabled = array();
+        if (defined('FS_DISABLED_PLUGINS')) {
+            foreach (explode(',', FS_DISABLED_PLUGINS) as $aux) {
+                $disabled[] = $aux;
+            }
+        }
+        if (in_array('tesoreria', $GLOBALS['plugins']) and ! in_array('tesoreria', $disabled)) {
+            $this->tesoreria = true;
+        }
+    }  
+    
+    /**
+     * Función para devolver el valor de una variable pasada ya sea por POST o GET
+     * @param type string
+     * @return type string
+     */
+    public function filter_request($nombre)
+    {
+        $nombre_post = \filter_input(INPUT_POST, $nombre);
+        $nombre_get = \filter_input(INPUT_GET, $nombre);
+        return ($nombre_post) ? $nombre_post : $nombre_get;
+    }
+
+    public function filter_request_array($nombre)
+    {
+        $nombre_post = \filter_input(INPUT_POST, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+        $nombre_get = \filter_input(INPUT_GET, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+        return ($nombre_post) ? $nombre_post : $nombre_get;
+    }  
 
     public function init()
     {

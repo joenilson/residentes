@@ -31,6 +31,7 @@ class lista_residentes extends residentes_controller {
 
     public $bloque;
     public $cliente;
+    public $deudores;
     public $residente;
     public $query;
     public $query_r;
@@ -54,29 +55,23 @@ class lista_residentes extends residentes_controller {
         $this->init_variables();
         $this->filters();
 
-        if (isset($_REQUEST['offset'])) {
-            $this->offset = intval($_REQUEST['offset']);
-        }
-
-
-
-        if (isset($_REQUEST['buscar_cliente'])) {
+        if ($this->filter_request('buscar_cliente')) {
             $this->buscar_cliente();
-        } elseif (isset($_REQUEST['buscar_cliente_avanzado'])) {
+        } elseif ($this->filter_request('buscar_cliente_avanzado')) {
             $this->buscar_cliente_avanzado();
-        } elseif (isset($_REQUEST['buscar_inmueble'])) {
+        } elseif ($this->filter_request('buscar_inmueble')) {
             $this->buscar_inmueble();
-        } elseif (isset($_GET['delete'])) {
-            $inq = $this->residente->get($_GET['delete']);
+        } elseif (filter_input(INPUT_GET,'delete')) {
+            $inq = $this->residente->get(filter_input(INPUT_GET,'delete'));
             if ($inq) {
                 $inq->ocupado = FALSE;
                 $inq->codcliente = '';
                 $inq->fecha_disponibilidad = NULL;
                 $inq->fecha_ocupacion = NULL;
                 if ($inq->save()) {
-                    $this->new_message('Inquilino eliminado correctamente.');
+                    $this->new_message('Inquilino removido correctamente.');
                 } else
-                    $this->new_error_msg('Error al eliminar el inquilino.');
+                    $this->new_error_msg('Error al remover el inquilino.');
             } else
                 $this->new_error_msg('Inquilino no encontrado.');
         }
@@ -113,24 +108,28 @@ class lista_residentes extends residentes_controller {
     public function filters()
     {
         $this->query_r = '';
-        if (isset($_REQUEST['query_r'])) {
-            $this->query_r = $_REQUEST['query_r'];
+        if ($this->filter_request('query_r')) {
+            $this->query_r = $this->filter_request('query_r');
         }
 
         $this->query_v = '';
-        if (isset($_REQUEST['query_v'])) {
-            $this->query_v = $_REQUEST['query_v'];
+        if ($this->filter_request('query_v')) {
+            $this->query_v = $this->filter_request('query_v');
         }
 
         $this->query_i = '';
-        if (isset($_REQUEST['query_i'])) {
-            $this->query_i = $_REQUEST['query_i'];
+        if ($this->filter_request('query_i')) {
+            $this->query_i = $this->filter_request('query_i');
         }
 
         $this->orden = 'r.codigo, r.numero ASC';
-        if (isset($_REQUEST['orden'])) {
-            $this->orden = $_REQUEST['orden'];
+        if ($this->filter_request('orden')) {
+            $this->orden = $this->filter_request('orden');
         }
+        
+        $this->offset = intval($this->filter_request('offset'));
+        
+        $this->deudores = $this->filter_request('deudores');
     }
 
     public function buscar(){
@@ -232,7 +231,7 @@ class lista_residentes extends residentes_controller {
                         $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
+                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;                        
                         $this->resultados[] = $item;
                     }
                 }
@@ -396,7 +395,8 @@ class lista_residentes extends residentes_controller {
                 . "&query_r=" . $this->query_r
                 . "&query_v=" . $this->query_v
                 . "&query_i=" . $this->query_i
-                . "&orden=" . $this->orden;
+                . "&orden=" . $this->orden
+                . "&deudores=" . $this->deudores;
 
         $paginas = array();
         $i = 0;
@@ -437,18 +437,6 @@ class lista_residentes extends residentes_controller {
         } else {
             return array();
         }
-    }
-
-    /**
-     * Función para devolver el valor de una variable pasada ya sea por POST o GET
-     * @param type string
-     * @return type string
-     */
-    public function filter_request($nombre)
-    {
-        $nombre_post = \filter_input(INPUT_POST, $nombre);
-        $nombre_get = \filter_input(INPUT_GET, $nombre);
-        return ($nombre_post) ? $nombre_post : $nombre_get;
     }
 
 }
