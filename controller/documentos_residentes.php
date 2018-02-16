@@ -292,18 +292,17 @@ class documentos_residentes extends residentes_controller
     
     public function generar_pdf_lineas_tablas($tipo)
     {
-        if ($tipo === 'pendiente') {
-            $table_header = array(
-                'item' => '<b>Pendiente de Pago</b>', 'fecha' => '<b>Fecha</b>',
-                'vencimiento' => '<b>Vencimiento</b>', 'importe' => '<b>Monto</b>',
-                'descuento' => '<b>Descuento</b>', 'total' => '<b>Total</b>', 'atraso' => '<b>Atraso</b>',
-            );
-            $array_cols = array(
-                'item' => array('justification' => 'left'), 'fecha' => array('justification' => 'center'),
-                'vencimiento' => array('justification' => 'center'), 'importe' => array('justification' => 'right'),
-                'descuento' => array('justification' => 'right'), 'total' => array('justification' => 'right'), 'atraso' => array('justification' => 'center')
-            );
-        } elseif ($tipo === 'pagado') {
+        $table_header = array(
+            'item' => '<b>Pendiente de Pago</b>', 'fecha' => '<b>Fecha</b>',
+            'vencimiento' => '<b>Vencimiento</b>', 'importe' => '<b>Monto</b>',
+            'descuento' => '<b>Descuento</b>', 'total' => '<b>Total</b>', 'atraso' => '<b>Atraso</b>',
+        );
+        $array_cols = array(
+            'item' => array('justification' => 'left'), 'fecha' => array('justification' => 'center'),
+            'vencimiento' => array('justification' => 'center'), 'importe' => array('justification' => 'right'),
+            'descuento' => array('justification' => 'right'), 'total' => array('justification' => 'right'), 'atraso' => array('justification' => 'center')
+        );
+        if ($tipo === 'pagado') {
             $table_header = array(
                 'item' => '<b>Pagos Realizados</b>', 'fecha' => '<b>Fecha</b>', 'importe' => '<b>Monto</b>', 'f_pago' => '<b>F. Pago</b>'
             );
@@ -318,17 +317,16 @@ class documentos_residentes extends residentes_controller
     public function generar_pdf_lineas_fila($tipo, $items, $linea_actual)
     {
         $descripcion = fs_fix_html($items[$linea_actual]->descripcion);
-        if ($tipo === 'pendiente') {
-            $fila = array(
-                'item' => $descripcion,
-                'fecha' => $items[$linea_actual]->fecha,
-                'vencimiento' => $items[$linea_actual]->vencimiento,
-                'importe' => $this->show_precio($items[$linea_actual]->pvpsindto, $this->empresa->coddivisa, TRUE, FS_NF0),
-                'descuento' => $this->show_numero($items[$linea_actual]->dtopor) . " %",
-                'total' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, TRUE, FS_NF0),
-                'atraso' => $items[$linea_actual]->dias_atraso
-            );
-        } elseif ($tipo === 'pagado') {
+        $fila = array(
+            'item' => $descripcion,
+            'fecha' => $items[$linea_actual]->fecha,
+            'vencimiento' => $items[$linea_actual]->vencimiento,
+            'importe' => $this->show_precio($items[$linea_actual]->pvpsindto, $this->empresa->coddivisa, TRUE, FS_NF0),
+            'descuento' => $this->show_numero($items[$linea_actual]->dtopor) . " %",
+            'total' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, TRUE, FS_NF0),
+            'atraso' => $items[$linea_actual]->dias_atraso
+        );
+        if ($tipo === 'pagado') {
             $fila = array(
                 'item' => $descripcion,
                 'fecha' => $items[$linea_actual]->fecha,
