@@ -32,15 +32,16 @@ class documentos_residentes extends residentes_controller
     public $numpaginas;
     public $pagado;
     public $pendiente;
+    
     public function __construct()
     {
-        parent::__construct(__CLASS__, 'Documentos Residentes', 'admin', FALSE, TRUE, FALSE);
+        parent::__construct(__CLASS__, 'Documentos Residentes', 'admin', FALSE, FALSE, FALSE);
     }
 
     protected function private_core()
     {
         parent::private_core();
-        $this->template = false;
+        $this->init();
         $cod = filter_input(INPUT_POST, 'codcliente');
         $cliente = new cliente();
         $this->cliente_residente = $cliente->get($cod);
@@ -57,6 +58,7 @@ class documentos_residentes extends residentes_controller
             switch($info_accion)
             {
                 case 'imprimir':
+                    $this->template = false;
                     $this->imprimir_documento($tipo_documento);
                     break;
                 case 'enviar':
@@ -96,8 +98,8 @@ class documentos_residentes extends residentes_controller
 
         $linea_actual = 0;
         $pagina = 1;
+        $lppag = 30; /// líneas por página
         while($linea_actual < count($this->pendiente)){
-            $lppag = 30; /// líneas por página
             /// salto de página
             if ($linea_actual > 0) {
                 $this->documento->pdf->ezNewPage();
@@ -107,17 +109,17 @@ class documentos_residentes extends residentes_controller
             $this->generar_pdf_lineas($this->documento, $this->pendiente, $linea_actual, $lppag, 'pendiente');
             $this->documento->set_y($this->documento->pdf->y-16);
         }
-        
-        $linea_actual = 0;
-        while($linea_actual < count($this->pagado)){
-            if ($lppag < 1) {
-                $pagina++;
+                
+        $linea_actual2 = 0;
+        while($linea_actual2 < count($this->pagado)){
+            if ($linea_actual2 > 0) {
                 $this->documento->pdf->ezNewPage();
+            }elseif($linea_actual === 0){
                 $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
                 $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
             }
-            $this->generar_pdf_lineas($this->documento, $this->pagado, $linea_actual, $lppag, 'pagado');
-            
+            $this->generar_pdf_lineas($this->documento, $this->pagado, $linea_actual2, $lppag, 'pagado');
+            $pagina++;
         }
         $this->documento->set_y(80);
         if ($this->empresa->pie_factura) {
@@ -126,10 +128,6 @@ class documentos_residentes extends residentes_controller
         }
         
         if (filter_input(INPUT_POST, 'info_accion') === 'enviar') {
-            if (!file_exists('tmp/' . FS_TMP_NAME . 'enviar')) {
-                mkdir('tmp/' . FS_TMP_NAME . 'enviar');
-            }
-
             $this->documento->save('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
         } else {
             $this->documento->show('documento_cobros_' . \date('dmYhis') . '.pdf');
@@ -392,9 +390,11 @@ class documentos_residentes extends residentes_controller
         $this->crear_documento($tipo_documento);
     }
 
-    public function init_variables()
+    public function init()
     {
-
+        if (!file_exists('tmp/' . FS_TMP_NAME . 'enviar')) {
+            mkdir('tmp/' . FS_TMP_NAME . 'enviar');
+        }
     }
     
     public function is_html($txt)
