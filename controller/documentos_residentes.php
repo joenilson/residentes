@@ -253,26 +253,7 @@ class documentos_residentes extends residentes_controller
             $lineas = 0;
             while ($lineas < count($items)) {
                 $lppag2 = $lppag;
-                foreach ($items as $i => $lin) {
-                    if ($i >= $lineas && $i < $lineas + $lppag2) {
-                        $linea_size = 1;
-                        $len = mb_strlen($lin->descripcion);
-                        while ($len > 85) {
-                            $len -= 85;
-                            $linea_size += 0.5;
-                        }
-
-                        $aux = explode("\n", $lin->descripcion);
-                        if (count($aux) > 1) {
-                            $linea_size += 0.5 * ( count($aux) - 1);
-                        }
-
-                        if ($linea_size > 1) {
-                            $lppag2 -= $linea_size - 1;
-                        }
-                    }
-                }
-
+                $this->verificar_longitud_linea($items, $lineas, $lppag2);
                 $lineas += $lppag2;
                 $this->numpaginas++;
             }
@@ -282,28 +263,9 @@ class documentos_residentes extends residentes_controller
             }
         }
 
-        /// leemos las líneas para ver si hay que mostrar los tipos de iva, re o irpf
-        foreach ($items as $i => $lin) {
-            /// restamos líneas al documento en función del tamaño de la descripción
-            if ($i >= $linea_actual && $i < $linea_actual + $lppag) {
-                $linea_size = 1;
-                $len = mb_strlen($lin->descripcion);
-                while ($len > 85) {
-                    $len -= 85;
-                    $linea_size += 0.5;
-                }
-
-                $aux = explode("\n", $lin->descripcion);
-                if (count($aux) > 1) {
-                    $linea_size += 0.5 * ( count($aux) - 1);
-                }
-
-                if ($linea_size > 1) {
-                    $lppag -= $linea_size - 1;
-                }
-            }
-        }
-
+        /// leemos las líneas para ver si hay que mostrar mas información
+        $this->verificar_longitud_linea($items, $linea_actual, $lppag);
+        
         /*
          * Creamos la tabla con las lineas de pendientes
          */
@@ -377,6 +339,27 @@ class documentos_residentes extends residentes_controller
                 'lineCol' => array(0.3, 0.3, 0.3),
             )
         );
+    }
+    
+    public function verificar_longitud_linea($items, &$lineas, &$lppag2)
+    {
+        foreach ($items as $i => $lin) {
+            if ($i >= $lineas && $i < $lineas + $lppag2) {
+                $linea_size = 1;
+                $len = mb_strlen($lin->descripcion);
+                while ($len > 85) {
+                    $len -= 85;
+                    $linea_size += 0.5;
+                }
+                $aux = explode("\n", $lin->descripcion);
+                if (count($aux) > 1) {
+                    $linea_size += 0.5 * ( count($aux) - 1);
+                }
+                if ($linea_size > 1) {
+                    $lppag2 -= $linea_size - 1;
+                }
+            }
+        }
     }
     
     public function generar_tipo_doc($tipo_documento)
