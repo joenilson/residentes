@@ -16,10 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace FacturaScripts\model;
-require_model('core/residentes_edificaciones_tipo.php');
-require_model('core/residentes_informacion.php');
-require_model('core/residentes_vehiculos.php');
-require_model('cliente.php');
 /**
  * Description of residentes_edificaciones
  *
@@ -402,6 +398,35 @@ class residentes_edificaciones extends \fs_model{
             }
         }
         return $lista;
+    }
+
+    public function lista_residentes($where="", $order="", $sort="", $limit, $offset)
+    {
+        $sql = "select ".
+        "r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
+        ",i.propietario, i.ca_nombres, i.ca_apellidos ".
+        ", f1.total as pagado ".
+        ", f2.total as pendiente ".
+        ", count(v.idvehiculo) as cantidad_vehiculos ".
+        "from residentes_edificaciones as r   ".
+        "left join clientes as c on (r.codcliente = c.codcliente )  ".
+        "left join residentes_informacion as i ON (r.codcliente = i.codcliente)  ".
+        "left join residentes_vehiculos as v ON (r.codcliente = v.codcliente)   ".
+        "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = true group by codcliente) as f1 on (r.codcliente = f1.codcliente) ".
+        "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = false group by codcliente) as f2 on (r.codcliente = f2.codcliente) ".
+        $where.
+        "group by ".
+        "r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
+        "i.propietario, i.ca_nombres, i.ca_apellidos, pagado, pendiente ".
+        "order by ".$order." ".$sort;
+        $data = $this->db->select_limit($sql, $limit, $offset);
+        $lista = array();
+        if($data){
+            foreach($data as $item){
+                $lista[] = (object) $item;
+            }
+        }
+
     }
 
 }

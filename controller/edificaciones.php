@@ -42,10 +42,7 @@ class edificaciones extends fs_controller{
 
     protected function private_core() {
         $this->shared_extensions();
-        $this->allow_delete = ($this->user->admin)?TRUE:$this->user->allow_delete_on(__CLASS__);
-        $this->edificaciones_tipo = new residentes_edificaciones_tipo();
-        $this->edificaciones_mapa = new residentes_edificaciones_mapa();
-        $this->edificaciones = new residentes_edificaciones();
+        $this->init();
 
         $tipos = $this->edificaciones_tipo->all();
         $this->padre = $tipos[0];
@@ -88,6 +85,14 @@ class edificaciones extends fs_controller{
         }
 
         $this->mapa = $this->edificaciones_mapa->get_by_field('id_tipo', $this->padre->id);
+    }
+
+    public function init()
+    {
+        $this->allow_delete = ($this->user->admin)?TRUE:$this->user->allow_delete_on(__CLASS__);
+        $this->edificaciones_tipo = new residentes_edificaciones_tipo();
+        $this->edificaciones_mapa = new residentes_edificaciones_mapa();
+        $this->edificaciones = new residentes_edificaciones();
     }
 
     public function verificar_accion($accion)
@@ -138,6 +143,15 @@ class edificaciones extends fs_controller{
 
     public function parent_url(){
         return 'index.php?page='.__CLASS__;
+    }
+
+    public function actualizar_direccion_cliente($codcliente,$direccion)
+    {
+        $cli = new cliente();
+        $cliente = $cli->get($codcliente);
+        $direcciones = $cliente->get_direcciones();
+        $direcciones[0]->direccion = $direccion;
+        $direcciones[0]->save();
     }
 
     public function desocupar()
@@ -284,6 +298,7 @@ class edificaciones extends fs_controller{
             $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
             $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
             if($inmueble->save()){
+                $this->actualizar_direccion_cliente($codcliente,$inmueble->codigo_externo().' - Apartamento '.$inmueble->numero);
                 $this->new_message('Residente agregado exitosamente.');
             }else{
                 $this->new_error_msg('No se pudo agregar al residente confirme el nombre del residente y las fechs de ocupación y disponibilidad');
