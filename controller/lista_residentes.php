@@ -77,6 +77,11 @@ class lista_residentes extends residentes_controller {
             } else
                 $this->new_error_msg('Inquilino no encontrado.');
         }
+        
+        $tipo = $this->filter_request('type');
+        if($tipo === 'select-iddireccion' ) {
+            $this->mostrar_direcciones_residente(\filter_input(INPUT_GET, 'codcliente'));
+        }
 
         $accion = $this->filter_request('accion');
         switch ($accion) {
@@ -90,7 +95,6 @@ class lista_residentes extends residentes_controller {
                 $this->buscar();
                 break;
         }
-
     }
 
 
@@ -141,6 +145,12 @@ class lista_residentes extends residentes_controller {
             $this->sort = 'DESC';
             $this->order = 'pendiente';
         }
+        
+        $this->disponibles = $this->filter_request('disponibles');
+        if($this->disponibles){
+            $this->sort = 'ASC';
+            $this->order = 'codcliente';
+        }
     }
 
     public function buscar()
@@ -164,114 +174,6 @@ class lista_residentes extends residentes_controller {
         list($this->resultados, $this->total_resultados) = $this->residente->lista_residentes($where, $this->order, $this->sort, FS_ITEM_LIMIT, $this->offset);
     }
 
-    public function buscar_old()
-    {
-        $this->total_resultados = 0;
-        $sql_deudas = "SELECT r.codcliente, sum(total) as deuda ".
-                        " FROM residentes_edificaciones as r ".
-                        " LEFT JOIN facturascli as f ON (f.codcliente = r.codcliente AND f.pagada = FALSE AND f.anulada = FALSE) ".
-                        " GROUP BY r.codcliente;";
-        $data_deudas = $this->db->select($sql_deudas);
-        $lista_deudas = array();
-        foreach($data_deudas as $deuda){
-            $lista_deudas[$deuda['codcliente']] = $deuda['deuda'];
-        }
-
-        if($this->query_r){
-            $query = mb_strtolower($this->cliente->no_html($this->query_r), 'UTF8');
-            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON r.codcliente = c.codcliente";
-            $sql .= " JOIN residentes_informacion as i ON i.codcliente = r.codcliente ";
-            $and = ' WHERE ';
-            $this->buscar_residentes($query,$sql,$and);
-
-            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
-            if ($data) {
-                $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->order, FS_ITEM_LIMIT, $this->offset);
-                if ($data2) {
-                    foreach ($data2 as $d) {
-                        $item = new residentes_edificaciones($d);
-                        $item->nombre = $d['nombre'];
-                        $item->telefono1 = $d['telefono1'];
-                        $item->info = $this->residente_informacion->get($d['codcliente']);
-                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
-                        $this->resultados[] = $item;
-                    }
-                }
-            }
-        }
-
-        if($this->query_v){
-            //Buscamos los vehiculos
-            $query = mb_strtolower($this->cliente->no_html($this->query_v), 'UTF8');
-            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
-            $sql .= " JOIN residentes_vehiculos as i ON i.codcliente = r.codcliente ";
-            $and = ' WHERE ';
-            $this->buscar_vehiculos($query, $sql, $and);
-            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
-            if ($data) {
-                $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
-                if ($data2) {
-                    foreach ($data2 as $d) {
-                        $item = new residentes_edificaciones($d);
-                        $item->nombre = $d['nombre'];
-                        $item->telefono1 = $d['telefono1'];
-                        $item->info = $this->residente_informacion->get($d['codcliente']);
-                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
-                        $this->resultados[] = $item;
-                    }
-                }
-            }
-        }
-
-        if($this->query_i){
-            //Buscamos el inmueble
-            $query = mb_strtolower($this->cliente->no_html($this->query_i), 'UTF8');
-            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
-            $and = ' WHERE ';
-            $this->buscar_inmuebles($query, $sql, $and);
-            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
-            if ($data) {
-                $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->order, FS_ITEM_LIMIT, $this->offset);
-                if ($data2) {
-                    foreach ($data2 as $d) {
-                        $item = new residentes_edificaciones($d);
-                        $item->nombre = $d['nombre'];
-                        $item->telefono1 = $d['telefono1'];
-                        $item->info = $this->residente_informacion->get($d['codcliente']);
-                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
-                        $this->resultados[] = $item;
-                    }
-                }
-            }
-        }
-
-        if(!$this->query_i AND !$this->query_r AND !$this->query_v){
-            $sql = " FROM residentes_edificaciones as r JOIN clientes as c ON (r.codcliente = c.codcliente)";
-            $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
-            if ($data) {
-                $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->order, FS_ITEM_LIMIT, $this->offset);
-                if ($data2) {
-                    foreach ($data2 as $d) {
-                        $item = new residentes_edificaciones($d);
-                        $item->nombre = $d['nombre'];
-                        $item->telefono1 = $d['telefono1'];
-                        $item->info = $this->residente_informacion->get($d['codcliente']);
-                        $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
-                        $this->resultados[] = $item;
-                    }
-                }
-            }
-        }
-    }
-
     public function buscar_residentes($param){
         if (is_numeric($param)) {
             $where = "(r.codcliente LIKE '%" . $param . "%'"
@@ -293,27 +195,6 @@ class lista_residentes extends residentes_controller {
         }
         return $where;
     }
-    public function buscar_residentes_old(&$query, &$sql, &$and)
-    {
-        if (is_numeric($query)) {
-            $sql .= $and . " (r.codcliente LIKE '%" . $query . "%'"
-                    . " OR cifnif LIKE '%" . $query . "%'"
-                    . " OR telefono1 LIKE '" . $query . "%'"
-                    . " OR telefono2 LIKE '" . $query . "%'"
-                    . " OR ca_telefono LIKE '" . $query . "%'"
-                    . " OR observaciones LIKE '%" . $query . "%')";
-        } else {
-            $buscar = str_replace(' ', '%', $query);
-            $sql .= $and . " (lower(nombre) LIKE '%" . $buscar . "%'"
-                    . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
-                    . " OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
-                    . " OR lower(ca_nombres) LIKE '%" . $buscar . "%'"
-                    . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
-                    . " OR lower(r.observaciones) LIKE '%" . $buscar . "%'"
-                    . " OR lower(ca_email) LIKE '%" . $buscar . "%'"
-                    . " OR lower(email) LIKE '%" . $buscar . "%')";
-        }
-    }
 
     public function buscar_inmuebles($param)
     {
@@ -328,20 +209,6 @@ class lista_residentes extends residentes_controller {
                     . " OR CONCAT(lower(r.codigo), r.numero) LIKE '%" . $param . "%'";
         }
         return $where;
-    }
-
-    public function buscar_inmuebles_old(&$query, &$sql, &$and)
-    {
-        if (is_numeric($query)) {
-            $sql .= $and . "codigo LIKE '%" . $query . "%'"
-                    . " OR numero LIKE '%" . $query . "%'"
-                    . " OR CONCAT(codigo, numero) LIKE '%" . $query . "%'";
-        } else {
-            $buscar = str_replace(' ', '%', $query);
-            $sql .= $and . "lower(codigo) LIKE '%" . $buscar . "%'"
-                    . " OR lower(numero) LIKE '%" . $buscar . "%'"
-                    . " OR CONCAT(lower(codigo), numero) LIKE '%" . $query . "%'";
-        }
     }
 
     public function buscar_vehiculos($param)
@@ -364,35 +231,19 @@ class lista_residentes extends residentes_controller {
         return $where;
     }
 
-    public function buscar_vehiculos_old(&$query, &$sql, &$and)
-    {
-        if (is_numeric($query)) {
-            $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
-                    . " OR vehiculo_placa LIKE '%" . $query . "%'"
-                    . " OR CAST(idvehiculo AS CHAR) LIKE '" . $query . "%'"
-                    . " OR telefono2 LIKE '" . $query . "%'"
-                    . " OR observaciones LIKE '%" . $query . "%')";
-        } else {
-            $buscar = str_replace(' ', '%', $query);
-            $sql .= $and . "(lower(vehiculo_marca) LIKE '%" . $buscar . "%'"
-                    . " OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'"
-                    . " OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"
-                    . " OR lower(vehiculo_placa) LIKE '%" . $buscar . "%'"
-                    . " OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%'"
-                    . " OR lower(codigo_tarjeta) LIKE '%" . $buscar . "%')";
-        }
-    }
-
     public function agregar_residente(){
         $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
+        $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
         $fecha_ocupacion = \filter_input(INPUT_POST, 'fecha_ocupacion');
         $fecha_disponibilidad = \filter_input(INPUT_POST, 'fecha_disponibilidad');
         $accion = \filter_input(INPUT_POST, 'accion');
         $inmueble = $this->residente->get($id_edificacion);
         if($inmueble AND $accion == 'agregar_residente'){
+            $nueva_direccion = $inmueble->codigo_externo().' Apartamento '.$inmueble->numero;
             $inmueble->ocupado = TRUE;
             $inmueble->codcliente = $codcliente;
+            $inmueble->iddireccion = $this->actualizar_direccion_residente($codcliente, $iddireccion, $nueva_direccion);
             $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
             $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
             if($inmueble->save()){
@@ -403,6 +254,7 @@ class lista_residentes extends residentes_controller {
         }elseif($inmueble AND $accion == 'quitar_residente'){
             $inmueble->ocupado = FALSE;
             $inmueble->codcliente = '';
+            $inmueble->iddireccion = null;
             $inmueble->fecha_ocupacion = '';
             $inmueble->fecha_disponibilidad = '';
             if($inmueble->save()){
@@ -485,7 +337,8 @@ class lista_residentes extends residentes_controller {
                 . "&query_v=" . $this->query_v
                 . "&query_i=" . $this->query_i
                 . "&orden=" . $this->order
-                . "&deudores=" . $this->deudores;
+                . "&deudores=" . $this->deudores
+                . "&disponibles=" . $this->disponibles;
 
         $paginas = array();
         $i = 0;

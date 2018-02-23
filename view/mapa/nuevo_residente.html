@@ -77,14 +77,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                if(document.f_nuevo_residente.codcliente.value !== suggestion.data)
                {
                   document.f_nuevo_residente.codcliente.value = suggestion.data;
-                  llenar_select_direcciones(suggestion.data);
+                  llenar_select_direcciones(suggestion.data,'iddireccion');
                }
             }
          }
       });
     });
 
-    function llenar_select_direcciones(codcliente)
+    function llenar_select_direcciones(codcliente,campo)
     {
         $.ajax({
             type: 'GET',
@@ -100,11 +100,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 bootbox.alert('No hay información con los datos enviados');
             }
         });
-        var select = $('#iddireccion');
+        var select = $('#'+campo);
         select.empty();
         if(data.length !== 0){
-            //console.log(data);
-            //var array = data.filter(function(e){return e;});
             select.append(
                 $('<option></option>').val('').html('----Crear Nueva----')
             );

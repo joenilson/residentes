@@ -300,7 +300,7 @@ class edificaciones extends residentes_controller
         }elseif($inmueble AND $accion == 'quitar_residente'){
             $inmueble->ocupado = TRUE;
             $inmueble->codcliente = '';
-            $inmueble->iddireccion = '';
+            $inmueble->iddireccion = null;
             $inmueble->fecha_ocupacion = '';
             $inmueble->fecha_disponibilidad = '';
             if($inmueble->save()){

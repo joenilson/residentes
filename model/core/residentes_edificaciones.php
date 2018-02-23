@@ -434,8 +434,8 @@ class residentes_edificaciones extends \fs_model{
         "left join clientes as c on (r.codcliente = c.codcliente ) ".
         "left join residentes_informacion as i ON (r.codcliente = i.codcliente) ".
         "left join residentes_vehiculos as v ON (r.codcliente = v.codcliente) ".
-        $where.
-        " order by ".$order." ".$sort;
+        $where;
+        
         $data_total = $this->db->select($sql_count);
         $data = $this->db->select_limit($sql, $limit, $offset);
         $lista = array();

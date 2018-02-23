@@ -158,7 +158,7 @@ class residentes_controller extends fs_controller
         $cliente = $cli->get($codcliente);
         if($iddireccion !== ''){
             foreach($cliente->get_direcciones() as $dir){
-                if($dir->id === (int)$iddireccion){
+                if($dir->id == (int)$iddireccion){
                     $dir->direccion = $nueva_direccion;
                     $dir->save();
                     break;
