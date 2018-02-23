@@ -15,16 +15,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('cliente.php');
-require_model('residentes_edificaciones.php');
-require_model('residentes_edificaciones_tipo.php');
-require_model('residentes_edificaciones_mapa.php');
+require_once 'plugins/residentes/extras/residentes_controller.php';
 /**
  * Description of edificaciones
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class edificaciones extends fs_controller{
+class edificaciones extends residentes_controller
+{
     public $edificaciones;
     public $edificaciones_tipo;
     public $edificaciones_mapa;
@@ -41,6 +39,7 @@ class edificaciones extends fs_controller{
     }
 
     protected function private_core() {
+        parent::private_core();
         $this->shared_extensions();
         $this->init();
 
@@ -50,8 +49,10 @@ class edificaciones extends fs_controller{
         $this->verificar_accion($accion);
 
         $tipo = \filter_input(INPUT_GET, 'type');
-        if($tipo=='select-hijos'){
+        if($tipo === 'select-hijos'){
             $this->obtener_hijos();
+        }elseif($tipo === 'select-iddireccion' ) {
+            $this->mostrar_direcciones_residente(\filter_input(INPUT_GET, 'codcliente'));
         }
 
         $this->fsvar = new fs_var();
@@ -143,15 +144,6 @@ class edificaciones extends fs_controller{
 
     public function parent_url(){
         return 'index.php?page='.__CLASS__;
-    }
-
-    public function actualizar_direccion_cliente($codcliente,$direccion)
-    {
-        $cli = new cliente();
-        $cliente = $cli->get($codcliente);
-        $direcciones = $cliente->get_direcciones();
-        $direcciones[0]->direccion = $direccion;
-        $direcciones[0]->save();
     }
 
     public function desocupar()
@@ -288,6 +280,7 @@ class edificaciones extends fs_controller{
     public function agregar_residente(){
         $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
+        $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
         $fecha_ocupacion = \filter_input(INPUT_POST, 'fecha_ocupacion');
         $fecha_disponibilidad = \filter_input(INPUT_POST, 'fecha_disponibilidad');
         $accion = \filter_input(INPUT_POST, 'accion');
@@ -295,10 +288,11 @@ class edificaciones extends fs_controller{
         if($inmueble AND $accion == 'agregar_residente'){
             $inmueble->ocupado = TRUE;
             $inmueble->codcliente = $codcliente;
+            $descripcion_direccion = $inmueble->codigo_externo().' - Apartamento '.$inmueble->numero;
+            $inmueble->iddireccion = $this->actualizar_direccion_residente($codcliente, $iddireccion, $descripcion_direccion);
             $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
             $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
             if($inmueble->save()){
-                $this->actualizar_direccion_cliente($codcliente,$inmueble->codigo_externo().' - Apartamento '.$inmueble->numero);
                 $this->new_message('Residente agregado exitosamente.');
             }else{
                 $this->new_error_msg('No se pudo agregar al residente confirme el nombre del residente y las fechs de ocupación y disponibilidad');
@@ -306,6 +300,7 @@ class edificaciones extends fs_controller{
         }elseif($inmueble AND $accion == 'quitar_residente'){
             $inmueble->ocupado = TRUE;
             $inmueble->codcliente = '';
+            $inmueble->iddireccion = '';
             $inmueble->fecha_ocupacion = '';
             $inmueble->fecha_disponibilidad = '';
             if($inmueble->save()){

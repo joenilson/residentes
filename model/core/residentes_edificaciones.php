@@ -28,6 +28,11 @@ class residentes_edificaciones extends \fs_model{
      */
     public $id;
     /**
+     * El id de la dirección almacenada en la tabla del cliente
+     * @var integer
+     */
+    public $iddireccion;
+    /**
      * Este es el id de la edificacion en el mapa de Edificaciones
      * @var type integer
      */
@@ -93,6 +98,7 @@ class residentes_edificaciones extends \fs_model{
         parent::__construct('residentes_edificaciones','plugins/residentes');
         if($t){
             $this->id = $t['id'];
+            $this->iddireccion = $t['iddireccion'];
             $this->id_edificacion = $t['id_edificacion'];
             $this->codigo = $t['codigo'];
             $this->codigo_interno = $t['codigo_interno'];
@@ -105,6 +111,7 @@ class residentes_edificaciones extends \fs_model{
             $this->fecha_disponibilidad = $t['fecha_disponibilidad'];
         }else{
             $this->id = null;
+            $this->iddireccion = null;
             $this->id_edificacion = null;
             $this->codigo = null;
             $this->codigo_interno = null;
@@ -247,6 +254,7 @@ class residentes_edificaciones extends \fs_model{
             $sql = "UPDATE ".$this->table_name." SET ".
                     "fecha_ocupacion = ".$this->var2str($this->fecha_ocupacion).", ".
                     "fecha_disponibilidad = ".$this->var2str($this->fecha_disponibilidad).", ".
+                    "iddireccion = ".$this->intval($this->iddireccion).", ".
                     "id_edificacion = ".$this->intval($this->id_edificacion).", ".
                     "codigo = ".$this->var2str($this->codigo).", ".
                     "codigo_interno = ".$this->var2str($this->codigo_interno).", ".
@@ -258,8 +266,9 @@ class residentes_edificaciones extends \fs_model{
                     "WHERE id = ".$this->intval($this->id).";";
             return $this->db->exec($sql);
         }else{
-            $sql = "INSERT INTO ".$this->table_name." (id_edificacion, codigo, codigo_interno, numero, ubicacion, coordenadas,codcliente, ocupado, fecha_ocupacion, fecha_disponibilidad) VALUES (".
+            $sql = "INSERT INTO ".$this->table_name." (id_edificacion, iddireccion, codigo, codigo_interno, numero, ubicacion, coordenadas,codcliente, ocupado, fecha_ocupacion, fecha_disponibilidad) VALUES (".
                     $this->intval($this->id_edificacion).", ".
+                    $this->intval($this->iddireccion).", ".
                     $this->var2str($this->codigo).", ".
                     $this->var2str($this->codigo_interno).", ".
                     $this->var2str($this->numero).", ".
@@ -403,8 +412,8 @@ class residentes_edificaciones extends \fs_model{
     public function lista_residentes($where="", $order="", $sort="", $limit, $offset)
     {
         $sql = "select ".
-        "r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
-        ",i.propietario, i.ca_nombres, i.ca_apellidos ".
+        "r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
+        ",i.propietario, i.ca_nombres, i.ca_apellidos, r.fecha_ocupacion ".
         ", f1.total as pagado ".
         ", f2.total as pendiente ".
         ", count(v.idvehiculo) as cantidad_vehiculos ".
@@ -415,10 +424,19 @@ class residentes_edificaciones extends \fs_model{
         "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = true group by codcliente) as f1 on (r.codcliente = f1.codcliente) ".
         "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = false group by codcliente) as f2 on (r.codcliente = f2.codcliente) ".
         $where.
-        "group by ".
-        "r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
-        "i.propietario, i.ca_nombres, i.ca_apellidos, pagado, pendiente ".
-        "order by ".$order." ".$sort;
+        " group by ".
+        "r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
+        "i.propietario, i.ca_nombres, i.ca_apellidos, r.fecha_ocupacion, pagado, pendiente ".
+        " order by ".$order." ".$sort;
+
+        $sql_count = "SELECT count(r.id) as total ".
+        "from residentes_edificaciones as r ".
+        "left join clientes as c on (r.codcliente = c.codcliente ) ".
+        "left join residentes_informacion as i ON (r.codcliente = i.codcliente) ".
+        "left join residentes_vehiculos as v ON (r.codcliente = v.codcliente) ".
+        $where.
+        " order by ".$order." ".$sort;
+        $data_total = $this->db->select($sql_count);
         $data = $this->db->select_limit($sql, $limit, $offset);
         $lista = array();
         if($data){
@@ -426,7 +444,7 @@ class residentes_edificaciones extends \fs_model{
                 $lista[] = (object) $item;
             }
         }
-
+        return array($lista, $data_total[0]['total']);
     }
 
 }

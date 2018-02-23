@@ -27,6 +27,11 @@
         <defecto>nextval('residentes_edificaciones_id_seq'::regclass)</defecto>
     </columna>
     <columna>
+        <nombre>iddireccion</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>id_edificacion</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>

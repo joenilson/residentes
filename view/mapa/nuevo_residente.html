@@ -33,6 +33,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <input type="hidden" id="codcliente" name="codcliente" value="">
                             <input type="text" name="ac_cliente" id="ac_cliente" value="" placeholder="Nombre del cliente" class="form-control"/>
                         </div>
+                        <div class="col-sm-2">
+                            Actualizar Dirección:
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <select id='iddireccion' class='from-control input-sm' name='iddireccion'>
+
+                            </select>
+                        </div>
                         <div class="form-group col-sm-6">
                             <input type="text" name="fecha_ocupacion" id="fecha_ocupacion" value="" placeholder="Fecha Ocupación" class="form-control datepicker"/>
                         </div>
@@ -69,9 +77,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                if(document.f_nuevo_residente.codcliente.value !== suggestion.data)
                {
                   document.f_nuevo_residente.codcliente.value = suggestion.data;
+                  llenar_select_direcciones(suggestion.data);
                }
             }
          }
       });
     });
+
+    function llenar_select_direcciones(codcliente)
+    {
+        $.ajax({
+            type: 'GET',
+            url : '{$fsc->url()}&type=select-iddireccion',
+            data : "codcliente="+codcliente,
+            async: false,
+            success : function(response) {
+                if(response.length !== 0){
+                    data = response;
+                }
+            },
+            error: function() {
+                bootbox.alert('No hay información con los datos enviados');
+            }
+        });
+        var select = $('#iddireccion');
+        select.empty();
+        if(data.length !== 0){
+            //console.log(data);
+            //var array = data.filter(function(e){return e;});
+            select.append(
+                $('<option></option>').val('').html('----Crear Nueva----')
+            );
+            $.each(data, function(index, value) {
+                console.log(value);
+                select.append(
+                    $('<option></option>').val(value.id).html(value.direccion)
+                );
+            });
+        }else{
+            select.append(
+                $('<option></option>').val('').html('----Crear Nueva----')
+            );
+        }
+    }
 </script>

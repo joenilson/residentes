@@ -41,7 +41,7 @@ class residentes_controller extends fs_controller
         $date2 = new DateTime($f2);
         return $date2->diff($date1)->format("%a");
     }
-    
+
     public function existe_tesoreria()
     {
         $this->tesoreria = false;
@@ -55,8 +55,8 @@ class residentes_controller extends fs_controller
         if (in_array('tesoreria', $GLOBALS['plugins']) and ! in_array('tesoreria', $disabled)) {
             $this->tesoreria = true;
         }
-    }  
-    
+    }
+
     /**
      * Función para devolver el valor de una variable pasada ya sea por POST o GET
      * @param type string
@@ -74,7 +74,7 @@ class residentes_controller extends fs_controller
         $nombre_post = \filter_input(INPUT_POST, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
         $nombre_get = \filter_input(INPUT_GET, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
         return ($nombre_post) ? $nombre_post : $nombre_get;
-    }  
+    }
 
     public function init()
     {
@@ -82,7 +82,17 @@ class residentes_controller extends fs_controller
         $this->edificaciones = new residentes_edificaciones();
         $this->init_templates();
     }
-    
+
+    public function mostrar_direcciones_residente($codcliente)
+    {
+        $cli = new cliente();
+        $cliente = $cli->get($codcliente);
+        $data = $cliente->get_direcciones();
+        $this->template = false;
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
+
     public function init_templates()
     {
         $fsvar = new fs_var();
@@ -133,5 +143,43 @@ class residentes_controller extends fs_controller
         }
         return $lista;
 
+    }
+
+    /**
+     * Función para actualizar la dirección de un cliente al asignarlo a un inmueble
+     * @param string $codcliente
+     * @param integer $iddireccion
+     * @param varchar $nueva_direccion
+     * @return integer
+     */
+    public function actualizar_direccion_residente($codcliente, $iddireccion, $nueva_direccion)
+    {
+        $cli = new cliente();
+        $cliente = $cli->get($codcliente);
+        if($iddireccion !== ''){
+            foreach($cliente->get_direcciones() as $dir){
+                if($dir->id === (int)$iddireccion){
+                    $dir->direccion = $nueva_direccion;
+                    $dir->save();
+                    break;
+                }
+            }
+            return $iddireccion;
+        }else{
+            $dir = new direccion_cliente();
+            $dir->direccion = $nueva_direccion;
+            $dir->codcliente = $codcliente;
+            $dir->ciudad = $this->empresa->ciudad;
+            $dir->apartado = $this->empresa->apartado;
+            $dir->provincia = $this->empresa->provincia;
+            $dir->codpais = $this->empresa->codpais;
+            $dir->codpostal = $this->empresa->codpostal;
+            $dir->domenvio = true;
+            $dir->domfacturacion = true;
+            $dir->descripcion = 'Inmueble '.$nueva_direccion;
+            $dir->fecha = \date('d-m-Y');
+            $dir->save();
+            return $dir->id;
+        }
     }
 }

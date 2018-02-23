@@ -152,11 +152,15 @@
                     </span>
                 </div>
             </div>
-            <div class="col-sm-2">
-                <div class="input-group">
+            <div class="col-sm-3">
+                <div class="button-group">
                     <button disabled="disabled" class="btn btn-warning" type="submit" name="deudores" value="deudores">
                         <span class="fa fa-list-ol fa-fw"></span>
-                            <span aria-hidden="true">Residentes con deudas</span>
+                            <span aria-hidden="true">Con Deuda</span>
+                    </button>
+                    <button disabled="disabled" class="btn btn-warning" type="submit" name="disponibles" value="disponibles">
+                        <span class="fa fa-bed fa-fw"></span>
+                            <span aria-hidden="true">Disponibles</span>
                     </button>
                 </div>
             </div>
@@ -178,15 +182,15 @@
             </tr>
         </thead>
         {loop="$fsc->resultados"}
-        <tr>
-            <td><a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a></td>
+        <tr {if="$value->codcliente == ''"}class="bg-warning"{/if}>
+            <td><a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{if="$value->codcliente"}{$value->nombre}{else}<button class="btn btn-sm btn-warning">Disponible</button>{/if}</a></td>
             <td class="text-center">{$value->telefono1}</td>
-            <td class="text-left">{if="$value->info"}{$value->info->ca_nombres} {$value->info->ca_apellidos}{/if}</td>
+            <td class="text-left">{if="$value->ca_nombres"}{$value->ca_nombres} {$value->ca_apellidos}{/if}</td>
             <td class="text-left">{$value->codigo} {$value->numero}</td>
-            <td class="text-left"><a href='#' onclick="informacionResidente('{$value->codcliente}','informacion')">{if="$value->info"}{if="$value->info->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
-            <td class="text-center"><a href='#' onclick="informacionResidente('{$value->codcliente}','vehiculos')">{if="$value->info"}{$value->vehiculos|count}{else}Información Incompleta{/if}</a></td>
+            <td class="text-left"><a href='#' {if="$value->codcliente"}onclick="informacionResidente('{$value->codcliente}','informacion')"{/if}>{if="$value->ca_nombres"}{if="$value->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
+            <td class="text-center"><a href='#' {if="$value->codcliente"}onclick="informacionResidente('{$value->codcliente}','vehiculos')"{/if}>{if="$value->cantidad_vehiculos"}{$value->cantidad_vehiculos}{else}Información Incompleta{/if}</a></td>
             <td class="text-center">{$value->fecha_ocupacion}</td>
-            <td class="text-right"><a href="#" class="btn btn-sn btn-link" onclick="showDataResidente('{$value->codcliente}')">{$fsc->show_numero($value->deuda)}</a></td>
+            <td class="text-right"><a href="#" class="btn btn-sn btn-link" {if="$value->codcliente"}onclick="showDataResidente('{$value->codcliente}')"{/if}>{$fsc->show_numero($value->pendiente)}</a></td>
         </tr>
         {else}
         <tr class="bg-warning">

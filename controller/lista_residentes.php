@@ -37,6 +37,8 @@ class lista_residentes extends residentes_controller {
     public $query_r;
     public $query_i;
     public $query_v;
+    public $order;
+    public $sort;
     public $offset;
     public $resultados;
     public $total_resultados;
@@ -122,17 +124,48 @@ class lista_residentes extends residentes_controller {
             $this->query_i = $this->filter_request('query_i');
         }
 
-        $this->orden = 'r.codigo, r.numero ASC';
-        if ($this->filter_request('orden')) {
-            $this->orden = $this->filter_request('orden');
+        $this->sort = 'ASC';
+        if ($this->filter_request('sort')) {
+            $this->sort = $this->filter_request('sort');
         }
-        
+
+        $this->order = 'r.codigo, r.numero ';
+        if ($this->filter_request('orden')) {
+            $this->order = $this->filter_request('orden');
+        }
+
         $this->offset = intval($this->filter_request('offset'));
-        
+
         $this->deudores = $this->filter_request('deudores');
+        if($this->deudores){
+            $this->sort = 'DESC';
+            $this->order = 'pendiente';
+        }
     }
 
-    public function buscar(){
+    public function buscar()
+    {
+        $where = "";
+        if($this->query_r){
+            $param = mb_strtolower($this->cliente->no_html($this->query_r), 'UTF8');
+            $where = " WHERE ".$this->buscar_residentes($param);
+        }
+
+        if($this->query_v){
+            $param = mb_strtolower($this->cliente->no_html($this->query_v), 'UTF8');
+            $where = " WHERE ".$this->buscar_vehiculos($param);
+        }
+
+        if($this->query_i){
+            $param = mb_strtolower($this->cliente->no_html($this->query_i), 'UTF8');
+            $where = " WHERE ".$this->buscar_inmuebles($param);
+        }
+
+        list($this->resultados, $this->total_resultados) = $this->residente->lista_residentes($where, $this->order, $this->sort, FS_ITEM_LIMIT, $this->offset);
+    }
+
+    public function buscar_old()
+    {
         $this->total_resultados = 0;
         $sql_deudas = "SELECT r.codcliente, sum(total) as deuda ".
                         " FROM residentes_edificaciones as r ".
@@ -154,7 +187,7 @@ class lista_residentes extends residentes_controller {
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->order, FS_ITEM_LIMIT, $this->offset);
                 if ($data2) {
                     foreach ($data2 as $d) {
                         $item = new residentes_edificaciones($d);
@@ -203,7 +236,7 @@ class lista_residentes extends residentes_controller {
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->order, FS_ITEM_LIMIT, $this->offset);
                 if ($data2) {
                     foreach ($data2 as $d) {
                         $item = new residentes_edificaciones($d);
@@ -223,7 +256,7 @@ class lista_residentes extends residentes_controller {
             $data = $this->db->select("SELECT COUNT(r.codcliente) as total" . $sql . ';');
             if ($data) {
                 $this->total_resultados = intval($data[0]['total']);
-                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->orden, FS_ITEM_LIMIT, $this->offset);
+                $data2 = $this->db->select_limit("SELECT r.*, c.nombre, c.telefono1 " . $sql . " ORDER BY " . $this->order, FS_ITEM_LIMIT, $this->offset);
                 if ($data2) {
                     foreach ($data2 as $d) {
                         $item = new residentes_edificaciones($d);
@@ -231,7 +264,7 @@ class lista_residentes extends residentes_controller {
                         $item->telefono1 = $d['telefono1'];
                         $item->info = $this->residente_informacion->get($d['codcliente']);
                         $item->vehiculos = $this->residente_vehiculo->get_by_field('codcliente', $item->codcliente);
-                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;                        
+                        $item->deuda = (isset($lista_deudas[$item->codcliente]))?$lista_deudas[$item->codcliente]:0;
                         $this->resultados[] = $item;
                     }
                 }
@@ -239,18 +272,17 @@ class lista_residentes extends residentes_controller {
         }
     }
 
-    public function buscar_residentes(&$query, &$sql, &$and)
-    {
-        if (is_numeric($query)) {
-            $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
-                    . " OR cifnif LIKE '%" . $query . "%'"
-                    . " OR telefono1 LIKE '" . $query . "%'"
-                    . " OR telefono2 LIKE '" . $query . "%'"
-                    . " OR ca_telefono LIKE '" . $query . "%'"
-                    . " OR observaciones LIKE '%" . $query . "%')";
+    public function buscar_residentes($param){
+        if (is_numeric($param)) {
+            $where = "(r.codcliente LIKE '%" . $param . "%'"
+                    . " OR c.cifnif LIKE '%" . $param . "%'"
+                    . " OR c.telefono1 LIKE '" . $param . "%'"
+                    . " OR c.telefono2 LIKE '" . $param . "%'"
+                    . " OR ca_telefono LIKE '" . $param . "%'"
+                    . " OR r.observaciones LIKE '%" . $param . "%')";
         } else {
-            $buscar = str_replace(' ', '%', $query);
-            $sql .= $and . "(lower(nombre) LIKE '%" . $buscar . "%'"
+            $buscar = str_replace(' ', '%', $param);
+            $where = "(lower(nombre) LIKE '%" . $buscar . "%'"
                     . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
                     . " OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
                     . " OR lower(ca_nombres) LIKE '%" . $buscar . "%'"
@@ -259,9 +291,46 @@ class lista_residentes extends residentes_controller {
                     . " OR lower(ca_email) LIKE '%" . $buscar . "%'"
                     . " OR lower(email) LIKE '%" . $buscar . "%')";
         }
+        return $where;
+    }
+    public function buscar_residentes_old(&$query, &$sql, &$and)
+    {
+        if (is_numeric($query)) {
+            $sql .= $and . " (r.codcliente LIKE '%" . $query . "%'"
+                    . " OR cifnif LIKE '%" . $query . "%'"
+                    . " OR telefono1 LIKE '" . $query . "%'"
+                    . " OR telefono2 LIKE '" . $query . "%'"
+                    . " OR ca_telefono LIKE '" . $query . "%'"
+                    . " OR observaciones LIKE '%" . $query . "%')";
+        } else {
+            $buscar = str_replace(' ', '%', $query);
+            $sql .= $and . " (lower(nombre) LIKE '%" . $buscar . "%'"
+                    . " OR lower(razonsocial) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ca_apellidos) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ca_nombres) LIKE '%" . $buscar . "%'"
+                    . " OR lower(cifnif) LIKE '%" . $buscar . "%'"
+                    . " OR lower(r.observaciones) LIKE '%" . $buscar . "%'"
+                    . " OR lower(ca_email) LIKE '%" . $buscar . "%'"
+                    . " OR lower(email) LIKE '%" . $buscar . "%')";
+        }
     }
 
-    public function buscar_inmuebles(&$query, &$sql, &$and)
+    public function buscar_inmuebles($param)
+    {
+        if (is_numeric($param)) {
+            $where = " r.codigo LIKE '%" . $param . "%'"
+                    . " OR r.numero LIKE '%" . $param . "%'"
+                    . " OR CONCAT(r.codigo, r.numero) LIKE '%" . $param . "%'";
+        } else {
+            $buscar = str_replace(' ', '%', $param);
+            $where = " lower(r.codigo) LIKE '%" . $buscar . "%'"
+                    . " OR lower(r.numero) LIKE '%" . $buscar . "%'"
+                    . " OR CONCAT(lower(r.codigo), r.numero) LIKE '%" . $param . "%'";
+        }
+        return $where;
+    }
+
+    public function buscar_inmuebles_old(&$query, &$sql, &$and)
     {
         if (is_numeric($query)) {
             $sql .= $and . "codigo LIKE '%" . $query . "%'"
@@ -275,7 +344,27 @@ class lista_residentes extends residentes_controller {
         }
     }
 
-    public function buscar_vehiculos(&$query, &$sql, &$and)
+    public function buscar_vehiculos($param)
+    {
+        if (is_numeric($param)) {
+            $where = "(r.codcliente LIKE '%" . $param . "%'"
+                    . " OR vehiculo_placa LIKE '%" . $param . "%'"
+                    . " OR CAST(idvehiculo AS CHAR) LIKE '" . $param . "%'"
+                    . " OR telefono2 LIKE '" . $param . "%'"
+                    . " OR observaciones LIKE '%" . $param . "%')";
+        } else {
+            $buscar = str_replace(' ', '%', $param);
+            $where = "(lower(vehiculo_marca) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_placa) LIKE '%" . $buscar . "%'"
+                    . " OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%'"
+                    . " OR lower(codigo_tarjeta) LIKE '%" . $buscar . "%')";
+        }
+        return $where;
+    }
+
+    public function buscar_vehiculos_old(&$query, &$sql, &$and)
     {
         if (is_numeric($query)) {
             $sql .= $and . "(codcliente LIKE '%" . $query . "%'"
@@ -395,7 +484,7 @@ class lista_residentes extends residentes_controller {
                 . "&query_r=" . $this->query_r
                 . "&query_v=" . $this->query_v
                 . "&query_i=" . $this->query_i
-                . "&orden=" . $this->orden
+                . "&orden=" . $this->order
                 . "&deudores=" . $this->deudores;
 
         $paginas = array();
