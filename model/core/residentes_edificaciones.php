@@ -111,7 +111,7 @@ class residentes_edificaciones extends \fs_model{
             $this->fecha_disponibilidad = $t['fecha_disponibilidad'];
         }else{
             $this->id = null;
-            $this->iddireccion = null;
+            $this->iddireccion = 0;
             $this->id_edificacion = null;
             $this->codigo = null;
             $this->codigo_interno = null;
@@ -435,7 +435,7 @@ class residentes_edificaciones extends \fs_model{
         "left join residentes_informacion as i ON (r.codcliente = i.codcliente) ".
         "left join residentes_vehiculos as v ON (r.codcliente = v.codcliente) ".
         $where;
-        
+
         $data_total = $this->db->select($sql_count);
         $data = $this->db->select_limit($sql, $limit, $offset);
         $lista = array();

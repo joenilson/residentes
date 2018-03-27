@@ -152,6 +152,7 @@ class edificaciones extends residentes_controller
         $edificacion = $this->edificaciones->get($id);
         if($edificacion->ocupado){
             $edificacion->ocupado = FALSE;
+            $edificacion->iddireccion = 0;
             $edificacion->codcliente = '';
             $edificacion->fecha_disponibilidad = NULL;
             $edificacion->fecha_ocupacion = NULL;
