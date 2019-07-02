@@ -72,6 +72,15 @@
         }
         recalcular();
     }
+    
+    function verificarTotalImporte()
+    {
+        if(document.f_nueva_factura.total_importe.value == 0) {
+            bootbox.alert('No se puede generar una factura vacia');
+            return false;
+        }
+        return true;
+    }
 
     $(document).ready(function () {
         recalcular();
@@ -307,7 +316,7 @@
                                 {loop="$fsc->articulos_cobrables"}      
                                 <tr>
                                     <td>
-                                        <input type="checkbox" name="opcion_{$counter}" checked="true" onclick="revisar('{$counter}',{$value->pvp}, this.checked)">
+                                        <input type="checkbox" name="opcion_{$counter}" onclick="revisar('{$counter}',{$value->pvp}, this.checked)">
                                     </td>
                                     <td>
                                         {$value->referencia}
@@ -318,7 +327,7 @@
                                     </td>
                                     <td>
                                         <input type="hidden"id="importe_original_{$counter}" name="importe_original_{$counter}" value="{$value->pvp}">
-                                        <input class="form-control input-sm" type="text" id="importe_{$counter}" name="importe_{$counter}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
+                                        <input class="form-control input-sm" type="text" id="importe_{$counter}" name="importe_{$counter}" value="0" autocomplete="off" onkeyup="recalcular()"/>
                                     </td>
                                     <td>
                                          <select name="impuesto_{$counter}" class="form-control  input-sm" onchange="recalcular()">
@@ -403,7 +412,7 @@
                                 </tr>
                                 <tr>
                                     <th colspan="6" class="text-right">
-                                        <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="$(this).hide();this.form.submit();">
+                                        <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="return verificarTotalImporte();">
                                             <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
                                         </button>
                                     </th>
