@@ -292,14 +292,6 @@ class ver_residente extends fs_controller {
         if ($this->empresa->contintegrada) {
             $asiento_factura = new asiento_factura();
             $asiento_factura->generar_asiento_venta($factura);
-
-            foreach ($asiento_factura->errors as $err) {
-                $this->new_error_msg($err);
-            }
-
-            foreach ($asiento_factura->messages as $msg) {
-                $this->new_message($msg);
-            }
         } else {
             /// de todas formas forzamos la generación de las líneas de iva
             $factura->get_lineas_iva();
