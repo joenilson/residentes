@@ -54,10 +54,10 @@ class documentos_residentes extends residentes_controller
             $residente = $residente_edificacion->get_by_field('codcliente', $cod);
             $this->cliente_residente->inmueble = $residente[0];
             $this->cliente_residente->informacion = $informacion;
-            $info_accion = filter_input(INPUT_POST, 'info_accion');
-            $tipo_documento = filter_input(INPUT_POST, 'tipo_documento');
+            
         }
-        
+        $info_accion = filter_input(INPUT_POST, 'info_accion');
+        $tipo_documento = filter_input(INPUT_POST, 'tipo_documento');
         if ($this->cliente_residente AND $info_accion) {
             switch ($info_accion) {
                 case 'imprimir':
