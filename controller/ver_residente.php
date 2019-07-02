@@ -38,6 +38,7 @@ class ver_residente extends fs_controller {
 
     public $cliente;
     public $articulos;
+    public $articulos_cobrables;
     public $familia;
     public $familias;
     public $facturas;
@@ -49,11 +50,13 @@ class ver_residente extends fs_controller {
     public $precio_agua;
     public $precio_gas;
 
-    public function __construct() {
+    public function __construct() 
+    {
         parent::__construct(__CLASS__, 'Residente', 'residentes', FALSE, FALSE);
     }
-
-    protected function private_core() {
+    
+    public function initVars() 
+    {
         $this->cliente = new cliente();
         $this->facturas = array();
         $this->impuesto = new impuesto();
@@ -66,44 +69,71 @@ class ver_residente extends fs_controller {
         $this->articulos = new articulo();
         $this->familias = new familia();
         $this->familia = $this->familias->get('RESIDENT');
+    }
+
+    protected function private_core() 
+    {
+        $this->initVars();
 
         if (\filter_input(INPUT_GET, 'id')) {
             $inq0 = new residentes_edificaciones();
             $this->residente = $inq0->get(\filter_input(INPUT_GET, 'id'));
         }
+        
         if ($this->residente) {
             $accion = \filter_input(INPUT_POST, 'accion');
             if ($accion == 'generar_factura') {
                 $this->nueva_factura();
             }
-            $this->page->title = 'Residente ' . $this->residente->nombre;
-            $factura = new factura_cliente();
-            $facts = $factura->all_from_cliente($this->residente->codcliente);
-            $this->facturas = array();
-            foreach ($facts as $fac) {
-                $fac->referencias = "";
-                foreach ($fac->get_lineas() as $linea) {
-                    if ($linea->referencia) {
-                        $fac->referencias .= $linea->referencia . " ";
-                    } else {
-                        $fac->referencias .= $linea->descripcion . " ";
-                    }
-                }
-                $this->facturas[] = $fac;
-            }
+            
+            $this->informacionResidente();
+            
         } else {
             $this->new_error_msg('Residente no encontrado.');
         }
     }
 
-    public function url() {
+    public function url() 
+    {
         if (\filter_input(INPUT_GET, 'id')) {
             return $this->residente->url();
         } else
             return parent::url();
     }
+    
+    public function informacionResidente()
+    {
+        $this->page->title = 'Residente ' . $this->residente->nombre;
+        $factura = new factura_cliente();
+        $facts = $factura->all_from_cliente($this->residente->codcliente);
+        $this->facturas = array();
+        $articulos_cobrados = array();
+        foreach ($facts as $fac) {
+            $fac->referencias = "";
+            foreach ($fac->get_lineas() as $linea) {
+                if ($linea->referencia) {
+                    $fac->referencias .= $linea->referencia . " ";
+                    $articulos_cobrados[$linea->referencia] = 1;
+                } else {
+                    $fac->referencias .= $linea->descripcion . " ";
+                }
+            }
+            $this->facturas[] = $fac;
+        }
+        $this->generarArticulosCobrables($articulos_cobrados);
+    }
+    
+    public function generarArticulosCobrables($articulos_cobrados)
+    {
+        foreach($this->familia->get_articulos() as $art) {
+            if(!isset($articulos_cobrados[$art->referencia]) AND $art->bloqueado == 0) {
+                $this->articulos_cobrables[] = $art;
+            }
+        }
+    }
 
-    private function nueva_factura() {
+    private function nueva_factura() 
+    {
         $cliente = $this->cliente->get($this->residente->codcliente);
         if ($cliente) {
             $factura = new factura_cliente();

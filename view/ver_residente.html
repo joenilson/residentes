@@ -22,11 +22,11 @@
         var total_impuestos = 0;
         var total_importe = 0;
 
-        {loop="$fsc->familia->get_articulos()"}
+        {loop="$fsc->articulos_cobrables"}
             total_neto += parseFloat(document.f_nueva_factura.importe_{$counter}.value);
             impuesto{$counter}=buscar_impuesto(document.f_nueva_factura.impuesto_{$counter}.value);
         {/loop}
-        {loop="$fsc->familia->get_articulos()"}
+        {loop="$fsc->articulos_cobrables"}
             total_impuestos += parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter})/100);
             total_importe += (parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter}/100)))+parseFloat(document.f_nueva_factura.importe_{$counter}.value);
             document.f_nueva_factura.total_{$counter}.value = fs_round((parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter}/100)))+parseFloat(document.f_nueva_factura.importe_{$counter}.value),{#FS_NF0_ART#});
@@ -50,16 +50,6 @@
         document.f_nueva_factura.total_otro2.value =  fs_round((parseFloat(document.f_nueva_factura.otro2.value)*((codimpuesto_otro2)/100))+parseFloat(document.f_nueva_factura.otro2.value), fs_nf0_art);
     }
 
-    function get_consumo_agua(){
-        document.f_nueva_factura.consumo_agua.value = parseFloat(document.f_nueva_factura.agua.value) - medicion_agua;
-        recalcular();
-    }
-
-    function get_consumo_gas(){
-        document.f_nueva_factura.consumo_gas.value = parseFloat(document.f_nueva_factura.gas.value) - medicion_gas;
-        recalcular();
-    }
-
     function nueva_factura(cod){
         if(cod){
             var url = '{#FS_PATH#}index.php?page=nueva_venta&tipo=factura';
@@ -69,6 +59,19 @@
             $('body').append(form);
             form.submit();
         }
+    }
+    
+    function revisar(counter, valor, checked) 
+    {
+        var input_line = $('#importe_'+counter);
+        var input_orig_line = $('#importe_original_'+counter);
+        console.log(input_line.val());
+        if(checked) {
+            input_line.val(input_orig_line.val());
+        } else {
+            input_line.val(0);
+        }
+        recalcular();
     }
 
     $(document).ready(function () {
@@ -240,6 +243,7 @@
                         </tr>
                     </thead>
                     <!--{$total=0}-->
+                    <tbody>
                     {loop="$fsc->facturas"}
                     <tr class="clickableRow{if="!$value->pagada"} bg-danger{/if}" href="{$value->url()}">
                         <td class="text-center">
@@ -277,6 +281,7 @@
                         <td></td>
                     </tr>
                     {/if}
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -284,141 +289,131 @@
             <form name="f_nueva_factura" class="form" action="{$fsc->url()}" method="post">
                 <input type="hidden" name="ref_otro"/>
                 <input type="hidden" name="ref_otro2"/>
-                <div class="container-fluid" style="margin-top: 10px;">
-                    <div class="row">
-                        <div class="col-sm-2">Referencia</div>
-                        <div class="col-sm-4">Concepto</div>
-                        <div class="col-sm-2">Importe</div>
-                        <div class="col-sm-2">Impuesto</div>
-                        <div class="col-sm-2">Total</div>
-                    </div>
-                    <div class="row">
-                        <!--{$totalLineas=2}-->
-                        {loop="$fsc->familia->get_articulos()"}
-                        <div class="col-sm-2">
-                            {$value->referencia}
-                            <input type="hidden" name="referencia_{$counter}" value="{$value->referencia}">
-                        </div>
-                        <div class="col-sm-4">
-                            {$value->descripcion}:
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="importe_{$counter}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <select name="impuesto_{$counter}" class="form-control">
-                                    {loop="$fsc->impuesto->all()"}
-                                    <option value="{$value2->codimpuesto}"{if="$value2->codimpuesto==$value1->codimpuesto"} selected="selected"{/if}>{$value2->descripcion}</option>
-                                    {/loop}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="total_{$counter}" value="{$value->pvp_iva()}" autocomplete="off" onkeyup="recalcular()"/>
-                            </div>
-                        </div>
-                        <!--{$totalLineas++}-->
-                        {/loop}
-                        <input type="hidden" name="numlineas" value="{$totalLineas}">
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="ac_referencia" id="ac_referencia" maxlength="18" placeholder="referencia" autocomplete="off"/>
-                                <p class="help-block">Opcional</p>
-                            </div>
-                        </div>
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="desc_otro" placeholder="Otro concepto"/>
-                                <p class="help-block">Dejar en blanco para no usar.</p>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <select name="impuesto_otro" class="form-control">
-                                    {loop="$fsc->impuesto->all()"}
-                                    <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
-                                    {/loop}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="total_otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="ac_referencia2" id="ac_referencia2" maxlength="18" placeholder="referencia" autocomplete="off"/>
-                                <p class="help-block">Opcional</p>
-                            </div>
-                        </div>
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="desc_otro2" placeholder="Otro concepto 2"/>
-                                <p class="help-block">Dejar en blanco para no usar.</p>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <select name="impuesto_otro2" class="form-control">
-                                    {loop="$fsc->impuesto->all()"}
-                                    <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
-                                    {/loop}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                <input class="form-control" type="text" name="total_otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-2 col-sm-offset-6">
-                            <div class="form-group">
-                                Total:
-                                <input class="form-control" type="text" name="total_neto" value="0" readonly/>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                Total:
-                                <input class="form-control" type="text" name="total_impuestos" value="0" readonly/>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="form-group">
-                                Total:
-                                <input class="form-control" type="text" name="total_importe" value="0" readonly/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12 text-right">
-                            <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="$(this).hide();this.form.submit();">
-                                <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
-                            </button>
-                        </div>
+                <div class='col-sm-1'></div>
+                <div class="container-fluid col-sm-10" style="margin-top: 10px;">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-condensed">
+                            <thead>
+                                <tr class='text-center'>
+                                    <th class="col-sm-1"></th>
+                                    <th class="col-sm-2">Referencia</th>
+                                    <th class="col-sm-3">Concepto</th>
+                                    <th class="col-sm-2">Importe</th>
+                                    <th class="col-sm-2">Impuesto</th>
+                                    <th class="col-sm-2">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!--{$totalLineas=2}-->
+                                {loop="$fsc->articulos_cobrables"}      
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="opcion_{$counter}" checked="true" onclick="revisar('{$counter}',{$value->pvp}, this.checked)">
+                                    </td>
+                                    <td>
+                                        {$value->referencia}
+                                        <input type="hidden" name="referencia_{$counter}" value="{$value->referencia}">
+                                    </td>
+                                    <td>
+                                        {$value->descripcion}
+                                    </td>
+                                    <td>
+                                        <input type="hidden"id="importe_original_{$counter}" name="importe_original_{$counter}" value="{$value->pvp}">
+                                        <input class="form-control input-sm" type="text" id="importe_{$counter}" name="importe_{$counter}" value="{$value->pvp}" autocomplete="off" onkeyup="recalcular()"/>
+                                    </td>
+                                    <td>
+                                         <select name="impuesto_{$counter}" class="form-control  input-sm" onchange="recalcular()">
+                                            {loop="$fsc->impuesto->all()"}
+                                            <option value="{$value2->codimpuesto}"{if="$value2->codimpuesto==$value1->codimpuesto"} selected="selected"{/if}>{$value2->descripcion}</option>
+                                            {/loop}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" id="total_{$counter}" name="total_{$counter}" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                    </td>
+                                </tr>
+                                 <!--{$totalLineas++}-->
+                                {/loop}
+                                <input type="hidden" name="numlineas" value="{$totalLineas}">
+                                <tr>
+                                    <td><input type="hidden" name="opcion_otro"></td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="ac_referencia" id="ac_referencia" maxlength="18" placeholder="referencia" autocomplete="off"/>
+                                        <p class="help-block">Opcional</p>
+                                    </td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="desc_otro" placeholder="Otro concepto"/>
+                                        <p class="help-block">Dejar en blanco para no usar.</p>
+                                    </td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                    </td>
+                                    <td>
+                                        <select name="impuesto_otro" class="form-control input-sm" onchange="recalcular()">
+                                            {loop="$fsc->impuesto->all()"}
+                                            <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
+                                            {/loop}
+                                        </select>    
+                                    </td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="total_otro" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="hidden" name="opcion_otro2"></td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="ac_referencia2" id="ac_referencia2" maxlength="18" placeholder="referencia" autocomplete="off"/>
+                                        <p class="help-block">Opcional</p>
+                                    </td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="desc_otro2" placeholder="Otro concepto"/>
+                                        <p class="help-block">Dejar en blanco para no usar.</p>
+                                    </td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                    </td>
+                                    <td>
+                                        <select name="impuesto_otro2" class="form-control input-sm" onchange="recalcular()">
+                                            {loop="$fsc->impuesto->all()"}
+                                            <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected="selected"{/if}>{$value->descripcion}</option>
+                                            {/loop}
+                                        </select>    
+                                    </td>
+                                    <td>
+                                        <input class="form-control input-sm" type="text" name="total_otro2" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3">
+
+                                    </th>
+                                    <th>
+                                        Total Neto:
+                                        <input class="form-control input-sm" type="text" name="total_neto" value="0" readonly/>
+                                    </th>
+                                    <th>
+                                        Total Impuestos:
+                                        <input class="form-control input-sm" type="text" name="total_impuestos" value="0" readonly/>
+                                    </th>
+                                    <th>
+                                        Total Importe:
+                                        <input class="form-control input-sm" type="text" name="total_importe" value="0" readonly/>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th colspan="6" class="text-right">
+                                        <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="$(this).hide();this.form.submit();">
+                                            <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
+                                        </button>
+                                    </th>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
+                <div class='col-sm-1'></div>
             </form>
         </div>
     </div>
