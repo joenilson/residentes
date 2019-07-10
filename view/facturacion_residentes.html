@@ -1,0 +1,294 @@
+{include="header"}
+<!--
+Copyright (C) 2019 joenilson.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301  USA
+-->
+<div class="container-fluid" style="margin-top: 10px;">
+    <div class="row">
+        <div class="col-sm-9">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+            </div>
+
+            <div class="btn-group">
+                <a id="b_opciones" class="btn btn-sm btn-default" href="#" data-toggle='modal' data-target='#modal_opciones'>
+                   <span class="fa fa-gear"></span> &nbsp; Configuración
+                </a>
+                <a id="b_generar_facturacion" class="btn btn-sm btn-success" href="#" data-toggle='modal' data-target='#modal_generar_facturacion'>
+                   Nueva Facturaci&oacute;n<span class="fa fa-play fa-fw"></span>
+                </a>
+                {loop="$fsc->extensions"}
+                {if="$value->type=='button'"}
+                <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                {/if}
+                {/loop}
+            </div>
+        </div>
+        <div class="col-sm-3 text-right">
+            <h2 style="margin-top: 0px;"><span class="fa fa-file-o"></span>&nbsp;Facturaci&oacute;n</h2>
+        </div>
+        <hr/>
+    </div>
+    <div class='row'>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th class="text-left">Fecha</th>
+                        <th class="text-left">Facturas</th>
+                        <th class="text-left">Formato de Factura</th>
+                        <th class="text-right">Fecha de Envío</th>
+                        <th class="text-right">Hora de envío</th>
+                        <th class="text-right">Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+</div>
+
+
+<form name="f_generar_facturacion" class="form" action="{$fsc->url()}" method="post">
+    <div class="modal" id="modal_generar_facturacion">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Nueva Facturaci&oacute;n</h4>
+                </div>
+                <div class="modal-body">
+                    <span class="help-block text-justify">
+                        <span class="fa fa-info-circle fa-fw"></span>&nbsp;Puedes programar el envi ode las facturas con la información indicada aquí, 
+                        esta se enviará a todos aquellos residentes a los que no se haya facturado las referencias indicadas.
+                    </span>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            Descripci&oacute;n:
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="text" name="descripcion" placeholder="Breve descripción de esta facturación" value="" class="form-control input-sm" autocomplete="off"/>
+                        </div>
+                        <div class="col-sm-4">
+                            <a href="{$fsc->forma_pago->url()}">Forma de pago</a>:
+                        </div>
+                        <div class="col-sm-8">
+                            <select name="forma_pago" class="form-control input-sm">
+                                {loop="$fsc->forma_pago->all()"}
+                                <option value="{$value->codpago}">{$value->descripcion}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                        Formato de factura
+                        </div>
+                        <div class="col-sm-8">
+                            <select class="form-control input-sm" name='formato_factura' required>
+                                <option>Elije un Formato de Factura</option>
+                                {loop="$fsc->printExtensions"}
+                                    {if="$value->type=='pdf'"}
+                                    <option value="{$value->from}">{$value->text}</option>
+                                    {/if}
+                                {/loop}
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                        Fecha de envio
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    <span class="fa fa-calendar fa-fw"></span>
+                                </span>
+                                <input type="text" name="fecha_envio" value="{$fsc->today()}" class="form-control datepicker input-sm" required="" autocomplete="off"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                        Elije la hora de envio
+                        </div>
+                        <div class="col-sm-8">
+                            <select class="form-control input-sm col-xs-2" name='hora_envio' style="width: 80px;">
+                                {loop="$fsc->loop_horas"}
+                                <option value="{$value}">{$value}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                        Agrega los conceptos
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="add-one text-success">+ Añadir Conceptos</p>
+                        </div>
+                        <div class="col-sm-12 dynamic-stuff">
+                            <!-- Dynamic element will be cloned here -->
+                            <!-- You can call clone function once if you want it to show it a first element-->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();">
+                        <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+    <div class="form-group dynamic-element" style="display:none">
+        <div class="row">
+            <!-- Replace these fields -->
+            <div class="col-sm-3 campo-referencia">
+                <select name="referencia[]" class="form-control input-sm" onchange="actualizarPrecio(this)">
+                    <option value="">Referencia</option>
+                    {loop="$fsc->familias->get_articulos()"}
+                    <option value="{$value->referencia}">{$value->descripcion}</option>
+                    {/loop}
+                </select>
+            </div>
+            <div class="col-sm-2 campo-pvp">
+                <input type="number" name="pvp[]" value="" class="form-control input-sm" onchange="recalcular(this)">
+            </div>
+            <div class="col-sm-3 campo-impuesto">
+                <select name="impuesto[]" class="form-control input-sm" onchange="recalcular(this)">
+                    <option>impuesto</option>
+                    {loop="$fsc->impuesto->all()"}
+                    <option value="{$value->codimpuesto}" {if="$value->is_default()"}selected{/if}>{$value->descripcion}</option>
+                    {/loop}
+                </select>
+            </div>
+            <div class="col-sm-2 campo-importe">
+                <input type="number" name="importe[]" value="" class="form-control input-sm">
+            </div>
+            <div class="col-sm-2">
+                <p class="delete btn-sm btn-block btn-danger text-center text-capitalize">x</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    $(document).ready(function(){
+        $('.add-one').click(function(){
+            //console.log('click one');
+            $('.dynamic-element').first().clone().appendTo('.dynamic-stuff').show();
+            attach_delete();
+        });
+    });
+    
+    all_impuestos = [];
+    {loop="$fsc->impuesto->all()"}
+        all_impuestos[{$counter}] = {codimpuesto: '{$value->codimpuesto}', iva: '{$value->iva}'};
+    {/loop}
+    
+    function attach_delete(){
+        $('.delete').off();
+        $('.delete').click(function(){
+            //console.log("click");
+            $(this).closest('.form-group').remove();
+        });
+    }
+    
+    function actualizarPrecio(inputForm)
+    {
+        articulos = [];
+        {loop="$fsc->familias->get_articulos()"}
+        articulos[{$counter}] = {referencia: '{$value->referencia}', descripcion: '{$value->descripcion}', pvp: '{$value->pvp}', impuesto: '{$value->codimpuesto}'};
+        {/loop}
+        
+        for(var i=0; i<articulos.length; i++)
+        {
+            
+            //console.log(articulos[i]);
+            if(inputForm.value === articulos[i].referencia)
+            {
+                
+                console.log(inputForm.parentNode.nextElementSibling.childNodes[1]);
+                inputForm.parentNode.nextElementSibling.childNodes[1].value = articulos[i].pvp;
+                inputForm.parentNode.nextElementSibling.nextElementSibling.childNodes[1].value = articulos[i].impuesto;
+                recalcular(inputForm);
+            }
+        }
+    }
+    
+    function buscar_impuesto(cod){
+        for(var i=0; i<all_impuestos.length; i++)
+        {
+            if(cod === all_impuestos[i].codimpuesto)
+            {
+               return all_impuestos[i].iva;
+            }
+        }
+    }
+    
+    function recalcular(inputForm){
+        console.log(inputForm.name);
+        var importe = 0;
+        
+        if(inputForm.name === 'referencia[]') {
+            pvp = inputForm.parentNode.nextElementSibling.childNodes[1].value;
+            codimpuesto = inputForm.parentNode.nextElementSibling.nextElementSibling.childNodes[1].value;
+        } else if(inputForm.name === 'pvp[]') {
+            pvp = inputForm.value;
+            codimpuesto = inputForm.parentNode.nextElementSibling.childNodes[1].value;
+        } else if(inputForm.name === 'impuesto[]') {
+            pvp = inputForm.parentNode.previousElementSibling.childNodes[1].value;
+            codimpuesto = inputForm.value;
+        }
+        
+
+        impuesto = buscar_impuesto(codimpuesto);
+        if(impuesto === 0) {
+            importe = pvp;
+        } else {
+            importe = parseFloat(pvp)+(parseFloat(pvp)*parseFloat(impuesto/100));
+        }
+        
+        
+        if(inputForm.name === 'referencia[]') {
+            inputForm.parentNode.nextElementSibling.nextElementSibling.nextElementSibling.childNodes[1].value = importe;
+        } else if(inputForm.name === 'pvp[]') {
+           inputForm.parentNode.nextElementSibling.nextElementSibling.childNodes[1].value = importe;
+        } else if(inputForm.name === 'impuesto[]') {
+            inputForm.parentNode.nextElementSibling.childNodes[1].value = importe;
+        }
+        
+    }
+    
+    </script>
+{include="footer"}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : residentes_facturacion_programada.xml
+    Description:
+        Estructura de la tabla residentes_facturacion_programada.
+-->
+<tabla>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('residentes_factprog_id_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>conceptos</nombre>
+        <tipo>text</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>descripcion</nombre>
+        <tipo>character varying(120)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>forma_pago</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>formato_factura</nombre>
+        <tipo>character varying(48)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_envio</nombre>
+        <tipo>date</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>hora_envio</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>facturas_generadas</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>usuario_creacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>NO</nulo>
+    </columna>  
+    <columna>
+        <nombre>estado</nombre>
+        <tipo>character varying(16)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_creacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_modificacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <restriccion>
+        <nombre>residentes_factprog_pkey</nombre>
+        <consulta>PRIMARY KEY (id)</consulta>
+    </restriccion>
+</tabla>

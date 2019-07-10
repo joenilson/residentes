@@ -5,20 +5,21 @@
  * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-require_model('inquilino.php');
-
-class cron_inquilinos
+require_model('cron_residentes.php');
+/*
+class cron_residentes
 {
 
     private $db;
-    private $inquilino;
+    private $residentes_facturacion_programada;
+    private $residentes_generar_facturacion;
 
     public function __construct($db)
     {
         $this->db = $db;
-        /*
+        
           $this->db = $db;
-          $this->inquilino = new inquilino();
+          $this->residentes_facturacion_programada = new residentes_facturacion_programada();
 
           foreach($this->inquilino->all() as $inq)
           {
@@ -35,9 +36,11 @@ class cron_inquilinos
           $inq->save();
           }
           }
-         * */
+        
     }
 
 }
+ * */
+$cron_residentes = new cron_residentes();
+$con_residentes->startJob();
 
-new cron_inquilinos($db);
