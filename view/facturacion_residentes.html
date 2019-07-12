@@ -39,8 +39,8 @@ MA 02110-1301  USA
                 <a id="b_opciones" class="btn btn-sm btn-default" href="#" data-toggle='modal' data-target='#modal_opciones'>
                    <span class="fa fa-gear"></span> &nbsp; Configuración
                 </a>
-                <a id="b_generar_facturacion" class="btn btn-sm btn-success" href="#" data-toggle='modal' data-target='#modal_generar_facturacion'>
-                   Nueva Facturaci&oacute;n<span class="fa fa-play fa-fw"></span>
+                <a class="btn btn-sm btn-success" href="{$fsc->url()}&accion=nueva_programacion">
+                   Nueva Programaci&oacute;n<span class="fa fa-calendar fa-fw"></span>
                 </a>
                 {loop="$fsc->extensions"}
                 {if="$value->type=='button'"}
@@ -78,9 +78,11 @@ MA 02110-1301  USA
                         <td></td>
                         <td></td>
                         <td></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
+        </div>
     </div>
 </div>
 
