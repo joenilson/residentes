@@ -169,6 +169,20 @@ class residentes_facturacion_programada extends \fs_model
         return false;   
     }
     
+        public function get_by_date_hour_status($date, $hour, $status)
+    {
+        $sql = "select * from ".$this->table_name." WHERE fecha_envio = ".$this->var2str($date)
+                ." AND ".
+                " hora_envio = ".$this->var2str($hour).
+                " AND ".
+                "estado = ".$this->var2str($status)." ORDER BY fecha_envio, hora_envio";
+        $data = $this->db->select($sql);
+        if($data) {
+            return new residentes_facturacion_programada($data[0]);
+        }
+        return false;   
+    }
+    
     public function all()
     {
         $sql = "select * from ".$this->table_name." ORDER BY fecha_envio, hora_envio";
@@ -247,7 +261,7 @@ class residentes_facturacion_programada extends \fs_model
     {
         $ahora = new \DateTime('NOW');
         $horaActual = strtotime($ahora->format('H'));
-        $jobDisponible = $this->get_by_date_status($ahora->format('Y-m-d'), 'ENCOLA');
+        $jobDisponible = $this->get_by_date_hour_status($ahora->format('Y-m-d'), $horaActual, 'ENCOLA');
         if ($jobDisponible AND ($horaActual === $jobDisponible->hora_envio)) {
             echo " ** Se inicia el proceso de Facturación Programada ".$horaActual." ** \n";
             $this->new_advice(' ** Se inicia el proceso de Facturación Programada ** ');
@@ -297,6 +311,7 @@ class residentes_facturacion_programada extends \fs_model
         $factura->codserie = ($residente->codserie) ? $residente->codserie : $empresaTable->codserie;
         $factura->codpago = $jobDisponible->forma_pago;
         $factura->codalmacen = $empresaTable->codalmacen;
+        $factura->codagente = '1';
         $factura->set_fecha_hora(\date('Y-m-d'), \date('H:i:s'));
 
         $this->nuevaVerificacionContabilidadFactura($factura, $residente, $empresaTable);

@@ -43,7 +43,7 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
             $this->id_edificacion = $t['id_edificacion'];
             $this->codcliente = $t['codcliente'];
             $this->idfactura = $t['idfactura'];
-            $this->procesado = boolval($t['procesado']);
+            $this->procesado = $this->str2bool($t['procesado']);
         }else{
             $this->id = null;
             $this->idprogramacion = null;
@@ -73,8 +73,8 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
             "idfactura = ".$this->intval($this->idfactura).", ".
             "codcliente = ".$this->var2str($this->codcliente).", ".
             "id_edificacion = ".$this->intval($this->id_edificacion).", ".
-            "idprogramacion = ".$this->intval($this->idprogramacion)." ".
-            "procesado = ".$this->var2str($this->procesado).", ".
+            "idprogramacion = ".$this->intval($this->idprogramacion).", ".
+            "procesado = ".$this->var2str($this->procesado)." ".
             "WHERE id = ".$this->intval($this->id).";";
             $data = $this->db->exec($sql);
             return $data;
@@ -83,9 +83,8 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
             " (idprogramacion, id_edificacion, codcliente, procesado) VALUES (".
             $this->intval($this->idprogramacion).", ".
             $this->intval($this->id_edificacion).", ".
-            $this->var2str($this->codcliente).", ";
+            $this->var2str($this->codcliente).", ".
             $this->var2str($this->procesado).");";
-            
             if($this->db->exec($sql)){
                 return true;
             }else{

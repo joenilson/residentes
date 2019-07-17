@@ -185,38 +185,38 @@ MA 02110-1301  USA
         });
         
         $('#f_generar_facturacion').submit(function(e) {
-        var currentForm = this;
-        
-        if($('#total_importe').val() === 0) {
-            bootbox.alert('Debes elegir primero un concepto a facturar.');
-            return false;
-        }
-        
-        if(document.querySelectorAll('input[name="edificacion[]"]:checked').length === 0) {
-            bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
-            return false;
-        }
-        e.preventDefault();
-        bootbox.confirm({
-            message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
-            buttons: {
-                confirm: {
-                    label: 'Programar',
-                    className: 'btn-success'
-                },
-                cancel: {
-                    label: 'Regresar',
-                    className: 'btn-danger'
-                }
-            },
-            callback: function (result) {
-                if(result) {
-                    $('#loader').show();
-                    currentForm.submit();
-                }
+            var currentForm = this;
+
+            if($('#total_importe').val() === 0) {
+                bootbox.alert('Debes elegir primero un concepto a facturar.');
+                return false;
             }
+
+            if(document.querySelectorAll('input[name="edificacion[]"]:checked').length === 0) {
+                bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
+                return false;
+            }
+            e.preventDefault();
+            bootbox.confirm({
+                message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
+                buttons: {
+                    confirm: {
+                        label: 'Programar',
+                        className: 'btn-success'
+                    },
+                    cancel: {
+                        label: 'Regresar',
+                        className: 'btn-danger'
+                    }
+                },
+                callback: function (result) {
+                    if(result) {
+                        $('#loader').show();
+                        currentForm.submit();
+                    }
+                }
+            });
         });
-    });
     });
     
     all_impuestos = [];

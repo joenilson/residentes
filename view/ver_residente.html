@@ -1,8 +1,6 @@
 {include="header"}
 {if="$fsc->residente"}
 <script type="text/javascript">
-   var medicion_agua = 0;
-   var medicion_gas = 0;
    var fs_nf0 = 2;
    var fs_nf0_art = 4;
    var all_impuestos = {function="json_encode($fsc->impuesto->all())"};
@@ -412,9 +410,19 @@
                                 </tr>
                                 <tr>
                                     <th colspan="6" class="text-right">
-                                        <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="return verificarTotalImporte();">
-                                            <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
-                                        </button>
+                                        <div class="col-sm-7">Al guardar la factura se generará con esta condición de pago:</div>
+                                        <div class="col-sm-3">
+                                            <select name="forma_pago" class="form-control input-sm col-sm-3">
+                                                {loop="$fsc->forma_pago->all()"}
+                                                <option value="{$value->codpago}"{if="$value->codpago==$fsc->cliente_data->codpago"} selected="selected"{/if}>{$value->descripcion}</option>
+                                                {/loop}
+                                            </select>                                                    
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="return verificarTotalImporte();">
+                                                <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
+                                            </button>
+                                        </div>
                                     </th>
                                 </tr>
                             </tfoot>

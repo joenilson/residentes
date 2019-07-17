@@ -37,19 +37,15 @@ require_model('residentes_edificaciones.php');
 class ver_residente extends fs_controller {
 
     public $cliente;
+    public $cliente_data;
     public $articulos;
     public $articulos_cobrables;
     public $familia;
     public $familias;
     public $facturas;
     public $impuesto;
-    public $impuesto_a;
-    public $impuesto_g;
-    public $impuesto_m;
     public $residente;
-    public $precio_agua;
-    public $precio_gas;
-
+    public $forma_pago;
     public function __construct() 
     {
         parent::__construct(__CLASS__, 'Residente', 'residentes', FALSE, FALSE);
@@ -60,12 +56,8 @@ class ver_residente extends fs_controller {
         $this->cliente = new cliente();
         $this->facturas = array();
         $this->impuesto = new impuesto();
-        $this->impuesto_a = NULL;
-        $this->impuesto_g = NULL;
-        $this->impuesto_m = NULL;
+        $this->forma_pago = new forma_pago();
         $this->residente = FALSE;
-        $this->precio_agua = 0;
-        $this->precio_gas = 0;
         $this->articulos = new articulo();
         $this->familias = new familia();
         $this->familia = $this->familias->get('RESIDENT');
@@ -78,6 +70,7 @@ class ver_residente extends fs_controller {
         if (\filter_input(INPUT_GET, 'id')) {
             $inq0 = new residentes_edificaciones();
             $this->residente = $inq0->get(\filter_input(INPUT_GET, 'id'));
+            $this->cliente_data = $this->cliente->get($this->residente->codcliente);
         }
         
         if ($this->residente) {
@@ -138,7 +131,8 @@ class ver_residente extends fs_controller {
         if ($cliente) {
             $factura = new factura_cliente();
             $factura->codserie = ($cliente->codserie) ? $cliente->codserie : $this->empresa->codserie;
-            $factura->codpago = $cliente->codpago;
+            $factura->codagente = $this->user->codagente;
+            $factura->codpago = \filter_input(INPUT_POST, 'forma_pago');
             $factura->codalmacen = $this->empresa->codalmacen;
             $factura->set_fecha_hora($this->today(), $this->hour());
             $eje0 = new ejercicio();
@@ -149,6 +143,11 @@ class ver_residente extends fs_controller {
             if ($this->empresa->contintegrada) {
                 /// forzamos crear la subcuenta
                 $cliente->get_subcuenta($this->empresa->codejercicio);
+            }
+            
+            $forma_pago = $this->forma_pago->get($factura->codpago);
+            if ($forma_pago->genrecibos == 'Pagados') {
+                $factura->pagada = TRUE;
             }
 
             $div0 = new divisa();
