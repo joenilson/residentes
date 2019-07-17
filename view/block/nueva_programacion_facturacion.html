@@ -17,12 +17,16 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301  USA
 -->
+<div id="loader"></div>
 <div class="container-fluid" style="margin-top: 10px;">
     <div class="row">
         <div class="col-sm-8">
             <div class="btn-group hidden-xs">
                 <a class="btn btn-sm btn-default" href="{$fsc->url()}&accion=nueva_programacion" title="Recargar la página">
                     <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                <a class="btn btn-sm btn-primary" href="{$fsc->url()}" title="Regresar al Listado">
+                    <span class="fa fa-arrow-left fa-fw"></span>Regresar
                 </a>
             </div>
 
@@ -40,17 +44,19 @@ MA 02110-1301  USA
         <hr/>
     </div>
     <div class='row'>
-        <form name="f_generar_facturacion" class="form" action="{$fsc->url()}" method="post">
+        <form name="f_generar_facturacion" class="form" id='f_generar_facturacion' action="{$fsc->url()}" method="post">
             <div class="col-sm-12">
                 <span class="help-block text-justify">
                     <span class="fa fa-info-circle fa-fw"></span>&nbsp;Puedes programar el env&iacute;o de las facturas con la información indicada aquí, 
-                    esta se enviará a todos aquellos residentes a los que no se haya facturado las referencias indicadas.
+                    esta se enviará a todos aquellos residentes a los que no se haya facturado los conceptos indicadas.
                 </span>
+            </div>
+            <div class="col-sm-12" style='margin-top: 10px;'>
                 <div class="col-sm-2">
                     Descripci&oacute;n:
                 </div>
                 <div class="col-sm-8">
-                    <input type="text" name="descripcion" placeholder="Breve descripción de esta facturación" value="" class="form-control input-sm" autocomplete="off"/>
+                    <input type="text" name="descripcion" id='descripcion' placeholder="Breve descripción de esta facturación" value="" required class="form-control input-sm" autocomplete="off"/>
                 </div>
                 <div class="col-sm-2">
                     
@@ -60,122 +66,157 @@ MA 02110-1301  USA
                 <div class="col-sm-2">
                     <a href="{$fsc->forma_pago->url()}">Forma de pago</a>:
                 </div>
-                <div class="col-sm-3">
-                    <select name="forma_pago" class="form-control input-sm">
+                <div class="col-sm-2">
+                    <select name="forma_pago" id="forma_pago" class="form-control input-sm selectpicker" required>
+                        <option value="">Elije una Forma de pago</option>
                         {loop="$fsc->forma_pago->all()"}
                         <option value="{$value->codpago}">{$value->descripcion}</option>
                         {/loop}
                     </select>
+                </div>              
+                <div class="col-sm-2">
+                Fecha de envio:
                 </div>
                 <div class="col-sm-2">
-                Formato de factura
-                </div>
-                <div class="col-sm-3">
-                    <select class="form-control input-sm" name='formato_factura' required>
-                        <option>Elije un Formato de Factura</option>
-                        {loop="$fsc->printExtensions"}
-                            {if="$value->type=='pdf'"}
-                            <option value="{$value->from}">{$value->text}</option>
-                            {/if}
-                        {/loop}
-                    </select>
-                </div>
-            </div>
-            <div class="col-sm-12" style='margin-top: 10px;'>                
-                <div class="col-sm-2">
-                Fecha de envio
-                </div>
-                <div class="col-sm-3">
                     <div class="input-group">
                         <span class="input-group-addon">
                             <span class="fa fa-calendar fa-fw"></span>
                         </span>
-                        <input type="text" name="fecha_envio" value="{$fsc->today()}" class="form-control datepicker input-sm" required="" autocomplete="off"/>
+                        <input type="text" name="fecha_envio" value="{$fsc->today()}" class="form-control datepicker input-sm" style='width:180px;' required="" autocomplete="off"/>
                     </div>
                 </div>
-                <div class="col-sm-2">
-                Hora de envio
+                <div class="col-sm-1">
+                Hora de envio:
                 </div>
-                <div class="col-sm-3">
-                    <select class="form-control input-sm col-xs-2 selectpicker" data-live-search='true' name='hora_envio' style="width: 80px;">
+                <div class="col-sm-2">
+                    <select class="form-control input-sm col-xs-2 selectpicker" data-live-search='true'  data-width="80px" name='hora_envio' style="width: 80px;">
                         {loop="$fsc->loop_horas"}
-                        <option value="{$value}">{$value}</option>
+                        <option value="{$value}" {if="$value==$fsc->proxima_hora"}selected{/if}>{$value}</option>
                         {/loop}
                     </select>
                 </div>
             </div>
-            <div class="col-sm-12" style='margin-top: 10px;'>                         
-                <div class="col-sm-6 text-left">
+            <div class="col-sm-12" style='margin-top: 10px;'>  
+                <div class="col-sm-3 text-left">
                     <a href='#' class="add-one btn btn-sm btn-info"><i class='fa fa-plus fa-fw'></i> Añadir Conceptos a facturar</a>
                 </div>
-                <div class="col-sm-4 text-right" style='margin-top: 10px;'>    
-                    <button class="btn btn-sm btn-success" type="submit" onclick="this.disabled = true;this.form.submit();">
+                <div class="col-sm-2 text-right">
+                    <label class='control-label'><b>Total a Facturar: </b></label>
+                </div>
+                <div class="col-sm-2 text-left">
+                    <input type="hidden" name="accion" value="guardar_programacion">
+                    <input type="text" name="total_importe" id="total_importe" readonly="" value="0" class="form-control input-sm text-right">
+                </div>
+                <div class="col-sm-3 text-right" style='margin-top: 10px;'>    
+                    <button class="btn btn-sm btn-success" type="submit">
                         <span class="fa fa-save fa-fw"></span>Guardar Programaci&oacute;n
                     </button>
                 </div>
             </div>
-            <div class="col-sm-6 dynamic-stuff" style='margin-top: 10px;'>
-                <!-- Dynamic element will be cloned here -->
-                <!-- You can call clone function once if you want it to show it a first element-->
-            </div>
-            <div class="col-sm-2" style='margin-top: 10px;'></div>
-            <div class="col-sm-4" style='margin-top: 10px;'>
-                <ul class="list-group col-sm-6 list-group-scroll">
-                    <li class="list-group-item active text-center">
-                        Elegir el alcance de la facturaci&oacute;n
-                    </li>
-                    <li class="list-group-item text-danger">
-                        <input type='checkbox' name='marcar_edificacion' onchange='procesar_checkboxs(this)'>&nbsp;Marcar/Desmarcar todos
-                    </li>
-                    {loop="$fsc->mapa"}
-                    <li class="list-group-item">
-                        <input type='checkbox' name='edificacion[]' value='{$value->id}'>&nbsp;{$value->desc_id} {$value->codigo_edificacion}
-                    </li>
-                    {/loop}
-                </ul>
+            <div class="col-sm-12" style='margin-top: 10px;'>
+                <div class="col-sm-8" style='margin-top: 10px;'>
+                    <div class='dynamic-stuff'></div>
+                    <!-- Dynamic element will be cloned here -->
+                    <!-- You can call clone function once if you want it to show it a first element-->
+                </div>
+                <div class="col-sm-4" style='margin-top: 10px;'>
+                    <ul class="list-group col-sm-6 list-group-scroll">
+                        <li class="list-group-item active text-center">
+                            Elegir el alcance de la facturaci&oacute;n
+                        </li>
+                        <li class="list-group-item text-danger">
+                            <input type='checkbox' name='marcar_edificacion' onchange='procesar_checkboxs(this)'>&nbsp;Marcar/Desmarcar todos
+                        </li>
+                        {loop="$fsc->mapa"}
+                        <li class="list-group-item">
+                            <input type='checkbox' name='edificacion[]' value='{$value->id}'>&nbsp;{$value->desc_id} {$value->codigo_edificacion}
+                        </li>
+                        {/loop}
+                    </ul>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
-    <div class="form-group dynamic-element" style="display:none">
-        <div class="row">
-            <!-- Replace these fields -->
-            <div class="col-sm-5 campo-referencia">
-                <select name="referencia[]" class="form-control input-sm" onchange="actualizarPrecio(this)">
-                    <option value="">Referencia</option>
-                    {loop="$fsc->familias->get_articulos()"}
-                    <option value="{$value->referencia}">{$value->descripcion}</option>
-                    {/loop}
-                </select>
-            </div>
-            <div class="col-sm-2 campo-pvp">
-                <input type="number" name="pvp[]" value="" class="form-control input-sm" onchange="recalcular(this)">
-            </div>
-            <div class="col-sm-2 campo-impuesto">
-                <select name="impuesto[]" class="form-control input-sm" onchange="recalcular(this)">
-                    <option selected>impuesto</option>
-                    {loop="$fsc->impuesto->all()"}
-                    <option value="{$value->codimpuesto}" {if="$value->is_default()"}selected{/if}>{$value->descripcion}</option>
-                    {/loop}
-                </select>
-            </div>
-            <div class="col-sm-2 campo-importe">
-                <input type="number" name="importe[]" value="" class="form-control input-sm">
-            </div>
-            <div class="col-sm-1 text-center">
-                <p class="delete btn-sm btn-danger text-center text-capitalize"><i class='fa fa-trash fa-fw'></i></p>
-            </div>
-        </div>
-    </div>
     
     <script>
     $(document).ready(function(){
+        var next = 0;
         $('.add-one').click(function(){
-            //console.log('click one');
-            $('.dynamic-element').first().clone().appendTo('.dynamic-stuff').show();
+            var addto = ".dynamic-stuff";
+            next = next + 1;
+            var newIn = '<div class="form-group col-sm-12">' +
+                '<div class="col-sm-5 campo-referencia">' +
+                '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-sm" onchange="actualizarPrecio('+next+')">' +
+                '       <option value="">Referencia</option>' +
+                        {loop="$fsc->familias->get_articulos()"}
+                '       <option value="{$value->referencia}">{$value->descripcion}</option>' +
+                        {/loop}
+                '   </select>' +
+                '</div>' +
+                '<div class="col-sm-1 campo-pvp">' +
+                '    <input type="text" name="pvp[]" id="pvp_'+next+'" value="" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
+                '</div>' +
+                '<div class="col-sm-1 campo-cantidad">' +
+                '    <input type="text" name="cantidad[]" id="cantidad_'+next+'" value="1" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
+                '</div>' +
+                '<div class="col-sm-2 campo-impuesto">' +
+                '    <select name="impuesto[]" id="impuesto_'+next+'" class="form-control input-sm" onchange="recalcular('+next+')">' +
+                '        <option selected>impuesto</option>' +
+                        {loop="$fsc->impuesto->all()"}
+                '        <option value="{$value->codimpuesto}" {if="$value->is_default()"}selected{/if}>{$value->descripcion}</option>' +
+                        {/loop}
+                '    </select>' +
+                '</div>' +
+                '<div class="col-sm-2 campo-importe">' +
+                '    <input type="text" name="importe[]" id="importe_'+next+'" value="" readonly="" class="form-control input-sm text-right">' +
+                '</div>' +
+                '<div class="col-sm-1 text-center">' +
+                '    <p class="delete btn-sm btn-danger text-center text-capitalize"><i class="fa fa-trash fa-fw"></i></p>' +
+                '</div>' +
+            '</div>';
+            
+            var newInput = $(newIn);
+            $(addto).append(newInput);
+            $('#referencia_'+next).selectpicker({liveSearch: true});
+            $('#impuesto_'+next).selectpicker({liveSearch: true});
             attach_delete();
         });
+        
+        $('#f_generar_facturacion').submit(function(e) {
+        var currentForm = this;
+        
+        if($('#total_importe').val() === 0) {
+            bootbox.alert('Debes elegir primero un concepto a facturar.');
+            return false;
+        }
+        
+        if(document.querySelectorAll('input[name="edificacion[]"]:checked').length === 0) {
+            bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
+            return false;
+        }
+        e.preventDefault();
+        bootbox.confirm({
+            message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
+            buttons: {
+                confirm: {
+                    label: 'Programar',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'Regresar',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                if(result) {
+                    $('#loader').show();
+                    currentForm.submit();
+                }
+            }
+        });
+    });
     });
     
     all_impuestos = [];
@@ -191,29 +232,28 @@ MA 02110-1301  USA
     function attach_delete(){
         $('.delete').off();
         $('.delete').click(function(){
-            //console.log("click");
             $(this).closest('.form-group').remove();
         });
     }
     
-    function actualizarPrecio(inputForm)
+    function actualizarPrecio(inputId)
     {
         articulos = [];
         {loop="$fsc->familias->get_articulos()"}
         articulos[{$counter}] = {referencia: '{$value->referencia}', descripcion: '{$value->descripcion}', pvp: '{$value->pvp}', impuesto: '{$value->codimpuesto}'};
         {/loop}
+        var referencia = $("#referencia_"+inputId);
+        var pvp = $("#pvp_"+inputId);
+        var cantidad = $("#cantidad_"+inputId);
+        var impuesto = $("#impuesto_"+inputId);
         
         for(var i=0; i<articulos.length; i++)
         {
-            
-            //console.log(articulos[i]);
-            if(inputForm.value === articulos[i].referencia)
+            if(referencia.val() === articulos[i].referencia)
             {
-                
-                //console.log(inputForm.parentNode.nextElementSibling.childNodes[1]);
-                inputForm.parentNode.nextElementSibling.childNodes[1].value = articulos[i].pvp;
-                inputForm.parentNode.nextElementSibling.nextElementSibling.childNodes[1].value = articulos[i].impuesto;
-                recalcular(inputForm);
+                pvp.val(articulos[i].pvp);
+                impuesto.selectpicker('val',articulos[i].impuesto);
+                recalcular(inputId);
             }
         }
     }
@@ -228,38 +268,38 @@ MA 02110-1301  USA
         }
     }
     
-    function recalcular(inputForm){
-        console.log(inputForm.name);
+    function recalcular(inputId){
+        
         var importe = 0;
         
-        if(inputForm.name === 'referencia[]') {
-            pvp = inputForm.parentNode.nextElementSibling.childNodes[1].value;
-            codimpuesto = inputForm.parentNode.nextElementSibling.nextElementSibling.childNodes[1].value;
-        } else if(inputForm.name === 'pvp[]') {
-            pvp = inputForm.value;
-            codimpuesto = inputForm.parentNode.nextElementSibling.childNodes[1].value;
-        } else if(inputForm.name === 'impuesto[]') {
-            pvp = inputForm.parentNode.previousElementSibling.childNodes[1].value;
-            codimpuesto = inputForm.value;
-        }
+        var inputReferencia = $("#referencia_"+inputId);
+        var inputPvp = $("#pvp_"+inputId);
+        var inputCantidad = $("#cantidad_"+inputId);
+        var inputImpuesto = $("#impuesto_"+inputId);
+        var inputImporte = $("#importe_"+inputId);
+        pvp = inputPvp.val();
+        cantidad = inputCantidad.val();
+        codimpuesto = inputImpuesto.val();
         
-
         impuesto = buscar_impuesto(codimpuesto);
         if(impuesto === 0) {
-            importe = pvp;
+            importe = pvp*cantidad;
         } else {
-            importe = parseFloat(pvp)+(parseFloat(pvp)*parseFloat(impuesto/100));
+            importe = (parseFloat(pvp)+(parseFloat(pvp)*parseFloat(impuesto/100)))*parseFloat(cantidad);
         }
         
-        
-        if(inputForm.name === 'referencia[]') {
-            inputForm.parentNode.nextElementSibling.nextElementSibling.nextElementSibling.childNodes[1].value = importe;
-        } else if(inputForm.name === 'pvp[]') {
-           inputForm.parentNode.nextElementSibling.nextElementSibling.childNodes[1].value = importe;
-        } else if(inputForm.name === 'impuesto[]') {
-            inputForm.parentNode.nextElementSibling.childNodes[1].value = importe;
+        inputImporte.val(importe);
+        totalizar();
+    }
+    
+    function totalizar(){
+        var importe_total=0;
+        var importes = document.getElementsByName('importe[]');
+        for (var i = 0; i < importes.length; i++) {
+        var importe=importes[i];
+            importe_total=importe_total+parseFloat(importe.value);
         }
-        
+        $('#total_importe').val(importe_total);
     }
     
     </script>
@@ -269,6 +309,17 @@ MA 02110-1301  USA
             margin-bottom: 10px;
             overflow:scroll;
             -webkit-overflow-scrolling: touch;
+        }
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.75) url('{#FS_PATH#}plugins/residentes/view/images/loading_spinner.gif') no-repeat center center;
+            z-index: 10000;
         }
     </style>
 {include="footer"}

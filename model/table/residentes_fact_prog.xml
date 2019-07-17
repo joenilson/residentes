@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Document   : residentes_facturacion_programada.xml
+    Document   : residentes_fact_prog.xml
     Description:
-        Estructura de la tabla residentes_facturacion_programada.
+        Estructura de la tabla residentes_fact_prog.xml
 -->
 <tabla>
     <columna>
@@ -10,11 +10,6 @@
         <tipo>serial</tipo>
         <nulo>NO</nulo>
         <defecto>nextval('residentes_factprog_id_seq'::regclass)</defecto>
-    </columna>
-    <columna>
-        <nombre>conceptos</nombre>
-        <tipo>text</tipo>
-        <nulo>NO</nulo>
     </columna>
     <columna>
         <nombre>descripcion</nombre>
@@ -42,6 +37,11 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>residentes_facturar</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>facturas_generadas</nombre>
         <tipo>integer</tipo>
         <nulo>YES</nulo>
@@ -50,6 +50,11 @@
         <nombre>usuario_creacion</nombre>
         <tipo>character varying(12)</tipo>
         <nulo>NO</nulo>
+    </columna>  
+    <columna>
+        <nombre>usuario_modificacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>YES</nulo>
     </columna>  
     <columna>
         <nombre>estado</nombre>

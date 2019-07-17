@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : residentes_fact_progr_edificaciones.xml
+    Description:
+        Estructura de la tabla residentes_fact_prog_edificaciones.
+-->
+<tabla>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('residentes_factprogedif_id_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>idprogramacion</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>id_edificacion</nombre>
+        <tipo>integer</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codcliente</nombre>
+        <tipo>character varying(6)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>idfactura</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>procesado</nombre>
+        <tipo>boolean</tipo>
+        <nulo>NO</nulo>
+        <defecto>false</defecto>
+    </columna>
+    <restriccion>
+        <nombre>residentes_factprogedif_pkey</nombre>
+        <consulta>PRIMARY KEY (id)</consulta>
+    </restriccion>
+    <restriccion>
+        <nombre>residentes_factprogedif_factprog</nombre>
+        <consulta>FOREIGN KEY (idprogramacion) REFERENCES residentes_fact_prog (id) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE</consulta>
+    </restriccion>
+</tabla>
