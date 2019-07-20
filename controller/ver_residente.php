@@ -253,6 +253,7 @@ class ver_residente extends residentes_controller {
     private function lineasLibresFactura(&$factura, $linea_nombre)
     {
         if (\filter_input(INPUT_POST,'desc_'.$linea_nombre) != '') {
+            $art0 = new articulo();
             $linea = new linea_factura_cliente();
             $linea->idfactura = $factura->idfactura;
             $linea->descripcion = \filter_input(INPUT_POST,'desc_'.$linea_nombre);
@@ -262,13 +263,11 @@ class ver_residente extends residentes_controller {
                 $linea->codimpuesto = $imp->codimpuesto;
                 $linea->iva = $imp->iva;
                 $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval(\filter_input(INPUT_POST,$linea_nombre))) / (100 + $imp->iva);
-
-                if (\filter_input(INPUT_POST,'ref_'.$linea_nombre)) {
-                    $articulo = $art0->get(\filter_input(INPUT_POST,'ref_'.$linea_nombre));
-                    if ($art0) {
-                        $linea->referencia = $articulo->referencia;
-                        $articulo->sum_stock($this->empresa->codalmacen, -1);
-                    }
+                
+                $articulo = (\filter_input(INPUT_POST,'ref_'.$linea_nombre))?$art0->get(\filter_input(INPUT_POST,'ref_'.$linea_nombre)):'';
+                if ($articulo !== '') {
+                    $linea->referencia = $articulo->referencia;
+                    $articulo->sum_stock($this->empresa->codalmacen, -1);
                 }
 
                 if ($linea->save()) {
