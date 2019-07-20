@@ -207,6 +207,23 @@ class residentes_facturacion_programada extends \fs_model
         return false;   
     }
     
+    public function eliminar_facturas()
+    {
+        $rfpe = new residentes_facturacion_programada_edificaciones();
+        $listaResidentes = $rfpe->getByIdProgramacion($this->id);
+        foreach($listaResidentes as $residente) {
+            
+            $fact = new factura_cliente();
+            $f = $fact->get($residente->idfactura);
+            if($f) {
+                $f->delete();
+            }
+            $residente->procesado = false;
+            $residente->idfactura = '';
+            $residente->save();
+        }
+    }
+    
     public function conceptoFacturable($codcliente, $referencia)
     {
         $sql = "SELECT count(referencia) as facturado from lineasfacturascli where referencia = ".$this->var2str($referencia)." ".
@@ -250,7 +267,7 @@ class residentes_facturacion_programada extends \fs_model
         $residentesFacturados = $residentesProgramados->getByIdProgramacion($jobDisponible->id);
         if($residentesPendientes === false) {
             $jobDisponible->estado = 'CONCLUIDO';
-            $jobDisponible->facturas_generadas = $residentesFacturados;
+            $jobDisponible->facturas_generadas = count($residentesFacturados);
             $jobDisponible->usuario_modificacion = 'cron';
             $jobDisponible->fecha_modificacion = \date('Y-m-d H:i:s');
             $jobDisponible->save();
@@ -259,19 +276,19 @@ class residentes_facturacion_programada extends \fs_model
     
     public function initCron()
     {
-        $ahora = new \DateTime('NOW');
-        $horaActual = strtotime($ahora->format('H'));
-        $jobDisponible = $this->get_by_date_hour_status($ahora->format('Y-m-d'), $horaActual, 'ENCOLA');
-        if ($jobDisponible AND ($horaActual === $jobDisponible->hora_envio)) {
-            echo " ** Se inicia el proceso de Facturación Programada ".$horaActual." ** \n";
+        $ahora = \date('Y-m-d');
+        $horaActual = \date('H');
+        $jobDisponible = $this->get_by_date_hour_status($ahora, $horaActual, 'ENCOLA');
+        if ($jobDisponible) {
+            echo " ** Se inicia el proceso de Facturación Programada ".$ahora." ".$horaActual." ** \n";
             $this->new_advice(' ** Se inicia el proceso de Facturación Programada ** ');
             $jobDisponible->estado = 'ENPROCESO';
             $jobDisponible->usuario_modificacion = 'cron';
             $jobDisponible->fecha_modificacion = \date('Y-m-d H:i:s');
             $jobDisponible->save();
             $this->startJob($jobDisponible);
-        }else{
-           echo " ** No coincide la hora de proceso con la de ejecucion de cron se omite el proceso ".$horaActual." ** \n";
+        } else {
+           echo " ** No coincide la hora de proceso con la de ejecucion de cron se omite el proceso $ahora $horaActual ** \n";
            $this->new_advice(' ** No coincide la hora de proceso con la de ejecucion de cron se omite el proceso ** ');
         }
     }
@@ -281,7 +298,7 @@ class residentes_facturacion_programada extends \fs_model
 
     }
     
-    private function nuevaFactura($resProgramado, &$jobDisponible) 
+    public function nuevaFactura($resProgramado, &$jobDisponible) 
     {
         $clienteTable = new cliente();
         $empresaTable = new empresa();
@@ -297,7 +314,8 @@ class residentes_facturacion_programada extends \fs_model
                 $this->nuevoDetalleFactura($factura, $residente, $listaArticulos);
                 
                 $this->nuevoTotalFactura($factura, $resProgramado, $empresaTable);
-                
+                $jobDisponible->facturas_generadas = $jobDisponible->facturas_generadas+1;
+                $jobDisponible->save();
             } else {
                 $this->new_error_msg('Imposible guardar la factura.');
             }
@@ -306,13 +324,13 @@ class residentes_facturacion_programada extends \fs_model
         }
     }
     
-    private function nuevaCabeceraFactura(&$factura, &$residente, &$empresaTable, &$jobDisponible)
+    public function nuevaCabeceraFactura(&$factura, &$residente, &$empresaTable, &$jobDisponible)
     {
         $factura->codserie = ($residente->codserie) ? $residente->codserie : $empresaTable->codserie;
         $factura->codpago = $jobDisponible->forma_pago;
         $factura->codalmacen = $empresaTable->codalmacen;
         $factura->codagente = '1';
-        $factura->set_fecha_hora(\date('Y-m-d'), \date('H:i:s'));
+        $factura->set_fecha_hora(\date('Y-m-d'),\date('H:i:s'));
 
         $this->nuevaVerificacionContabilidadFactura($factura, $residente, $empresaTable);
 
@@ -324,10 +342,12 @@ class residentes_facturacion_programada extends \fs_model
         /// función auxiliar para implementar en los plugins que lo necesiten
         if (!fs_generar_numero2($factura)) {
             $factura->numero2 = '';
+            echo "No hay funcion libre. \n";
         }
+        
     }
     
-    private function nuevoDetalleFactura(&$factura, &$residente, $listaArticulos)
+    public function nuevoDetalleFactura(&$factura, &$residente, $listaArticulos)
     {
         $art0 = new articulo();
         $impuesto = new impuesto();
@@ -340,7 +360,7 @@ class residentes_facturacion_programada extends \fs_model
                 $linea->referencia = $concepto->referencia;
                 $linea->descripcion = $art->descripcion;
                 $linea->cantidad = $concepto->cantidad;
-                $imp = $impuesto->get($concepto->impuesto);
+                $imp = $impuesto->get($concepto->codimpuesto);
                 $linea->codimpuesto = $imp->codimpuesto;
                 $linea->iva = $imp->iva;
                 $linea->pvpsindto = $concepto->pvp;
@@ -353,7 +373,7 @@ class residentes_facturacion_programada extends \fs_model
         
     }
     
-    private function nuevoTotalLineasFactura(&$factura, &$linea)
+    public function nuevoTotalLineasFactura(&$factura, &$linea)
     {
         if ($linea->save()) {
             $factura->neto += $linea->pvptotal;
@@ -361,7 +381,7 @@ class residentes_facturacion_programada extends \fs_model
         }
     }
     
-    private function nuevoTotalFactura(&$factura, &$residenteProgramado, &$empresaTable)
+    public function nuevoTotalFactura(&$factura, &$residenteProgramado, &$empresaTable)
     {
         /// redondeamos
         $factura->neto = round($factura->neto, FS_NF0);
@@ -371,25 +391,21 @@ class residentes_facturacion_programada extends \fs_model
         $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
 
         if ($factura->save()) {
-            $this->generar_asiento($factura, $empresaTable);
-            
+            $this->generar_asiento($factura, $empresaTable);            
             /// Función de ejecución de tareas post guardado correcto de la factura
+            //call_user_func('fs_documento_post_save', $factura);
             fs_documento_post_save($factura);
-            
+            //echo "Factura: ".$factura->numero2."\n";
             //Actualizamos la data del residente
             $residenteProgramado->idfactura = $factura->idfactura;
             $residenteProgramado->procesado = true;
             $residenteProgramado->save();
-                    
-                    
-            $this->new_advice("<a href='" . $factura->url() . "'>Factura</a> guardada correctamente.");
-            $this->new_change('Factura Cliente ' . $factura->codigo, $factura->url(), TRUE);
         } else {
-            $this->new_error_msg("¡Imposible actualizar la <a href='" . $factura->url() . "'>Factura</a>!");
+            $factura->delete();
         }
     }
     
-    private function nuevaVerificacionContabilidadFactura(&$factura, &$residente, &$empresaTable)
+    public function nuevaVerificacionContabilidadFactura(&$factura, &$residente, &$empresaTable)
     {
         $eje0 = new ejercicio();
         $ejercicio = $eje0->get_by_fecha(date('d-m-Y'));
@@ -402,7 +418,7 @@ class residentes_facturacion_programada extends \fs_model
         }
     }
     
-    private function nuevaDivisaFactura(&$factura, &$residente)
+    public function nuevaDivisaFactura(&$factura, &$residente)
     {
         $div0 = new divisa();
         $divisa = $div0->get($residente->coddivisa);
@@ -412,7 +428,7 @@ class residentes_facturacion_programada extends \fs_model
         }
     }
     
-    private function nuevaInformacionResidenteFactura(&$factura, &$residente)
+    public function nuevaInformacionResidenteFactura(&$factura, &$residente)
     {
         
         foreach ($residente->get_direcciones() as $d) {
@@ -436,7 +452,7 @@ class residentes_facturacion_programada extends \fs_model
      * Genera el asiento para la factura, si procede
      * @param factura_cliente $factura
      */
-    private function generar_asiento(&$factura, &$empresaTable) {
+    public function generar_asiento(&$factura, &$empresaTable) {
         if ($empresaTable->contintegrada) {
             $asiento_factura = new asiento_factura();
             $asiento_factura->generar_asiento_venta($factura);

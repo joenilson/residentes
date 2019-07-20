@@ -136,16 +136,19 @@
                 <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Residentes
             </a>
             <div class="btn-group">
-                <a class="btn btn-sm btn-default" href="index.php?page=lista_residentes&cliente={$fsc->residente->codcliente}">
-                    <span class="glyphicon glyphicon-zoom-in"></span> &nbsp; Más del cliente
-                </a>
+
                 <a class="btn btn-sm btn-success" href="#" onclick="nueva_factura('{$fsc->residente->codcliente}')">
                     <span class="fa fa-plus"></span>&nbsp;Nueva Factura
                 </a>
-                {loop="$fsc->extensions"}
-                {if="$value->type=='button'"}
-                <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                {if="$fsc->cliente_data->codcontacto!=''"}
+                <a class="btn btn-sm btn-primary" href="index.php?page=ver_crm_contacto&cod={$fsc->cliente_data->codcontacto}#notas">
+                    <span class="fa fa-sticky-note-o fa-fw"></span> &nbsp; Notas del Residente
+                </a>
                 {/if}
+                {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                        <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                    {/if}
                 {/loop}
             </div>
         </div>
@@ -229,7 +232,7 @@
         </li>
         <li role="presentation">
             <a href="#nuevaf" aria-controls="nuevaf" role="tab" data-toggle="tab">
-                <span class="glyphicon glyphicon-file"></span> &nbsp; Nueva
+                <span class="glyphicon glyphicon-file"></span> &nbsp; Nueva 
             </a>
         </li>
     </ul>
@@ -410,9 +413,12 @@
                                 </tr>
                                 <tr>
                                     <th colspan="6" class="text-right">
-                                        <div class="col-sm-7">Al guardar la factura se generará con esta condición de pago:</div>
+                                        <div class="col-sm-3">Al guardar la factura se generará con esta condición de pago y observaciones:</div>
+                                        <div class="col-sm-4 text-left">
+                                            <textarea name="observaciones" placeholder="Observaciones" cols="2" class="form-control input-sm"></textarea>
+                                        </div>
                                         <div class="col-sm-3">
-                                            <select name="forma_pago" class="form-control input-sm col-sm-3">
+                                            <select name="forma_pago" class="form-control input-sm">
                                                 {loop="$fsc->forma_pago->all()"}
                                                 <option value="{$value->codpago}"{if="$value->codpago==$fsc->cliente_data->codpago"} selected="selected"{/if}>{$value->descripcion}</option>
                                                 {/loop}

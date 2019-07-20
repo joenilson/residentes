@@ -1,0 +1,271 @@
+{include="header"}
+<!--
+Copyright (C) 2019 joenilson.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301  USA
+-->
+<div id="loader"></div>
+<div class="container-fluid" style="margin-top: 10px;">
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&accion=lista_programacion&idprogramacion={$fsc->idProg}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                <a class="btn btn-sm btn-primary" href="{$fsc->url()}" title="Regresar al Listado">
+                    <span class="fa fa-arrow-left fa-fw"></span>Regresar
+                </a>
+            </div>
+
+            <div class="btn-group">
+                {loop="$fsc->extensions"}
+                {if="$value->type=='button'"}
+                <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                {/if}
+                {/loop}
+            </div>
+        </div>
+        <div class="col-sm-4 text-right">
+            <h2 style="margin-top: 0px;"><span class="fa fa-calendar"></span>&nbsp;Nueva Programaci&oacute;n</h2>
+        </div>
+        <hr/>
+    </div>
+    <div class='row'>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th class="text-left">Codigo</th>
+                        <th class="text-left">Residente</th>
+                        <th class="text-left">Edificaci&oacute;n</th>
+                        <th class="text-center">Fecha</th>
+                        <th class="text-center">Factura</th>
+                        <th class="text-center">Importe</th>
+                        <th class="text-center">Forma Pago</th>
+                        <th>Factura Enviada</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {loop="$fsc->lista_programaciones"}
+                    <tr>
+                        <td><input type="checkbox" name="facturacion[]" value="{$value->idfactura}" class="form-control input-sm"></td>
+                        <td>{$value->codcliente}</td>
+                        <td class="text-left">{$value->nombre_residente}</td>
+                        <td class="text-center">{$value->codigo} {$value->numero}</td>
+                        <td class="text-center">{$value->fecha}</td>
+                        <td class="text-center">{$value->idfactura} {$value->numero2}</td>
+                        <td class="text-center">{$value->importe}</td>
+                        <td class="text-center">{$value->forma_pago}</td>
+                        <td class="text-center">{if="$value->femail"}<b class="text-success">SI</b>{else}<b class="text-danger">NO</b>{/if}</td>
+                        <td><button type="button" class="btn btn-sm btn-default"><i class="fa fa-envelope fa-fw"></i>Enviar</button></td>
+                    </tr>
+                    {else}
+                    <tr>
+                        <td colspan='10' class='alert-info text-info text-center'>No existen registros para mostrar.</td>
+                    </tr>
+                    {/loop}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    
+    <script>
+    $(document).ready(function(){
+        var next = 0;
+        $('.add-one').click(function(){
+            var addto = ".dynamic-stuff";
+            next = next + 1;
+            var newIn = '<div class="form-group col-sm-12">' +
+                '<div class="col-sm-5 campo-referencia">' +
+                '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-sm" onchange="actualizarPrecio('+next+')">' +
+                '       <option value="">Referencia</option>' +
+                        {loop="$fsc->familias->get_articulos()"}
+                '       <option value="{$value->referencia}">{$value->descripcion}</option>' +
+                        {/loop}
+                '   </select>' +
+                '</div>' +
+                '<div class="col-sm-1 campo-pvp">' +
+                '    <input type="text" name="pvp[]" id="pvp_'+next+'" value="" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
+                '</div>' +
+                '<div class="col-sm-1 campo-cantidad">' +
+                '    <input type="text" name="cantidad[]" id="cantidad_'+next+'" value="1" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
+                '</div>' +
+                '<div class="col-sm-2 campo-impuesto">' +
+                '    <select name="impuesto[]" id="impuesto_'+next+'" class="form-control input-sm" onchange="recalcular('+next+')">' +
+                '        <option selected>impuesto</option>' +
+                        {loop="$fsc->impuesto->all()"}
+                '        <option value="{$value->codimpuesto}" {if="$value->is_default()"}selected{/if}>{$value->descripcion}</option>' +
+                        {/loop}
+                '    </select>' +
+                '</div>' +
+                '<div class="col-sm-2 campo-importe">' +
+                '    <input type="text" name="importe[]" id="importe_'+next+'" value="" readonly="" class="form-control input-sm text-right">' +
+                '</div>' +
+                '<div class="col-sm-1 text-center">' +
+                '    <p class="delete btn-sm btn-danger text-center text-capitalize"><i class="fa fa-trash fa-fw"></i></p>' +
+                '</div>' +
+            '</div>';
+            
+            var newInput = $(newIn);
+            $(addto).append(newInput);
+            $('#referencia_'+next).selectpicker({liveSearch: true});
+            $('#impuesto_'+next).selectpicker({liveSearch: true});
+            attach_delete();
+        });
+        
+        $('#f_generar_facturacion').submit(function(e) {
+            var currentForm = this;
+
+            if($('#total_importe').val() === 0) {
+                bootbox.alert('Debes elegir primero un concepto a facturar.');
+                return false;
+            }
+
+            if(document.querySelectorAll('input[name="edificacion[]"]:checked').length === 0) {
+                bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
+                return false;
+            }
+            e.preventDefault();
+            bootbox.confirm({
+                message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
+                buttons: {
+                    confirm: {
+                        label: 'Programar',
+                        className: 'btn-success'
+                    },
+                    cancel: {
+                        label: 'Regresar',
+                        className: 'btn-danger'
+                    }
+                },
+                callback: function (result) {
+                    if(result) {
+                        $('#loader').show();
+                        currentForm.submit();
+                    }
+                }
+            });
+        });
+    });
+    
+    all_impuestos = [];
+    {loop="$fsc->impuesto->all()"}
+        all_impuestos[{$counter}] = {codimpuesto: '{$value->codimpuesto}', iva: '{$value->iva}'};
+    {/loop}
+        
+    function procesar_checkboxs(inputCheckbox)
+    {
+        $('input:checkbox').prop('checked', inputCheckbox.checked);
+    }
+    
+    function attach_delete(){
+        $('.delete').off();
+        $('.delete').click(function(){
+            $(this).closest('.form-group').remove();
+        });
+    }
+    
+    function actualizarPrecio(inputId)
+    {
+        articulos = [];
+        {loop="$fsc->familias->get_articulos()"}
+        articulos[{$counter}] = {referencia: '{$value->referencia}', descripcion: '{$value->descripcion}', pvp: '{$value->pvp}', impuesto: '{$value->codimpuesto}'};
+        {/loop}
+        var referencia = $("#referencia_"+inputId);
+        var pvp = $("#pvp_"+inputId);
+        var cantidad = $("#cantidad_"+inputId);
+        var impuesto = $("#impuesto_"+inputId);
+        
+        for(var i=0; i<articulos.length; i++)
+        {
+            if(referencia.val() === articulos[i].referencia)
+            {
+                pvp.val(articulos[i].pvp);
+                impuesto.selectpicker('val',articulos[i].impuesto);
+                recalcular(inputId);
+            }
+        }
+    }
+    
+    function buscar_impuesto(cod){
+        for(var i=0; i<all_impuestos.length; i++)
+        {
+            if(cod === all_impuestos[i].codimpuesto)
+            {
+               return all_impuestos[i].iva;
+            }
+        }
+    }
+    
+    function recalcular(inputId){
+        
+        var importe = 0;
+        
+        var inputReferencia = $("#referencia_"+inputId);
+        var inputPvp = $("#pvp_"+inputId);
+        var inputCantidad = $("#cantidad_"+inputId);
+        var inputImpuesto = $("#impuesto_"+inputId);
+        var inputImporte = $("#importe_"+inputId);
+        pvp = inputPvp.val();
+        cantidad = inputCantidad.val();
+        codimpuesto = inputImpuesto.val();
+        
+        impuesto = buscar_impuesto(codimpuesto);
+        if(impuesto === 0) {
+            importe = pvp*cantidad;
+        } else {
+            importe = (parseFloat(pvp)+(parseFloat(pvp)*parseFloat(impuesto/100)))*parseFloat(cantidad);
+        }
+        
+        inputImporte.val(importe);
+        totalizar();
+    }
+    
+    function totalizar(){
+        var importe_total=0;
+        var importes = document.getElementsByName('importe[]');
+        for (var i = 0; i < importes.length; i++) {
+        var importe=importes[i];
+            importe_total=importe_total+parseFloat(importe.value);
+        }
+        $('#total_importe').val(importe_total);
+    }
+    
+    </script>
+    <style>
+        .list-group-scroll{
+            max-height: 450px;
+            margin-bottom: 10px;
+            overflow:scroll;
+            -webkit-overflow-scrolling: touch;
+        }
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.75) url('{#FS_PATH#}plugins/residentes/view/images/loading_spinner.gif') no-repeat center center;
+            z-index: 10000;
+        }
+    </style>
+{include="footer"}

@@ -28,13 +28,14 @@ require_model('cliente.php');
 require_model('factura_cliente.php');
 require_model('impuesto.php');
 require_model('residentes_edificaciones.php');
+require_once 'plugins/residentes/extras/residentes_controller.php';
 
 /**
  * Description of ver_residente
  *
  * @author carlos
  */
-class ver_residente extends fs_controller {
+class ver_residente extends residentes_controller {
 
     public $cliente;
     public $cliente_data;
@@ -46,6 +47,7 @@ class ver_residente extends fs_controller {
     public $impuesto;
     public $residente;
     public $forma_pago;
+    public $lista_notas;
     public function __construct() 
     {
         parent::__construct(__CLASS__, 'Residente', 'residentes', FALSE, FALSE);
@@ -68,9 +70,16 @@ class ver_residente extends fs_controller {
         $this->initVars();
 
         if (\filter_input(INPUT_GET, 'id')) {
-            $inq0 = new residentes_edificaciones();
-            $this->residente = $inq0->get(\filter_input(INPUT_GET, 'id'));
+            $res0 = new residentes_edificaciones();
+            $this->residente = $res0->get(\filter_input(INPUT_GET, 'id'));
             $this->cliente_data = $this->cliente->get($this->residente->codcliente);
+            $this->cliente_data->codcontacto = '';
+            
+            if(class_exists('contacto_cliente')) {
+                $concli = new contacto_cliente();
+                $infoCRM = $concli->all_from_cliente($this->residente->codcliente);
+                $this->cliente_data->codcontacto = $infoCRM[0]->codcontacto;
+            }
         }
         
         if ($this->residente) {
@@ -135,6 +144,7 @@ class ver_residente extends fs_controller {
             $factura->codpago = \filter_input(INPUT_POST, 'forma_pago');
             $factura->codalmacen = $this->empresa->codalmacen;
             $factura->set_fecha_hora($this->today(), $this->hour());
+            $factura->observaciones = htmlentities(trim(\filter_input(INPUT_POST, 'forma_pago')));
             $eje0 = new ejercicio();
             $ejercicio = $eje0->get_by_fecha(date('d-m-Y'));
             if ($ejercicio) {

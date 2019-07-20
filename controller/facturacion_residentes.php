@@ -28,7 +28,6 @@ require_once 'plugins/residentes/extras/residentes_controller.php';
  * @author joenilson
  */
 
-
 class facturacion_residentes extends residentes_controller 
 {
 
@@ -45,6 +44,7 @@ class facturacion_residentes extends residentes_controller
     public $forma_pago;
     public $loop_horas;
     public $proxima_hora;
+    public $idProg;
     public $programaciones;
     public $programaciones_conceptos;
     public $programaciones_edificaciones;
@@ -137,10 +137,25 @@ class facturacion_residentes extends residentes_controller
             case "eliminar_programacion":
                 $this->eliminarProgramacion();
                 break;
+            case "reiniciar_programacion":
+                $this->reiniciarProgramacion();
+                break;
+            case "lista_programacion":
+                $this->listaProgramacion();
+                break;
             default:
                 
                 break;
         }
+    }
+    
+    public function listaProgramacion()
+    {
+        $idProgramacion = $this->filter_request('idprogramacion');
+        $this->template = 'block/lista_programacion_facturacion';
+        $rfpe = new residentes_facturacion_programada_edificaciones();
+        $this->lista_programaciones = $rfpe->get_lista_edificaciones($idProgramacion);
+        $this->idProg = $idProgramacion;
     }
     
     public function eliminarProgramacion()
@@ -158,6 +173,27 @@ class facturacion_residentes extends residentes_controller
             $this->new_message('Programaci&oacute;n eliminada correctamente.');
         } else {
             $this->new_error_msg('La Programaci&oacute;n no pudo ser eliminada, verifique los datos o sus permisos.');
+        }
+    }
+    
+    public function reiniciarProgramacion()
+    {
+        $estado = false;
+        $idProgramacion = $this->filter_request('idprogramacion');
+        if($this->user->allow_delete_on(__CLASS__) AND isset($idProgramacion) AND $idProgramacion !== '') {
+            $programaciones = new residentes_facturacion_programada();
+            $programa = $programaciones->get($idProgramacion);
+            if($programa) {
+                $programa->eliminar_facturas();
+                $programa->estado = 'ENCOLA';
+                $programa->facturas_generadas = 0;
+                $estado = $programa->save();
+            }
+        }
+        if($estado == true) {
+            $this->new_message('Programaci&oacute;n reiniciada correctamente.');
+        } else {
+            $this->new_error_msg('La Programaci&oacute;n no pudo ser reiniciada, verifique los datos o sus permisos.');
         }
     }
     

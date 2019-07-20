@@ -29,6 +29,7 @@ class residentes_controller extends fs_controller
     public $desde;
     public $hasta;
     public $tesoreria;
+    public $CRM_plugin;
     protected function private_core()
     {
         parent::private_core();
@@ -45,6 +46,7 @@ class residentes_controller extends fs_controller
     public function existe_tesoreria()
     {
         $this->tesoreria = false;
+        $this->CRM_plugin = true;
         //revisamos si esta el plugin de tesoreria
         $disabled = array();
         if (defined('FS_DISABLED_PLUGINS')) {
@@ -52,8 +54,13 @@ class residentes_controller extends fs_controller
                 $disabled[] = $aux;
             }
         }
-        if (in_array('tesoreria', $GLOBALS['plugins']) and ! in_array('tesoreria', $disabled)) {
+        
+        if (in_array('tesoreria', $GLOBALS['plugins']) and !in_array('tesoreria', $disabled)) {
             $this->tesoreria = true;
+        }
+        
+        if (in_array('CRM', $GLOBALS['plugins']) and !in_array('CRM', $disabled)) {
+            $this->CRM_plugin = true;
         }
     }
 

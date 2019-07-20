@@ -17,6 +17,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301  USA
 -->
+<div id="loader"></div>
 <div class="container-fluid" style="margin-top: 10px;">
     <div class="row">
         <div class="col-sm-9">
@@ -73,7 +74,7 @@ MA 02110-1301  USA
                     <tr>
                         <td>{$value->descripcion}</td>
                         <td class="text-center">{$value->residentes_facturar}</td>
-                        <td class="text-center">{$value->facturas_generadas}</td>
+                        <td class="text-center"><a href="{$fsc->url()}&accion=lista_programacion&idprogramacion={$value->id}">{$value->facturas_generadas}<a></td>
                         <td class="text-center">{$value->formato_factura}</td>
                         <td class="text-center">{$value->fecha_envio}</td>
                         <td class="text-center">{$value->hora_envio}</td>
@@ -81,6 +82,9 @@ MA 02110-1301  USA
                         <td>{$value->usuario_creacion}</td>
                         <td>{$value->fecha_creacion}</td>
                         <td>
+                            <a href='#' onClick='confirmarReinicio({$value->id})' alt='Reiniciar programacion' class='btn btn-sm btn-warning'>
+                                <i class='fa fa-refresh'></i>
+                            </a>
                             <a href='#' onClick='confirmarEliminacion({$value->id})' alt='Eliminar programacion' class='btn btn-sm btn-danger'>
                                 <i class='fa fa-trash'></i>
                             </a>
@@ -88,7 +92,7 @@ MA 02110-1301  USA
                     </tr>
                     {else}
                     <tr>
-                        <td colspan='9' class='alert-info text-info text-center'>No existen registros para mostrar.</td>
+                        <td colspan='10' class='alert-info text-info text-center'>No existen registros para mostrar.</td>
                     </tr>
                     {/loop}
                 </tbody>
@@ -116,11 +120,47 @@ MA 02110-1301  USA
             },
             callback: function (result) {
                 if(result) {
+                    $('#loader').show();
                      window.location.href = '{#FS_PATH#}{$fsc->url()}&accion=eliminar_programacion&idprogramacion='+id;
                 }
             }
         });
     }
     
+    function confirmarReinicio(id) {
+        bootbox.confirm({
+            message: "¿Est&aacute; seguro que quiere reiniciar esta programaci&oacute;n?, al hacerlo se solicitará la eliminación de las facturas generadas.",
+            buttons: {
+                confirm: {
+                    label: 'Reiniciar',
+                    className: 'btn-danger'
+                },
+                cancel: {
+                    label: 'Cancelar',
+                    className: 'btn-default'
+                }
+            },
+            callback: function (result) {
+                if(result) {
+                    $('#loader').show();
+                    window.location.href = '{#FS_PATH#}{$fsc->url()}&accion=reiniciar_programacion&idprogramacion='+id;
+                }
+            }
+        });
+    }
+    
     </script>
+    <style>
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.75) url('{#FS_PATH#}plugins/residentes/view/images/loading_spinner.gif') no-repeat center center;
+            z-index: 10000;
+        }
+    </style>
 {include="footer"}

@@ -78,7 +78,7 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
             "WHERE id = ".$this->intval($this->id).";";
             $data = $this->db->exec($sql);
             return $data;
-        }else{
+        } else {
             $sql = "INSERT INTO ".$this->table_name.
             " (idprogramacion, id_edificacion, codcliente, procesado) VALUES (".
             $this->intval($this->idprogramacion).", ".
@@ -132,6 +132,50 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
             return $lista;
         }
         return false;   
+    }
+    
+    public function get_lista_edificaciones($idProg) {
+        $sql = "select * from ".$this->table_name." WHERE idprogramacion = ".$this->intval($idProg)." ORDER BY id";
+        $data = $this->db->select($sql);
+        $lista = array();
+        if($data) {
+            foreach($data as $d) {
+                 $item = new residentes_facturacion_programada_edificaciones($d);
+                 $this->infoAdicional($item);
+                 $lista[] = $item;
+            }
+            return $lista;
+        }
+        return false; 
+    }
+    
+    public function infoAdicional(&$item)
+    {
+        $cli = new cliente();
+        $infoCli = $cli->get($item->codcliente);
+        $item->nombre_residente = $infoCli->nombre;
+        $redif = new residentes_edificaciones();
+        $infoEdif = $redif->get($item->id_edificacion);
+        $item->codigo = $infoEdif->codigo;
+        $item->numero = $infoEdif->numero;
+        $item->numero2 = '';
+        $item->femail = '';
+        $item->fecha = '';
+        $item->importe = 0;
+        $item->forma_pago = '';
+        if($item->idfactura) {
+            $fact = new factura_cliente();
+            $infoFact = $fact->get($item->idfactura);
+            if ($infoFact) {
+                $item->numero2 = $infoFact->numero2;
+                $item->femail = $infoFact->femail;
+                $item->fecha = $infoFact->fecha;
+                $item->importe = $infoFact->total;
+                $fp = new forma_pago();
+                $infoFP = $fp->get($fact->codpago);
+                $item->forma_pago = $infoFP->descripcion;
+            }
+        }
     }
     
     public function get_by_date_status($date, $status)
