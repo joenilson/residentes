@@ -139,158 +139,168 @@ class ver_residente extends residentes_controller {
         $cliente = $this->cliente->get($this->residente->codcliente);
         if ($cliente) {
             $factura = new factura_cliente();
-            $factura->codserie = ($cliente->codserie) ? $cliente->codserie : $this->empresa->codserie;
-            $factura->codagente = $this->user->codagente;
-            $factura->codpago = \filter_input(INPUT_POST, 'forma_pago');
-            $factura->codalmacen = $this->empresa->codalmacen;
-            $factura->set_fecha_hora($this->today(), $this->hour());
-            $factura->observaciones = htmlentities(trim(\filter_input(INPUT_POST, 'forma_pago')));
-            $eje0 = new ejercicio();
-            $ejercicio = $eje0->get_by_fecha(date('d-m-Y'));
-            if ($ejercicio) {
-                $factura->codejercicio = $ejercicio->codejercicio;
-            }
-            if ($this->empresa->contintegrada) {
-                /// forzamos crear la subcuenta
-                $cliente->get_subcuenta($this->empresa->codejercicio);
-            }
             
-            $forma_pago = $this->forma_pago->get($factura->codpago);
-            if ($forma_pago->genrecibos == 'Pagados') {
-                $factura->pagada = TRUE;
-            }
-
-            $div0 = new divisa();
-            $divisa = $div0->get($cliente->coddivisa);
-            if ($divisa) {
-                $factura->coddivisa = $divisa->coddivisa;
-                $factura->tasaconv = $divisa->tasaconv;
-            }
-
-            $factura->codcliente = $cliente->codcliente;
-            foreach ($cliente->get_direcciones() as $d) {
-                if ($d->domfacturacion) {
-                    $factura->codcliente = $cliente->codcliente;
-                    $factura->cifnif = $cliente->cifnif;
-                    $factura->nombrecliente = $cliente->nombre;
-                    $factura->apartado = $d->apartado;
-                    $factura->ciudad = $d->ciudad;
-                    $factura->coddir = $d->id;
-                    $factura->codpais = $d->codpais;
-                    $factura->codpostal = $d->codpostal;
-                    $factura->direccion = $d->direccion;
-                    $factura->provincia = $d->provincia;
-                    break;
-                }
-            }
+            $this->cabeceraFactura($factura, $cliente);
+            
+            $this->datosClienteFactura($factura, $cliente);
+            
             /// función auxiliar para implementar en los plugins que lo necesiten
             if (!fs_generar_numero2($factura)) {
                 $factura->numero2 = '';
             }
             if ($factura->save()) {
-                $art0 = new articulo();
-                $lineas = \filter_input(INPUT_POST, 'numlineas');
-                for ($x = 0; $x < $lineas; $x++) {
-                    $referencia = \filter_input(INPUT_POST, 'referencia_' . $x);
-                    $importe = \filter_input(INPUT_POST, 'importe_' . $x);
-                    $impuesto = \filter_input(INPUT_POST, 'impuesto_' . $x);
-                    $art = $art0->get($referencia);
-                    if (floatval($importe)) {
-                        $linea = new linea_factura_cliente();
-                        $linea->idfactura = $factura->idfactura;
-                        $linea->referencia = $referencia;
-                        $linea->descripcion = ($art) ? $art->descripcion : $referencia . ' Articulo libre';
-                        $linea->cantidad = 1;
-                        $imp = $this->impuesto->get($impuesto);
-                        if ($imp) {
-                            $linea->codimpuesto = $imp->codimpuesto;
-                            $linea->iva = $imp->iva;
-                            $linea->pvpsindto = $importe;
-                            $linea->pvpunitario = $importe;
-                            $linea->pvptotal = $linea->pvpunitario * $linea->cantidad;
-                            if ($linea->save()) {
-                                $factura->neto += $linea->pvptotal;
-                                $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
-                            }
-                        }
-                    }
-                }
+                $this->lineasFactura($factura);
 
-                if ($_POST['desc_otro'] != '') {
-                    $linea = new linea_factura_cliente();
-                    $linea->idfactura = $factura->idfactura;
-                    $linea->descripcion = $_POST['desc_otro'];
-                    $linea->cantidad = 1;
-                    $imp = $this->impuesto->get($_POST['impuesto_otro']);
-                    if ($imp) {
-                        $linea->codimpuesto = $imp->codimpuesto;
-                        $linea->iva = $imp->iva;
-                        $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval($_POST['otro'])) / (100 + $imp->iva);
+                $this->lineasLibresFactura($factura, 'otro');
+                $this->lineasLibresFactura($factura, 'otro2');
 
-                        if ($_POST['ref_otro']) {
-                            $articulo = $art0->get($_POST['ref_otro']);
-                            if ($art0) {
-                                $linea->referencia = $articulo->referencia;
-                                $articulo->sum_stock($this->empresa->codalmacen, -1);
-                            }
-                        }
-
-                        if ($linea->save()) {
-                            $factura->neto += $linea->pvptotal;
-                            $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
-                        }
-                    }
-                }
-
-                if ($_POST['desc_otro2'] != '') {
-                    $linea = new linea_factura_cliente();
-                    $linea->idfactura = $factura->idfactura;
-                    $linea->descripcion = $_POST['desc_otro2'];
-                    $linea->cantidad = 1;
-                    $imp = $this->impuesto->get($_POST['impuesto_otro2']);
-                    if ($imp) {
-                        $linea->codimpuesto = $imp->codimpuesto;
-                        $linea->iva = $imp->iva;
-                        $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval($_POST['otro2'])) / (100 + $imp->iva);
-
-                        if ($_POST['ref_otro2']) {
-                            $articulo = $art0->get($_POST['ref_otro2']);
-                            if ($art0) {
-                                $linea->referencia = $articulo->referencia;
-                                $articulo->sum_stock($this->empresa->codalmacen, -1);
-                            }
-                        }
-
-                        if ($linea->save()) {
-                            $factura->neto += $linea->pvptotal;
-                            $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
-                        }
-                    }
-                }
-
-                /// redondeamos
-                $factura->neto = round($factura->neto, FS_NF0);
-                $factura->totaliva = round($factura->totaliva, FS_NF0);
-                $factura->totalirpf = round($factura->totalirpf, FS_NF0);
-                $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
-                $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
-
-                if (abs(floatval($_POST['total_importe']) - $factura->total) > .01) {
-                    $this->new_error_msg("El total difiere entre la vista y el controlador (" . $_POST['total_importe'] .
-                            " frente a " . $factura->total . "). Debes informar del error.");
-                    $factura->delete();
-                } else if ($factura->save()) {
-                    $this->generar_asiento($factura);
-                    /// Función de ejecución de tareas post guardado correcto de la factura
-                    fs_documento_post_save($factura);
-                    $this->new_message("<a href='" . $factura->url() . "'>Factura</a> guardada correctamente.");
-                    $this->new_change('Factura Cliente ' . $factura->codigo, $factura->url(), TRUE);
-                } else
-                    $this->new_error_msg("¡Imposible actualizar la <a href='" . $factura->url() . "'>Factura</a>!");
-            } else
+                $this->totalFactura($factura);
+                
+            } else {
                 $this->new_error_msg('Imposible guardar la factura.');
-        } else
+            }
+        } else {
             $this->new_error_msg('Cliente no encontrado.');
+        }
+    }
+    
+    private function cabeceraFactura(&$factura, $cliente)
+    {
+        $factura->codserie = ($cliente->codserie) ? $cliente->codserie : $this->empresa->codserie;
+        $factura->codagente = $this->user->codagente;
+        $factura->codpago = \filter_input(INPUT_POST, 'forma_pago');
+        $factura->codalmacen = $this->empresa->codalmacen;
+        $factura->set_fecha_hora($this->today(), $this->hour());
+        $factura->observaciones = htmlentities(trim(\filter_input(INPUT_POST, 'observaciones')));
+        $this->datosContabilidadFactura($factura, $cliente);
+        
+        $div0 = new divisa();
+        $divisa = $div0->get($cliente->coddivisa);
+        if ($divisa) {
+            $factura->coddivisa = $divisa->coddivisa;
+            $factura->tasaconv = $divisa->tasaconv;
+        }
+    }
+    
+    private function datosContabilidadFactura(&$factura, $cliente)
+    {
+        $eje0 = new ejercicio();
+        $ejercicio = $eje0->get_by_fecha(date('d-m-Y'));
+        if ($ejercicio) {
+            $factura->codejercicio = $ejercicio->codejercicio;
+        }
+        if ($this->empresa->contintegrada) {
+            $cliente->get_subcuenta($this->empresa->codejercicio);
+        }
+
+        $forma_pago = $this->forma_pago->get($factura->codpago);
+        if ($forma_pago->genrecibos == 'Pagados') {
+            $factura->pagada = TRUE;
+        }
+    }
+    
+    private function datosClienteFactura(&$factura, $cliente)
+    {
+        $factura->codcliente = $cliente->codcliente;
+        foreach ($cliente->get_direcciones() as $d) {
+            if ($d->domfacturacion) {
+                $factura->codcliente = $cliente->codcliente;
+                $factura->cifnif = $cliente->cifnif;
+                $factura->nombrecliente = $cliente->nombre;
+                $factura->apartado = $d->apartado;
+                $factura->ciudad = $d->ciudad;
+                $factura->coddir = $d->id;
+                $factura->codpais = $d->codpais;
+                $factura->codpostal = $d->codpostal;
+                $factura->direccion = $d->direccion;
+                $factura->provincia = $d->provincia;
+                break;
+            }
+        }
+    }
+    
+    private function lineasFactura(&$factura)
+    {
+        $art0 = new articulo();
+        $lineas = \filter_input(INPUT_POST, 'numlineas');
+        for ($x = 0; $x < $lineas; $x++) {
+            $referencia = \filter_input(INPUT_POST, 'referencia_' . $x);
+            $importe = \filter_input(INPUT_POST, 'importe_' . $x);
+            $impuesto = \filter_input(INPUT_POST, 'impuesto_' . $x);
+            $art = $art0->get($referencia);
+            if (floatval($importe)) {
+                $linea = new linea_factura_cliente();
+                $linea->idfactura = $factura->idfactura;
+                $linea->referencia = $referencia;
+                $linea->descripcion = ($art) ? $art->descripcion : $referencia . ' Articulo libre';
+                $linea->cantidad = 1;
+                $imp = $this->impuesto->get($impuesto);
+                if ($imp) {
+                    $linea->codimpuesto = $imp->codimpuesto;
+                    $linea->iva = $imp->iva;
+                    $linea->pvpsindto = $importe;
+                    $linea->pvpunitario = $importe;
+                    $linea->pvptotal = $linea->pvpunitario * $linea->cantidad;
+                    if ($linea->save()) {
+                        $factura->neto += $linea->pvptotal;
+                        $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
+                    }
+                }
+            }
+        }
+    }
+    
+    private function lineasLibresFactura(&$factura, $linea_nombre)
+    {
+        if (\filter_input(INPUT_POST,'desc_'.$linea_nombre) != '') {
+            $linea = new linea_factura_cliente();
+            $linea->idfactura = $factura->idfactura;
+            $linea->descripcion = \filter_input(INPUT_POST,'desc_'.$linea_nombre);
+            $linea->cantidad = 1;
+            $imp = $this->impuesto->get(\filter_input(INPUT_POST,'impuesto_'.$linea_nombre));
+            if ($imp) {
+                $linea->codimpuesto = $imp->codimpuesto;
+                $linea->iva = $imp->iva;
+                $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval(\filter_input(INPUT_POST,$linea_nombre))) / (100 + $imp->iva);
+
+                if (\filter_input(INPUT_POST,'ref_'.$linea_nombre)) {
+                    $articulo = $art0->get(\filter_input(INPUT_POST,'ref_'.$linea_nombre));
+                    if ($art0) {
+                        $linea->referencia = $articulo->referencia;
+                        $articulo->sum_stock($this->empresa->codalmacen, -1);
+                    }
+                }
+
+                if ($linea->save()) {
+                    $factura->neto += $linea->pvptotal;
+                    $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
+                }
+            }
+        }
+    }
+    
+    private function totalFactura(&$factura)
+    {
+        /// redondeamos
+        $factura->neto = round($factura->neto, FS_NF0);
+        $factura->totaliva = round($factura->totaliva, FS_NF0);
+        $factura->totalirpf = round($factura->totalirpf, FS_NF0);
+        $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
+        $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
+
+        if (abs(floatval(\filter_input(INPUT_POST, 'total_importe')) - $factura->total) > .01) {
+            $this->new_error_msg("El total difiere entre la vista y el controlador (" . \filter_input(INPUT_POST,'total_importe') .
+                    " frente a " . $factura->total . "). Debes informar del error.");
+            $factura->delete();
+        } else if ($factura->save()) {
+            $this->generar_asiento($factura);
+            /// Función de ejecución de tareas post guardado correcto de la factura
+            fs_documento_post_save($factura);
+            $this->new_message("<a href='" . $factura->url() . "'>Factura</a> guardada correctamente.");
+            $this->new_change('Factura Cliente ' . $factura->codigo, $factura->url(), TRUE);
+        } else {
+            $this->new_error_msg("¡Imposible actualizar la <a href='" . $factura->url() . "'>Factura</a>!");
+        }
     }
 
     /**

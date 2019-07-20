@@ -75,6 +75,8 @@ $(document).ready(function () {
             });
         }
     });
+    
+    $("#btn_imprimir").click();
 });
 function createPDFObject(orientacion,page_size,texto,logo,cabecera,cuerpo,pie_pagina) {
     var page_size = [80,{$fsc->sizeFactura}];
