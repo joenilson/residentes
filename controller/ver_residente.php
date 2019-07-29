@@ -110,12 +110,13 @@ class ver_residente extends residentes_controller {
         $facts = $factura->all_from_cliente($this->residente->codcliente);
         $this->facturas = array();
         $articulos_cobrados = array();
+        
         foreach ($facts as $fac) {
             $fac->referencias = "";
             foreach ($fac->get_lineas() as $linea) {
                 if ($linea->referencia) {
                     $fac->referencias .= $linea->referencia . " ";
-                    $articulos_cobrados[$linea->referencia] = 1;
+                    $this->validarArticulos($articulos_cobrados, $fac, $linea);
                 } else {
                     $fac->referencias .= $linea->descripcion . " ";
                 }
@@ -125,9 +126,33 @@ class ver_residente extends residentes_controller {
         $this->generarArticulosCobrables($articulos_cobrados);
     }
     
+    public function validarArticulos(&$articulos_cobrados, &$fac, &$linea) 
+    {
+        if(!$fac->idfacturarect) {
+            $rectificativas = $fac->get_rectificativas();
+            $articulosDevueltos = array();
+            
+            $this->validarDevoluciones($articulosDevueltos, $rectificativas);
+            
+            if(!isset($articulosDevueltos[$linea->referencia])) {
+                $articulos_cobrados[$linea->referencia] = 1;
+            }
+        }
+    }
+    
+    public function validarDevoluciones(&$articulosDevueltos, $rectificativas)
+    {
+        foreach($rectificativas as $rectificativa) {
+            $lineas_r = $rectificativa->get_lineas();
+            foreach($lineas_r as $linea_r) {
+                $articulosDevueltos[$linea_r->referencia] = 1;
+            }
+        }
+    }
+    
     public function generarArticulosCobrables($articulos_cobrados)
     {
-        foreach($this->familia->get_articulos() as $art) {
+        foreach($this->familia->get_articulos(0, 1000) as $art) {
             if(!isset($articulos_cobrados[$art->referencia]) AND $art->bloqueado == 0) {
                 $this->articulos_cobrables[] = $art;
             }

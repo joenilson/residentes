@@ -71,12 +71,14 @@
         recalcular();
     }
     
-    function verificarTotalImporte()
+    function verificarTotalImporte(boton)
     {
         if(document.f_nueva_factura.total_importe.value == 0) {
             bootbox.alert('No se puede generar una factura vacia');
             return false;
         }
+        boton.textContent = 'Guardando...';
+        boton.disabled = true;
         return true;
     }
 
@@ -432,7 +434,8 @@
                                             </select>                                                    
                                         </div>
                                         <div class="col-sm-2">
-                                            <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="return verificarTotalImporte();">
+                                            <input type="hidden" name="accion" value="generar_factura">
+                                            <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="return verificarTotalImporte(this);">
                                                 <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
                                             </button>
                                         </div>
