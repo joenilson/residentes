@@ -20,15 +20,19 @@
         var total_impuestos = 0;
         var total_importe = 0;
 
-        {loop="$fsc->articulos_cobrables"}
-            total_neto += parseFloat(document.f_nueva_factura.importe_{$counter}.value);
-            impuesto{$counter}=buscar_impuesto(document.f_nueva_factura.impuesto_{$counter}.value);
-        {/loop}
-        {loop="$fsc->articulos_cobrables"}
-            total_impuestos += parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter})/100);
-            total_importe += (parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter}/100)))+parseFloat(document.f_nueva_factura.importe_{$counter}.value);
-            document.f_nueva_factura.total_{$counter}.value = fs_round((parseFloat(document.f_nueva_factura.importe_{$counter}.value)*((impuesto{$counter}/100)))+parseFloat(document.f_nueva_factura.importe_{$counter}.value),{#FS_NF0_ART#});
-        {/loop}
+        var importe_input_list = document.getElementsByClassName("importe_input");
+        var impuesto = [];
+        for(var i = 0; i < importe_input_list.length; ++i) {
+            var importe_index = "#importe_"+i;
+            var impuesto_index = "#impuesto_"+i;
+            var total_index = "#total_"+i;
+            total_neto += parseFloat($(importe_index).val());
+            impuesto[i]=buscar_impuesto($(impuesto_index).val());
+            total_impuestos += parseFloat($(importe_index).val())*((impuesto[i])/100);
+            
+            total_importe += (parseFloat($(importe_index).val())*((impuesto[i]/100)))+parseFloat($(importe_index).val());
+            $(total_index).val(fs_round((parseFloat($(importe_index).val())*((impuesto[i]/100)))+parseFloat($(importe_index).val()),{#FS_NF0_ART#}));
+        }
 
         total_neto += parseFloat(document.f_nueva_factura.otro.value)+0;
         total_neto += parseFloat(document.f_nueva_factura.otro2.value)+0;
@@ -71,14 +75,14 @@
         recalcular();
     }
     
-    function verificarTotalImporte(boton)
+    function verificarTotalImporte()
     {
         if(document.f_nueva_factura.total_importe.value == 0) {
             bootbox.alert('No se puede generar una factura vacia');
             return false;
         }
-        boton.textContent = 'Guardando...';
-        boton.disabled = true;
+        $("#generar_factura").text = 'Guardando...';
+        $("#generar_factura").attr('disabled', true);
         return true;
     }
 
@@ -304,7 +308,7 @@
             </div>
         </div>
         <div role="tabpanel" class="tab-pane" id="nuevaf">
-            <form name="f_nueva_factura" class="form" action="{$fsc->url()}" method="post">
+            <form name="f_nueva_factura" class="form" action="{$fsc->url()}" method="post" onSubmit="return verificarTotalImporte();">
                 <input type="hidden" name="ref_otro"/>
                 <input type="hidden" name="ref_otro2"/>
                 <div class='col-sm-1'></div>
@@ -337,10 +341,10 @@
                                     </td>
                                     <td>
                                         <input type="hidden"id="importe_original_{$counter}" name="importe_original_{$counter}" value="{$value->pvp}">
-                                        <input class="form-control input-sm" type="text" id="importe_{$counter}" name="importe_{$counter}" value="0" autocomplete="off" onkeyup="recalcular()"/>
+                                        <input class="form-control input-sm importe_input" type="text" id="importe_{$counter}" name="importe_{$counter}" value="0" autocomplete="off" onkeyup="recalcular()"/>
                                     </td>
                                     <td>
-                                         <select name="impuesto_{$counter}" class="form-control  input-sm" onchange="recalcular()">
+                                         <select id="impuesto_{$counter}" name="impuesto_{$counter}" class="form-control  input-sm" onchange="recalcular()">
                                             {loop="$fsc->impuesto->all()"}
                                             <option value="{$value2->codimpuesto}"{if="$value2->codimpuesto==$value1->codimpuesto"} selected="selected"{/if}>{$value2->descripcion}</option>
                                             {/loop}
@@ -435,7 +439,7 @@
                                         </div>
                                         <div class="col-sm-2">
                                             <input type="hidden" name="accion" value="generar_factura">
-                                            <button class="btn btn-sm btn-primary" type="submit" name="accion" value="generar_factura" onclick="return verificarTotalImporte(this);">
+                                            <button class="btn btn-sm btn-primary" type="submit" id="generar_factura" name="accion" value="generar_factura">
                                                 <span class="glyphicon glyphicon-edit"></span> &nbsp; Generar factura
                                             </button>
                                         </div>
