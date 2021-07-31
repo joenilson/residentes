@@ -15,14 +15,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('residentes_edificaciones_tipo.php');
-require_model('residentes_edificaciones_mapa.php');
+//require_model('residentes_edificaciones_tipo.php');
+//require_model('residentes_edificaciones_mapa.php');
 /**
  * Description of mapa_edificaciones
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class mapa_edificaciones extends fs_controller{
+class mapa_edificaciones extends fs_controller
+{
     public $edificaciones_tipo;
     public $edificaciones_mapa;
     public $padre;
@@ -45,18 +46,19 @@ class mapa_edificaciones extends fs_controller{
         $accion_p = \filter_input(INPUT_POST, 'accion');
         $accion_g = \filter_input(INPUT_GET, 'accion');
         $accion = ($accion_p)?$accion_p:$accion_g;
-        if($accion == 'agregar_base'){
+        if ($accion === 'agregar_base') {
             $this->agregar($this->padre);
-        }elseif($accion == 'agregar_hijo'){
+        } elseif ($accion === 'agregar_hijo') {
             $id = \filter_input(INPUT_POST, 'id_hijo');
             $objeto = $this->edificaciones_tipo->get($id);
             $this->agregar($objeto);
-        }elseif($accion == 'eliminar'){
+        } elseif ($accion === 'eliminar') {
             $id = \filter_input(INPUT_GET, 'id');
             $estructura = $this->edificaciones_mapa->get($id);
-            if($estructura->tiene_hijos()){
-                $this->new_error_msg('Esta estructura tiene edificaciones internas, primero debe eliminarlas para eliminar esta.');
-            }else{
+            if ($estructura->tiene_hijos()) {
+                $this->new_error_msg('Esta estructura tiene edificaciones internas, '.
+                                'primero debe eliminarlas para eliminar esta.');
+            } else {
                 try {
                     $estructura->delete();
                     $this->new_message('Edificación eliminada correctamente.');
@@ -68,12 +70,12 @@ class mapa_edificaciones extends fs_controller{
         }
 
         $tipo = $accion = \filter_input(INPUT_GET, 'type');
-        if($tipo=='select-hijos'){
+        if ($tipo === 'select-hijos') {
             $this->obtener_hijos();
         }
 
         $inmuebles = \filter_input(INPUT_GET, 'inmuebles');
-        if(!empty($inmuebles)){
+        if (!empty($inmuebles)) {
             $this->inmuebles = $inmuebles;
             $this->inmuebles_info = $this->edificaciones_mapa->get($inmuebles);
             $this->lista_inmuebles = $this->edificaciones_mapa->get_by_field('padre_id', $inmuebles);
@@ -86,23 +88,24 @@ class mapa_edificaciones extends fs_controller{
     /**
      * funcion para guardar los codigos de las edificaciones base Manzana, Zona, Grupo, Edificio, etc
      */
-    public function agregar($objeto){
+    public function agregar($objeto)
+    {
         $inicio = \filter_input(INPUT_POST, 'inicio');
         $final_p = \filter_input(INPUT_POST, 'final');
         $final=(!empty($final_p))?$final_p:$inicio;
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
-        if($inicio == $final){
+        if ($inicio == $final) {
             $this->edificacion($inicio, $inmuebles, $error, $objeto);
             $linea++;
-        }else{
-            foreach(range($inicio,$final) as $item){
+        } else {
+            foreach (range($inicio,$final) as $item) {
                 $this->edificacion($item, $inmuebles, $error, $objeto);
                 $linea++;
             }
         }
-        if($error){
+        if ($error) {
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
         }
         $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
@@ -113,7 +116,7 @@ class mapa_edificaciones extends fs_controller{
         $id = \filter_input(INPUT_POST, 'id');
         $codigo_padre = \filter_input(INPUT_POST, 'codigo_padre');
         $padre_id = \filter_input(INPUT_POST, 'padre_id');
-        $item = (is_int($i))?str_pad($i,3,"0",STR_PAD_LEFT):$i;
+        $item = (is_int($i))?str_pad($i, 3, "0", STR_PAD_LEFT):$i;
         $punto = new residentes_edificaciones_mapa();
         $punto->id = $id;
         $punto->id_tipo = $objeto->id;
@@ -122,21 +125,22 @@ class mapa_edificaciones extends fs_controller{
         $punto->padre_tipo = $objeto->padre;
         $punto->padre_id = $padre_id;
         $punto->numero = '';
-        if($punto->save()){
+        if ($punto->save()) {
             $inmuebles++;
-        }else{
+        } else {
             $error++;
         }
     }
 
-    public function obtener_hijos(){
-        $this->template = FALSE;
+    public function obtener_hijos()
+    {
+        $this->template = false;
         $id_tipo = \filter_input(INPUT_GET, 'id_tipo');
         $hijos = array();
-        if($id_tipo){
+        if ($id_tipo) {
             $hijos = $this->edificaciones_tipo->get_by_field('padre', $id_tipo);
         }
         header('Content-Type: application/json');
-        echo json_encode($hijos);
+        echo json_encode($hijos, JSON_THROW_ON_ERROR);
     }
 }

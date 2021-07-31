@@ -16,15 +16,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_model('factura_cliente.php');
-require_model('cliente.php');
-require_model('almacen.php');
 /**
  * Description of imprimir_factura_residentes
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class imprimir_factura_residentes extends fs_controller {
+class imprimir_factura_residentes extends fs_controller
+{
     public $imprimir;
     public $id;
     public $factura;
@@ -34,11 +32,14 @@ class imprimir_factura_residentes extends fs_controller {
     public $articulo;
     public $sizeFactura;
     public $total_facturas_pendientes;
-    public function __construct() {
-        parent::__construct(__CLASS__, 'Factura Residente', 'ventas', TRUE, FALSE, FALSE);
+
+    public function __construct()
+    {
+        parent::__construct(__CLASS__, 'Factura Residente', 'ventas', true, false, false);
     }
 
-    protected function private_core() {
+    protected function private_core()
+    {
         $this->shared_extensions();
         $id_p = \filter_input(INPUT_POST, 'id');
         $id_g = \filter_input(INPUT_GET, 'id');
@@ -47,23 +48,20 @@ class imprimir_factura_residentes extends fs_controller {
         $this->total_facturas_pendientes = 0;
         $this->sizeFactura = 100;
 
-        $logo = FALSE;
-        if( file_exists(FS_MYDOCS.'images/logo.png') )
-        {
-           $logo = FS_MYDOCS.'images/logo.png';
-        }
-        else if( file_exists(FS_MYDOCS.'images/logo.jpg') )
-        {
-           $logo = FS_MYDOCS.'images/logo.jpg';
+        $logo = false;
+        if (file_exists(FS_MYDOCS.'images/logo.png')) {
+            $logo = FS_MYDOCS.'images/logo.png';
+        } elseif (file_exists(FS_MYDOCS.'images/logo.jpg')) {
+            $logo = FS_MYDOCS.'images/logo.jpg';
         }
         
-        if($logo){
+        if ($logo) {
             $type = pathinfo($logo, PATHINFO_EXTENSION);
             $data = file_get_contents($logo);
             $this->factura_logo_uri = 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
 
-        if($this->id){
+        if ($this->id) {
             $fac = new factura_cliente();
             $this->factura = $fac->get($this->id);
             //Agregamos la cantidad de lineas multiplicadas por 4
@@ -77,11 +75,14 @@ class imprimir_factura_residentes extends fs_controller {
             $cli = new cliente();
             $this->cliente = $cli->get($this->factura->codcliente);
             $facturas = $fac->all_from_cliente($this->factura->codcliente);
-            if($facturas){
-                foreach($facturas as $f)
-                {
-                    if(!$f->pagada){
-                        $this->facturas_pendientes[] = array('factura'=>$f->codigo,'fecha'=>$f->fecha,'monto'=>$f->total);
+            if ($facturas) {
+                foreach ($facturas as $f) {
+                    if (!$f->pagada) {
+                        $this->facturas_pendientes[] = array(
+                                'factura'=>$f->codigo,
+                                'fecha'=>$f->fecha,
+                                'monto'=>$f->total
+                        );
                         $this->sizeFactura+=4;
                         $this->total_facturas_pendientes += $f->total;
                     }
@@ -91,13 +92,15 @@ class imprimir_factura_residentes extends fs_controller {
         }
     }
 
-    public function url(){
-        if($this->id){
+    public function url()
+    {
+        if ($this->id) {
             return parent::url().'&id='.$this->id;
         }
     }
 
-    public function shared_extensions(){
+    public function shared_extensions()
+    {
         $extensiones = array(
             array(
                 'name' => 'factura_residentes',
@@ -112,7 +115,9 @@ class imprimir_factura_residentes extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jspdf.min.js" type="text/javascript"></script>',
+                'text' => '<script src="' .
+                            FS_PATH .
+                            'plugins/residentes/view/js/jspdf.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
@@ -120,7 +125,10 @@ class imprimir_factura_residentes extends fs_controller {
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="' . FS_PATH . 'plugins/residentes/view/js/jsPDF/plugins/split_text_to_size.min.js" type="text/javascript"></script>',
+                'text' => '<script src="' .
+                             FS_PATH .
+                            'plugins/residentes/view/js/jsPDF/plugins/split_text_to_size.min.js" ' .
+                            'type="text/javascript"></script>',
                 'params' => ''
             ),
         );

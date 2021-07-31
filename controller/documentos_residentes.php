@@ -37,7 +37,7 @@ class documentos_residentes extends residentes_controller
 
     public function __construct()
     {
-        parent::__construct(__CLASS__, 'Documentos Residentes', 'admin', FALSE, FALSE, FALSE);
+        parent::__construct(__CLASS__, 'Documentos Residentes', 'admin', false, false, false);
     }
 
     protected function private_core()
@@ -45,7 +45,7 @@ class documentos_residentes extends residentes_controller
         parent::private_core();
         $this->init();
         $cod = filter_input(INPUT_POST, 'codcliente');
-        if($cod) {
+        if ($cod) {
             $cliente = new cliente();
             $this->cliente_residente = $cliente->get($cod);
             $residente_informacion = new residentes_informacion();
@@ -54,11 +54,10 @@ class documentos_residentes extends residentes_controller
             $residente = $residente_edificacion->get_by_field('codcliente', $cod);
             $this->cliente_residente->inmueble = $residente[0];
             $this->cliente_residente->informacion = $informacion;
-            
         }
         $info_accion = filter_input(INPUT_POST, 'info_accion');
         $tipo_documento = filter_input(INPUT_POST, 'tipo_documento');
-        if ($this->cliente_residente AND $info_accion) {
+        if ($this->cliente_residente and $info_accion) {
             switch ($info_accion) {
                 case 'imprimir':
                     $this->template = false;
@@ -68,7 +67,6 @@ class documentos_residentes extends residentes_controller
                     $this->enviar_documento($tipo_documento);
                     break;
                 default:
-
                     break;
             }
         }
@@ -81,8 +79,10 @@ class documentos_residentes extends residentes_controller
 
         switch ($tipo_documento) {
             case 'informacion_cobros':
-                $this->documento->pdf->addInfo('Title', 'Pagos Residente ' . $this->cliente_residente->codcliente);
-                $this->documento->pdf->addInfo('Subject', 'Pagos del Residente ' . $this->cliente_residente->codcliente);
+                $this->documento->pdf->addInfo('Title', 'Pagos Residente ' .
+                                        $this->cliente_residente->codcliente);
+                $this->documento->pdf->addInfo('Subject', 'Pagos del Residente ' .
+                                        $this->cliente_residente->codcliente);
                 $this->documento->pdf->addInfo('Author', $this->empresa->nombre);
                 $this->documento->pdf->ezSetMargins(10, 10, 10, 10);
                 $this->crear_documento_cobros();
@@ -108,7 +108,8 @@ class documentos_residentes extends residentes_controller
             }
             $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
             $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
-            $this->generar_pdf_lineas($this->documento, $this->pendiente, $linea_actual, $lppag, 'pendiente');
+            $this->generar_pdf_lineas($this->documento, $this->pendiente,
+                $linea_actual, $lppag, 'pendiente');
             $this->documento->set_y($this->documento->pdf->y - 16);
         }
 
@@ -120,13 +121,16 @@ class documentos_residentes extends residentes_controller
                 $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
                 $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
             }
-            $this->generar_pdf_lineas($this->documento, $this->pagado, $linea_actual2, $lppag, 'pagado');
+            $this->generar_pdf_lineas($this->documento, $this->pagado,
+                $linea_actual2, $lppag, 'pagado');
             $pagina++;
         }
         $this->documento->set_y(80);
         if ($this->empresa->pie_factura) {
-            $this->documento->pdf->addText(20, 40, 8, fs_fix_html('<b>Generado por:</b> ' . $this->user->get_agente_fullname()), 0);
-            $this->documento->pdf->addText(10, 30, 8, $this->documento->center_text(fs_fix_html($this->empresa->pie_factura), 180));
+            $this->documento->pdf->addText(20, 40, 8, fs_fix_html('<b>Generado por:</b> ' .
+                $this->user->get_agente_fullname()), 0);
+            $this->documento->pdf->addText(10, 30, 8,
+                $this->documento->center_text(fs_fix_html($this->empresa->pie_factura), 180));
         }
 
         if (filter_input(INPUT_POST, 'info_accion') === 'enviar') {
@@ -144,7 +148,7 @@ class documentos_residentes extends residentes_controller
             $mail = $this->empresa->new_mail();
             $mail->FromName = $this->user->get_agente_fullname();
 
-            if ($_POST['de'] != $mail->From) {
+            if ($_POST['de'] !== $mail->From) {
                 $mail->addReplyTo($_POST['de'], $mail->FromName);
             }
 
@@ -162,7 +166,7 @@ class documentos_residentes extends residentes_controller
             if ($this->is_html($_POST['mensaje'])) {
                 $mail->AltBody = strip_tags($_POST['mensaje']);
                 $mail->msgHTML($_POST['mensaje']);
-                $mail->isHTML(TRUE);
+                $mail->isHTML(true);
             } else {
                 $mail->Body = $_POST['mensaje'];
             }
@@ -215,19 +219,20 @@ class documentos_residentes extends residentes_controller
 
         $row = array(
             'campo1' => "<b>Inmueble:</b>",
-            'dato1' => fs_fix_html($this->cliente_residente->inmueble->codigo_externo() . ' - ' . $this->cliente_residente->inmueble->numero),
+            'dato1' => fs_fix_html($this->cliente_residente->inmueble->codigo_externo() .
+                ' - ' . $this->cliente_residente->inmueble->numero),
             'campo2' => ''
         );
 
         if (!$this->cliente_residente) {
             /// nada
-        } else if ($this->cliente_residente->telefono1) {
+        } elseif ($this->cliente_residente->telefono1) {
             $row['campo2'] = "<b>Teléfonos:</b> " . $this->cliente_residente->telefono1;
             if ($this->cliente_residente->telefono2) {
                 $row['campo2'] .= "\n" . $this->cliente_residente->telefono2;
                 $lppag -= 2;
             }
-        } else if ($this->cliente_residente->telefono2) {
+        } elseif ($this->cliente_residente->telefono2) {
             $row['campo2'] = "<b>Teléfonos:</b> " . $this->cliente_residente->telefono2;
         }
         $pdf_doc->add_table_row($row);
@@ -276,7 +281,7 @@ class documentos_residentes extends residentes_controller
         $pdf_doc->add_table_header($table_header);
 
         for ($i = $linea_actual; (($linea_actual < ($lppag + $i)) && ( $linea_actual < count($items)));) {
-            $fila = $this->generar_pdf_lineas_fila($tipo,$items, $linea_actual);
+            $fila = $this->generar_pdf_lineas_fila($tipo, $items, $linea_actual);
             $pdf_doc->add_table_row($fila);
             $linea_actual++;
         }
@@ -303,14 +308,17 @@ class documentos_residentes extends residentes_controller
         $array_cols = array(
             'item' => array('justification' => 'left'), 'fecha' => array('justification' => 'center'),
             'vencimiento' => array('justification' => 'center'), 'importe' => array('justification' => 'right'),
-            'descuento' => array('justification' => 'right'), 'total' => array('justification' => 'right'), 'atraso' => array('justification' => 'center')
+            'descuento' => array('justification' => 'right'),
+            'total' => array('justification' => 'right'), 'atraso' => array('justification' => 'center')
         );
         if ($tipo === 'pagado') {
             $table_header = array(
-                'item' => '<b>Pagos Realizados</b>', 'fecha' => '<b>Fecha</b>', 'importe' => '<b>Monto</b>', 'f_pago' => '<b>F. Pago</b>'
+                'item' => '<b>Pagos Realizados</b>', 'fecha' => '<b>Fecha</b>',
+                'importe' => '<b>Monto</b>', 'f_pago' => '<b>F. Pago</b>'
             );
             $array_cols = array(
-                'item' => array('justification' => 'left'), 'fecha' => array('justification' => 'center'), 'importe' => array('justification' => 'right'), 'f_pago' => array('justification' => 'center')
+                'item' => array('justification' => 'left'), 'fecha' => array('justification' => 'center'),
+                'importe' => array('justification' => 'right'), 'f_pago' => array('justification' => 'center')
             );
         }
         
@@ -324,17 +332,17 @@ class documentos_residentes extends residentes_controller
             'item' => $descripcion,
             'fecha' => $items[$linea_actual]->fecha,
             'vencimiento' => $items[$linea_actual]->vencimiento,
-            'importe' => $this->show_precio($items[$linea_actual]->pvpsindto, $this->empresa->coddivisa, TRUE, FS_NF0),
+            'importe' => $this->show_precio($items[$linea_actual]->pvpsindto, $this->empresa->coddivisa, true, FS_NF0),
             'descuento' => $this->show_numero($items[$linea_actual]->dtopor) . " %",
-            'total' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, TRUE, FS_NF0),
+            'total' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, true, FS_NF0),
             'atraso' => $items[$linea_actual]->dias_atraso
         );
         if ($tipo === 'pagado') {
             $fila = array(
-                'item' => $descripcion,
-                'fecha' => $items[$linea_actual]->fecha,
-                'importe' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, TRUE, FS_NF0),
-                'f_pago' => $items[$linea_actual]->f_pago
+            'item' => $descripcion,
+            'fecha' => $items[$linea_actual]->fecha,
+            'importe' => $this->show_precio($items[$linea_actual]->pvptotal, $this->empresa->coddivisa, true, FS_NF0),
+            'f_pago' => $items[$linea_actual]->f_pago
             );
         }
         return $fila;
@@ -376,12 +384,14 @@ class documentos_residentes extends residentes_controller
     {
         $this->cliente_residente = false;
         if (!file_exists('tmp/' . FS_TMP_NAME . 'enviar')) {
-            mkdir('tmp/' . FS_TMP_NAME . 'enviar');
+            if (!mkdir($concurrentDirectory = 'tmp/' . FS_TMP_NAME . 'enviar') && !is_dir($concurrentDirectory)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            }
         }
     }
 
     public function is_html($txt)
     {
-        return ( $txt != strip_tags($txt) ) ? TRUE : FALSE;
+        return ($txt != strip_tags($txt)) ? true : false;
     }
 }

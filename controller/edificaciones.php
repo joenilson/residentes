@@ -34,11 +34,13 @@ class edificaciones extends residentes_controller
     public $padre_inmuebles;
     public $lista_interior;
     public $lista_inmuebles;
-    public function __construct() {
-        parent::__construct(__CLASS__, 'Edificaciones', 'residentes', FALSE, TRUE, FALSE);
+    public function __construct()
+    {
+        parent::__construct(__CLASS__, 'Edificaciones', 'residentes', false, true, false);
     }
 
-    protected function private_core() {
+    protected function private_core()
+    {
         parent::private_core();
         $this->shared_extensions();
         $this->init();
@@ -49,9 +51,9 @@ class edificaciones extends residentes_controller
         $this->verificar_accion($accion);
 
         $tipo = \filter_input(INPUT_GET, 'type');
-        if($tipo === 'select-hijos'){
+        if ($tipo === 'select-hijos') {
             $this->obtener_hijos();
-        }elseif($tipo === 'select-iddireccion' ) {
+        } elseif ($tipo === 'select-iddireccion') {
             $this->mostrar_direcciones_residente(\filter_input(INPUT_GET, 'codcliente'));
         }
 
@@ -60,28 +62,28 @@ class edificaciones extends residentes_controller
         $this->residentes_setup = $this->fsvar->array_get(
             array(
             'residentes_nombre_edificacion' => 'Inmueble',
-            ), FALSE
+            ), false
         );
 
         $this->nombre_edificacion = $this->residentes_setup['residentes_nombre_edificacion'];
 
-        if(isset($_REQUEST['busqueda'])){
-            if($_REQUEST['busqueda']=='arbol_tipo_edificaciones'){
+        if (isset($_REQUEST['busqueda'])) {
+            if ($_REQUEST['busqueda'] === 'arbol_tipo_edificaciones') {
                 $this->buscar_tipo_edificaciones();
             }
         }
         $interior = \filter_input(INPUT_GET, 'interior');
-        if($interior){
+        if ($interior) {
             $this->padre_interior = $this->edificaciones_mapa->get($interior);
             $this->lista_interior = $this->edificaciones_mapa->get_by_field('padre_id', $interior);
         }
         $inmuebles = \filter_input(INPUT_GET, 'inmuebles');
-        if($inmuebles){
+        if ($inmuebles) {
             $this->padre_inmuebles = $this->edificaciones_mapa->get($inmuebles);
             $this->lista_inmuebles = $this->edificaciones->get_by_field('id_edificacion', $inmuebles);
         }
 
-        if(\filter_input(INPUT_GET, 'buscar_cliente')){
+        if (\filter_input(INPUT_GET, 'buscar_cliente')) {
             $this->buscar_cliente();
         }
 
@@ -98,7 +100,7 @@ class edificaciones extends residentes_controller
 
     public function verificar_accion($accion)
     {
-        switch ($accion){
+        switch ($accion) {
             case "agregar":
                 $this->tratar_edificaciones();
                 break;
@@ -125,24 +127,27 @@ class edificaciones extends residentes_controller
                 $nombre = filter_input(INPUT_POST, 'nombre_edificacion');
                 $residentes_config = array('residentes_nombre_edificacion' => trim($nombre));
                 $this->fsvar->array_save($residentes_config);
+                break;
             default:
                 break;
         }
     }
 
-    public function url(){
+    public function url()
+    {
         $interior = \filter_input(INPUT_GET, 'interior');
         $inmuebles = \filter_input(INPUT_GET, 'inmuebles');
-        if($interior){
+        if ($interior) {
             return 'index.php?page='.__CLASS__.'&interior='.$interior;
-        }elseif($inmuebles){
+        } elseif ($inmuebles) {
             return 'index.php?page='.__CLASS__.'&inmuebles='.$inmuebles;
-        }else{
+        } else {
             return 'index.php?page='.__CLASS__;
         }
     }
 
-    public function parent_url(){
+    public function parent_url()
+    {
         return 'index.php?page='.__CLASS__;
     }
 
@@ -150,7 +155,7 @@ class edificaciones extends residentes_controller
     {
         $id = \filter_input(INPUT_GET, 'id');
         $edificacion = $this->edificaciones->get($id);
-        if($edificacion->ocupado){
+        if ($edificacion->ocupado) {
             $edificacion->ocupado = FALSE;
             $edificacion->iddireccion = 0;
             $edificacion->codcliente = '';
@@ -170,9 +175,11 @@ class edificaciones extends residentes_controller
     {
         $id = \filter_input(INPUT_GET, 'id');
         $edificacion = $this->edificaciones->get($id);
-        if($edificacion->ocupado){
-            $this->new_error_msg('Esta edificacion tiene un residente, primero debe quitar al residente para proceder a eliminar esta edificacion.');
-        }else{
+        if ($edificacion->ocupado) {
+            $this->new_error_msg('Esta edificacion tiene un residente, '.
+                                'primero debe quitar al residente para proceder '.
+                                'a eliminar esta edificacion.');
+        } else {
             try {
                 $edificacion->delete();
                 $this->new_message('Edificación eliminada correctamente.');
@@ -183,46 +190,52 @@ class edificaciones extends residentes_controller
         }
     }
 
-    private function buscar_cliente() {
+    private function buscar_cliente()
+    {
         /// desactivamos la plantilla HTML
-        $this->template = FALSE;
+        $this->template = false;
 
         $cliente = new cliente();
         $json = array();
-        foreach ($cliente->search(\filter_input(INPUT_GET,'buscar_cliente')) as $cli) {
+        foreach ($cliente->search(\filter_input(INPUT_GET, 'buscar_cliente')) as $cli) {
             $json[] = array('value' => $cli->razonsocial, 'data' => $cli->codcliente);
         }
 
         header('Content-Type: application/json');
-        echo json_encode(array('query' => \filter_input(INPUT_GET,'buscar_cliente'), 'suggestions' => $json));
+        echo \json_encode(array(
+            'query' => \filter_input(INPUT_GET, 'buscar_cliente'),
+            'suggestions' => $json), JSON_THROW_ON_ERROR);
     }
 
-    public function buscar_padre($id,&$codigo,&$unir = false){
+    public function buscar_padre($id, &$codigo, &$unir = false)
+    {
         $dato = $this->edificaciones_mapa->get($id);
         $codigo[] = ($unir)?'"'.$dato->id_tipo.'":"'.$dato->codigo_edificacion.'"':$dato->codigo_edificacion;
-        if($dato->padre_id==0){
+        if ($dato->padre_id==0) {
             return $codigo;
-        }else{
-            $this->buscar_padre($dato->padre_id,$codigo,$unir);
+        } else {
+            $this->buscar_padre($dato->padre_id, $codigo, $unir);
         }
     }
 
-    public function crear_codigo($id,$unir = false){
+    public function crear_codigo($id,$unir = false)
+    {
         $codigo = array();
-        $this->buscar_padre($id,$codigo, $unir);
-        if($unir){
+        $this->buscar_padre($id, $codigo, $unir);
+        if ($unir) {
             $lista = array();
-            foreach($codigo as $linea){
+            foreach ($codigo as $linea) {
                 array_unshift($lista, $linea);
             }
             $codigo = $lista;
-        }else{
+        } else {
             rsort($codigo);
         }
         return $codigo;
     }
 
-    public function agregar_inmueble(){
+    public function agregar_inmueble()
+    {
         $inicio = \filter_input(INPUT_POST, 'inicio');
         $final_p = \filter_input(INPUT_POST, 'final');
         $cantidad = \filter_input(INPUT_POST, 'cantidad');
@@ -231,35 +244,37 @@ class edificaciones extends residentes_controller
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
-        if($inicio == $final){
+        if ($inicio === $final) {
             $this->inmueble($inicio, $inmuebles, $error);
-        }else{
-            for ($i = $inicio; $i<=($final); $i++){
-                if($linea==$cantidad AND $cantidad!=0){
+        } else {
+            for ($i = $inicio; $i<=($final); $i++) {
+                if ($linea === $cantidad and $cantidad!=0) {
                     $i = ($i-$cantidad)+$incremento;
                     $linea = 0;
                 }
-                $this->inmueble($i,$inmuebles, $error);
+                $this->inmueble($i, $inmuebles, $error);
                 $linea++;
             }
         }
-        if($error){
+        if ($error) {
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
-        }if($inmuebles){
+        }
+
+        if ($inmuebles) {
             $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
         }
     }
 
-    public function inmueble($inicio,&$inmuebles, &$error)
+    public function inmueble($inicio, &$inmuebles, &$error)
     {
         $codigo_mapa = $this->crear_codigo(\filter_input(INPUT_POST, 'id_edificacion'));
-        $codigo_interno = $this->crear_codigo(\filter_input(INPUT_POST, 'id_edificacion'),1);
-        $codigo = implode("",$codigo_mapa);
-        $codigo_interno = "{".implode(",",$codigo_interno)."}";
+        $codigo_interno = $this->crear_codigo(\filter_input(INPUT_POST, 'id_edificacion'), 1);
+        $codigo = implode("", $codigo_mapa);
+        $codigo_interno = "{".implode(",", $codigo_interno)."}";
         $ubicacion = "";
         $codcliente = "";
-        $ocupado = FALSE;
-        $item = (is_int($inicio))?str_pad($inicio,3,"0",STR_PAD_LEFT):$inicio;
+        $ocupado = false;
+        $item = (is_int($inicio))?str_pad($inicio, 3, "0", STR_PAD_LEFT):$inicio;
         $edif0 = new residentes_edificaciones();
         $edif0->id = \filter_input(INPUT_POST, 'id');
         $edif0->id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
@@ -268,7 +283,7 @@ class edificaciones extends residentes_controller
         $edif0->numero = $item;
         $edif0->ubicacion = trim($ubicacion);
         $edif0->codcliente = trim($codcliente);
-        $edif0->ocupado = ($ocupado)?TRUE:FALSE;
+        $edif0->ocupado = (bool)$ocupado;
         try {
             $edif0->save();
             $inmuebles++;
@@ -278,7 +293,8 @@ class edificaciones extends residentes_controller
         }
     }
 
-    public function agregar_residente(){
+    public function agregar_residente()
+    {
         $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
         $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
@@ -286,37 +302,45 @@ class edificaciones extends residentes_controller
         $fecha_disponibilidad = \filter_input(INPUT_POST, 'fecha_disponibilidad');
         $accion = \filter_input(INPUT_POST, 'accion');
         $inmueble = $this->edificaciones->get($id_edificacion);
-        if($inmueble AND $accion == 'agregar_residente'){
-            $inmueble->ocupado = TRUE;
+        if ($inmueble and $accion === 'agregar_residente') {
+            $inmueble->ocupado = true;
             $inmueble->codcliente = $codcliente;
             $descripcion_direccion = $inmueble->codigo_externo().' - Apartamento '.$inmueble->numero;
-            $inmueble->iddireccion = $this->actualizar_direccion_residente($codcliente, $iddireccion, $descripcion_direccion);
-            $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d',strtotime($fecha_ocupacion)):NULL;
-            $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)?\date('Y-m-d',strtotime($fecha_disponibilidad)):NULL;
-            if($inmueble->save()){
+            $inmueble->iddireccion = $this->actualizar_direccion_residente(
+                $codcliente,
+                $iddireccion,
+                $descripcion_direccion
+            );
+            $inmueble->fecha_ocupacion = ($fecha_ocupacion)?\date('Y-m-d', strtotime($fecha_ocupacion)):null;
+            $inmueble->fecha_disponibilidad = ($fecha_disponibilidad)
+                                                ?\date('Y-m-d', strtotime($fecha_disponibilidad))
+                                                :null;
+            if ($inmueble->save()) {
                 $this->new_message('Residente agregado exitosamente.');
-            }else{
-                $this->new_error_msg('No se pudo agregar al residente confirme el nombre del residente y las fechs de ocupación y disponibilidad');
+            } else {
+                $this->new_error_msg('No se pudo agregar al residente confirme el '.
+                                    'nombre del residente y las fechs de ocupación y disponibilidad');
             }
-        }elseif($inmueble AND $accion == 'quitar_residente'){
-            $inmueble->ocupado = TRUE;
+        } elseif ($inmueble and $accion === 'quitar_residente') {
+            $inmueble->ocupado = false;
             $inmueble->codcliente = '';
             $inmueble->iddireccion = null;
             $inmueble->fecha_ocupacion = '';
             $inmueble->fecha_disponibilidad = '';
-            if($inmueble->save()){
+            if ($inmueble->save()) {
                 $this->new_message('Residente removido exitosamente.');
-            }else{
+            } else {
                 $this->new_error_msg('No se pudo remover al residente');
             }
         }
     }
 
-    public function tratar_edificaciones(){
+    public function tratar_edificaciones()
+    {
         $id = filter_input(INPUT_POST, 'id');
         $precodigo = "";
         $precodigo_interno = array();
-        foreach($this->edificaciones_tipo->all() as $i){
+        foreach ($this->edificaciones_tipo->all() as $i) {
             $campo = "campo_".$i->id;
             $linea = filter_input(INPUT_POST, $campo);
             $precodigo .= $linea;
@@ -325,25 +349,28 @@ class edificaciones extends residentes_controller
         $codigo_p = filter_input(INPUT_POST, 'codigo');
         $codigo_interno_p = filter_input(INPUT_POST, 'codigo_interno');
         $codigo = ($codigo_p)?$codigo_p:$precodigo;
-        $codigo_interno = ($codigo_interno_p)?$codigo_interno_p:\json_encode($precodigo_interno);
+        $codigo_interno = ($codigo_interno_p)
+                            ?$codigo_interno_p
+                            : \json_encode($precodigo_interno, JSON_THROW_ON_ERROR);
         $numero = filter_input(INPUT_POST, 'numero_edificacion');
         $ubicacion = filter_input(INPUT_POST, 'ubicacion');
         $codcliente = filter_input(INPUT_POST, 'codcliente');
         $ocupado = filter_input(INPUT_POST, 'ocupado');
         $delete = filter_input(INPUT_POST, 'delete');
-        if($delete){
+        if ($delete) {
             $item = $this->edificaciones->get($id);
-            if(!$item->ocupado){
+            if (!$item->ocupado) {
                 try {
                     $item->delete();
                     $this->new_message('Edificación eliminada con exito.');
                 } catch (Exception $exc) {
-                    $this->new_error_msg('Ocurrió un error al querer eliminar la Edificación. '.$exc->getTraceAsString());
+                    $this->new_error_msg('Ocurrió un error al querer eliminar la Edificación. '.
+                                        $exc->getTraceAsString());
                 }
-            } else{
+            } else {
                 $this->new_error_msg('¡No se puede eliminar una edificación que está ocupada!');
             }
-        }else{
+        } else {
             $edif0 = new FacturaScripts\model\residentes_edificaciones();
             $edif0->id = $id;
             $edif0->codigo = $codigo;
@@ -362,24 +389,27 @@ class edificaciones extends residentes_controller
         $this->edificaciones = new residentes_edificaciones();
     }
 
-    public function tratar_tipo_edificaciones(){
+    public function tratar_tipo_edificaciones()
+    {
         $id = filter_input(INPUT_POST, 'id');
         $descripcion = filter_input(INPUT_POST, 'descripcion');
         $padre = filter_input(INPUT_POST, 'padre');
         $delete = filter_input(INPUT_POST, 'delete');
-        if($delete){
+        if ($delete) {
             $item = $this->edificaciones_tipo->get($delete);
-            if(!$item->hijos()){
-                try{
+            if (!$item->hijos()) {
+                try {
                     $item->delete();
                     $this->new_message('Tipo de edificación eliminada con exito.');
-                } catch (ErrorException $e){
-                    $this->new_error_msg('Ocurrió un error al querer eliminar el tipo de edificación. '.$e->getTraceAsString());
+                } catch (ErrorException $e) {
+                    $this->new_error_msg('Ocurrió un error al querer eliminar el tipo de edificación. '.
+                                        $e->getTraceAsString());
                 }
-            }else{
-                $this->new_error_msg('No se puede eliminar un Tipo de edificación que es padre de otros tipos de edificación.');
+            } else {
+                $this->new_error_msg('No se puede eliminar un Tipo de edificación que es padre de otros '.
+                                    'tipos de edificación.');
             }
-        }else{
+        } else {
             $tipo0 = new residentes_edificaciones_tipo();
             $tipo0->id = $id;
             $tipo0->descripcion = ucfirst(strtolower(trim(htmlspecialchars($descripcion))));
@@ -394,28 +424,31 @@ class edificaciones extends residentes_controller
         $this->edificaciones_tipo = new residentes_edificaciones_tipo();
     }
 
-    public function buscar_tipo_edificaciones(){
+    public function buscar_tipo_edificaciones()
+    {
         $estructura = $this->edificaciones_tipo->jerarquia();
         $this->template = false;
         header('Content-Type: application/json');
-        echo json_encode($estructura);
+        echo json_encode($estructura, JSON_THROW_ON_ERROR);
     }
 
-    public function obtener_hijos(){
-        $this->template = FALSE;
+    public function obtener_hijos()
+    {
+        $this->template = false;
         $id_tipo = \filter_input(INPUT_GET, 'id_tipo');
         $hijos = array();
-        if($id_tipo){
+        if ($id_tipo) {
             $hijos = $this->edificaciones_tipo->get_by_field('padre', $id_tipo);
         }
         header('Content-Type: application/json');
-        echo json_encode($hijos);
+        echo json_encode($hijos, JSON_THROW_ON_ERROR);
     }
 
      /**
      * funcion para guardar los codigos de las edificaciones base Manzana, Zona, Grupo, Edificio, etc
      */
-    public function agregar($objeto){
+    public function agregar($objeto)
+    {
         $inicio = \filter_input(INPUT_POST, 'inicio');
         $final_p = \filter_input(INPUT_POST, 'final');
         $id = \filter_input(INPUT_POST, 'id');
@@ -425,8 +458,8 @@ class edificaciones extends residentes_controller
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
-        foreach(range($inicio,$final) as $item){
-            $item = (is_int($item))?str_pad($item,3,"0",STR_PAD_LEFT):$item;
+        foreach (range($inicio, $final) as $item) {
+            $item = (is_int($item))?str_pad($item, 3, "0", STR_PAD_LEFT):$item;
             $punto = new residentes_edificaciones_mapa();
             $punto->id = $id;
             $punto->id_tipo = $objeto->id;
@@ -435,28 +468,31 @@ class edificaciones extends residentes_controller
             $punto->padre_tipo = $objeto->padre;
             $punto->padre_id = $padre_id;
             $punto->numero = '';
-            if($punto->save()){
+            if ($punto->save()) {
                 $inmuebles++;
-            }else{
+            } else {
                 $error++;
             }
             $linea++;
         }
-        if($error){
+        if ($error) {
             $this->new_error_msg('No puedieron guardarse la informacion de '.$error.' inmuebles, revise su listado.');
         }
         $this->new_message('Se guardaron correctamente '.$inmuebles.' inmuebles.');
     }
 
-    private function mayusculas($string){
+    private function mayusculas($string)
+    {
         return strtoupper(trim(strip_tags(stripslashes($string))));
     }
 
-    private function minusculas($string){
+    private function minusculas($string)
+    {
         return strtolower(trim(strip_tags(stripslashes($string))));
     }
 
-    public function shared_extensions(){
+    public function shared_extensions()
+    {
         $extensiones = array(
             array(
                 'name' => 'tipo_edificaciones',
@@ -471,7 +507,8 @@ class edificaciones extends residentes_controller
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/residentes/view/js/2/residentes.js" type="text/javascript"></script>',
+                'text' => '<script src="'.FS_PATH.
+                            'plugins/residentes/view/js/2/residentes.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
@@ -479,7 +516,8 @@ class edificaciones extends residentes_controller
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/residentes/view/js/1/bootstrap-treeview.min.js" type="text/javascript"></script>',
+                'text' => '<script src="'.FS_PATH.
+                    'plugins/residentes/view/js/1/bootstrap-treeview.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
@@ -487,7 +525,8 @@ class edificaciones extends residentes_controller
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/residentes/view/css/bootstrap-treeview.min.css"/>',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.
+                    'plugins/residentes/view/css/bootstrap-treeview.min.css"/>',
                 'params' => ''
             ),
         );
@@ -505,7 +544,8 @@ class edificaciones extends residentes_controller
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/residentes/view/js/1/bootstrap-treeview.min.js" type="text/javascript"></script>',
+                'text' => '<script src="'.FS_PATH.
+                        'plugins/residentes/view/js/1/bootstrap-treeview.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
@@ -513,7 +553,8 @@ class edificaciones extends residentes_controller
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<script src="'.FS_PATH.'plugins/residentes/view/js/2/residentes.js" type="text/javascript"></script>',
+                'text' => '<script src="'.FS_PATH.
+                        'plugins/residentes/view/js/2/residentes.js" type="text/javascript"></script>',
                 'params' => ''
             ),
             array(
@@ -521,7 +562,8 @@ class edificaciones extends residentes_controller
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.'plugins/residentes/view/css/bootstrap-treeview.min.css"/>',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.
+                            'plugins/residentes/view/css/bootstrap-treeview.min.css"/>',
                 'params' => ''
             ),
         );
