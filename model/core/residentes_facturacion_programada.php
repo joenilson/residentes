@@ -44,9 +44,10 @@ class residentes_facturacion_programada extends \fs_model
     
     public $ahora;
     public $horaActual;
-    public function __construct($t = FALSE) {
-        parent::__construct('residentes_fact_prog','plugins/residentes');
-        if($t){
+    public function __construct($t = false)
+    {
+        parent::__construct('residentes_fact_prog', 'plugins/residentes');
+        if ($t) {
             $this->id = $t['id'];
             $this->descripcion = $t['descripcion'];
             $this->forma_pago = $t['forma_pago'];
@@ -60,7 +61,7 @@ class residentes_facturacion_programada extends \fs_model
             $this->estado = $t['estado'];
             $this->fecha_creacion = $t['fecha_creacion'];
             $this->fecha_modificacion = $t['fecha_modificacion'];
-        }else{
+        } else {
             $this->id = null;
             $this->descripcion = '';
             $this->forma_pago = '';
@@ -79,13 +80,14 @@ class residentes_facturacion_programada extends \fs_model
         $this->horaActual = strtotime($this->ahora->format('H'));
     }
 
-    public function install(){
+    public function install()
+    {
         return "";
     }
     
     public function exists()
     {
-        if(is_null($this->id)) {
+        if (is_null($this->id)) {
             return false;
         }
         return true;
@@ -93,7 +95,7 @@ class residentes_facturacion_programada extends \fs_model
     
     public function save()
     {
-        if($this->exists()){
+        if ($this->exists()) {
             $sql = "UPDATE ".$this->table_name." SET ".
             "descripcion = ".$this->var2str($this->descripcion).", ".
             "forma_pago = ".$this->var2str($this->forma_pago).", ".
@@ -108,9 +110,10 @@ class residentes_facturacion_programada extends \fs_model
             "WHERE id = ".$this->intval($this->id).";";
             $data = $this->db->exec($sql);
             return $data;
-        }else{
+        } else {
             $sql = "INSERT INTO ".$this->table_name.
-            " (descripcion, forma_pago, formato_factura, fecha_envio, hora_envio, residentes_facturar, facturas_generadas, usuario_creacion, fecha_creacion, estado) VALUES (".
+            " (descripcion, forma_pago, formato_factura, fecha_envio, hora_envio, residentes_facturar, ".
+                "facturas_generadas, usuario_creacion, fecha_creacion, estado) VALUES (".
             $this->var2str($this->descripcion).", ".
             $this->var2str($this->forma_pago).", ".
             $this->var2str($this->formato_factura).", ".
@@ -121,9 +124,9 @@ class residentes_facturacion_programada extends \fs_model
             $this->var2str($this->usuario_creacion).", ".
             $this->var2str($this->fecha_creacion).", ".
             $this->var2str($this->estado).");";
-            if($this->db->exec($sql)){
+            if ($this->db->exec($sql)) {
                 return $this->db->lastval();
-            }else{
+            } else {
                 return false;
             }
         }
@@ -134,24 +137,25 @@ class residentes_facturacion_programada extends \fs_model
         $sql = "select * from ".$this->table_name." WHERE id = ".$this->intval($id);
         
         $data = $this->db->select($sql);
-        if($data) {
+        if ($data) {
             return new residentes_facturacion_programada($data[0]);
         }
         return false;
     }
     
-    public function get_by_date($date) 
+    public function get_by_date($date)
     {
-        $sql = "select * from ".$this->table_name." WHERE fecha_envio = ".$this->var2str($date)." ORDER BY fecha_envio, hora_envio";
+        $sql = "select * from ".$this->table_name." WHERE fecha_envio = ".$this->var2str($date).
+            " ORDER BY fecha_envio, hora_envio";
         $data = $this->db->select($sql);
         $lista = array();
-        if($data) {
-            foreach($data as $d) {
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new residentes_facturacion_programada($d);
             }
             return $lista;
         }
-        return false;   
+        return false;
     }
     
     public function get_by_date_status($date, $status)
@@ -160,16 +164,16 @@ class residentes_facturacion_programada extends \fs_model
                 ." AND "."estado = ".$this->var2str($status)." ORDER BY fecha_envio, hora_envio";
         $data = $this->db->select($sql);
         $lista = array();
-        if($data) {
-            foreach($data as $d) {
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new residentes_facturacion_programada($d);
             }
             return $lista;
         }
-        return false;   
+        return false;
     }
     
-        public function get_by_date_hour_status($date, $hour, $status)
+    public function get_by_date_hour_status($date, $hour, $status)
     {
         $sql = "select * from ".$this->table_name." WHERE fecha_envio = ".$this->var2str($date)
                 ." AND ".
@@ -177,10 +181,10 @@ class residentes_facturacion_programada extends \fs_model
                 " AND ".
                 "estado = ".$this->var2str($status)." ORDER BY fecha_envio, hora_envio";
         $data = $this->db->select($sql);
-        if($data) {
+        if ($data) {
             return new residentes_facturacion_programada($data[0]);
         }
-        return false;   
+        return false;
     }
     
     public function all()
@@ -188,34 +192,33 @@ class residentes_facturacion_programada extends \fs_model
         $sql = "select * from ".$this->table_name." ORDER BY fecha_envio, hora_envio";
         $data = $this->db->select($sql);
         $lista = array();
-        if($data) {
-            foreach($data as $d) {
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new residentes_facturacion_programada($d);
             }
             return $lista;
         }
-        return false;   
+        return false;
     }
     
     public function delete()
     {
         $sql = "DELETE from ".$this->table_name." WHERE id = ".$this->intval($this->id);
         $data = $this->db->exec($sql);
-        if($data) {
+        if ($data) {
             return true;
         }
-        return false;   
+        return false;
     }
     
     public function eliminar_facturas()
     {
         $rfpe = new residentes_facturacion_programada_edificaciones();
         $listaResidentes = $rfpe->getByIdProgramacion($this->id);
-        foreach($listaResidentes as $residente) {
-            
+        foreach ($listaResidentes as $residente) {
             $fact = new factura_cliente();
             $f = $fact->get($residente->idfactura);
-            if($f) {
+            if ($f) {
                 $f->delete();
             }
             $residente->procesado = false;
@@ -226,13 +229,14 @@ class residentes_facturacion_programada extends \fs_model
     
     public function conceptoFacturable($codcliente, $referencia)
     {
-        $sql = "SELECT count(referencia) as facturado from lineasfacturascli where referencia = ".$this->var2str($referencia)." ".
+        $sql = "SELECT count(referencia) as facturado from lineasfacturascli where referencia = ".
+            $this->var2str($referencia)." ".
             " AND idfactura IN (select idfactura from facturascli WHERE codcliente = ".$this->var2str($codcliente).");";
-         $data = $this->db->select($sql);
-         if($data[0]['facturado'] == 0) {
-             return true;
-         }
-         return false;
+        $data = $this->db->select($sql);
+        if (!$data[0]['facturado']) {
+            return true;
+        }
+        return false;
     }
     
     public function startJob($jobDisponible)
@@ -245,19 +249,17 @@ class residentes_facturacion_programada extends \fs_model
         }
         
         $this->finishJob($jobDisponible);
-        
     }
     
     public function stepJob(&$residente, &$jobDisponible)
     {
-        if($residente->procesado === false) {
+        if ($residente->procesado === false) {
             $this->nuevaFactura($residente, $jobDisponible);
         }
     }
     
     public function stopJob()
     {
-        
     }
     
     public function finishJob(&$jobDisponible)
@@ -265,7 +267,7 @@ class residentes_facturacion_programada extends \fs_model
         $residentesProgramados = new residentes_facturacion_programada_edificaciones();
         $residentesPendientes = $residentesProgramados->getByIdProgramacionPendientes($jobDisponible->id);
         $residentesFacturados = $residentesProgramados->getByIdProgramacion($jobDisponible->id);
-        if($residentesPendientes === false) {
+        if ($residentesPendientes === false) {
             $jobDisponible->estado = 'CONCLUIDO';
             $jobDisponible->facturas_generadas = count($residentesFacturados);
             $jobDisponible->usuario_modificacion = 'cron';
@@ -288,17 +290,17 @@ class residentes_facturacion_programada extends \fs_model
             $jobDisponible->save();
             $this->startJob($jobDisponible);
         } else {
-           echo " ** No coincide la hora de proceso con la de ejecucion de cron se omite el proceso $ahora $horaActual ** \n";
-           $this->new_advice(' ** No coincide la hora de proceso con la de ejecucion de cron se omite el proceso ** ');
+            echo " ** No coincide la hora de proceso con la de ejecucion de cron se omite el proceso ".
+                "$ahora $horaActual ** \n";
+            $this->new_advice(' ** No coincide la hora de proceso con la de ejecucion de cron se omite el proceso ** ');
         }
     }
     
     public function statusJob()
     {
-
     }
     
-    public function nuevaFactura($resProgramado, &$jobDisponible) 
+    public function nuevaFactura($resProgramado, &$jobDisponible)
     {
         $clienteTable = new cliente();
         $empresaTable = new empresa();
@@ -314,7 +316,7 @@ class residentes_facturacion_programada extends \fs_model
                 $this->nuevoDetalleFactura($factura, $residente, $listaArticulos);
                 
                 $this->nuevoTotalFactura($factura, $resProgramado, $empresaTable);
-                $jobDisponible->facturas_generadas = $jobDisponible->facturas_generadas+1;
+                ++$jobDisponible->facturas_generadas;
                 $jobDisponible->save();
             } else {
                 $this->new_error_msg('Imposible guardar la factura.');
@@ -326,11 +328,11 @@ class residentes_facturacion_programada extends \fs_model
     
     public function nuevaCabeceraFactura(&$factura, &$residente, &$empresaTable, &$jobDisponible)
     {
-        $factura->codserie = ($residente->codserie) ? $residente->codserie : $empresaTable->codserie;
+        $factura->codserie = ($residente->codserie) ?: $empresaTable->codserie;
         $factura->codpago = $jobDisponible->forma_pago;
         $factura->codalmacen = $empresaTable->codalmacen;
         $factura->codagente = '1';
-        $factura->set_fecha_hora(\date('Y-m-d'),\date('H:i:s'));
+        $factura->set_fecha_hora(\date('Y-m-d'), \date('H:i:s'));
 
         $this->nuevaVerificacionContabilidadFactura($factura, $residente, $empresaTable);
 
@@ -344,7 +346,6 @@ class residentes_facturacion_programada extends \fs_model
             $factura->numero2 = '';
             echo "No hay funcion libre. \n";
         }
-        
     }
     
     public function nuevoDetalleFactura(&$factura, &$residente, $listaArticulos)
@@ -352,9 +353,9 @@ class residentes_facturacion_programada extends \fs_model
         $art0 = new articulo();
         $impuesto = new impuesto();
         
-        foreach($listaArticulos as $concepto) {
+        foreach ($listaArticulos as $concepto) {
             $art = $art0->get($concepto->referencia);
-            if($this->conceptoFacturable($residente->codcliente, $concepto->referencia)) {
+            if ($this->conceptoFacturable($residente->codcliente, $concepto->referencia)) {
                 $linea = new linea_factura_cliente();
                 $linea->idfactura = $factura->idfactura;
                 $linea->referencia = $concepto->referencia;
@@ -367,10 +368,8 @@ class residentes_facturacion_programada extends \fs_model
                 $linea->pvpunitario = $concepto->pvp;
                 $linea->pvptotal = $concepto->pvp * $concepto->cantidad;
                 $this->nuevoTotalLineasFactura($factura, $linea);
-                
             }
         }
-        
     }
     
     public function nuevoTotalLineasFactura(&$factura, &$linea)
@@ -391,11 +390,9 @@ class residentes_facturacion_programada extends \fs_model
         $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
 
         if ($factura->save()) {
-            $this->generar_asiento($factura, $empresaTable);            
+            $this->generar_asiento($factura, $empresaTable);
             /// Función de ejecución de tareas post guardado correcto de la factura
-            //call_user_func('fs_documento_post_save', $factura);
             fs_documento_post_save($factura);
-            //echo "Factura: ".$factura->numero2."\n";
             //Actualizamos la data del residente
             $residenteProgramado->idfactura = $factura->idfactura;
             $residenteProgramado->procesado = true;
@@ -430,7 +427,6 @@ class residentes_facturacion_programada extends \fs_model
     
     public function nuevaInformacionResidenteFactura(&$factura, &$residente)
     {
-        
         foreach ($residente->get_direcciones() as $d) {
             if ($d->domfacturacion) {
                 $factura->codcliente = $residente->codcliente;
@@ -452,7 +448,8 @@ class residentes_facturacion_programada extends \fs_model
      * Genera el asiento para la factura, si procede
      * @param factura_cliente $factura
      */
-    public function generar_asiento(&$factura, &$empresaTable) {
+    public function generar_asiento(&$factura, &$empresaTable)
+    {
         if ($empresaTable->contintegrada) {
             $asiento_factura = new asiento_factura();
             $asiento_factura->generar_asiento_venta($factura);
@@ -461,5 +458,4 @@ class residentes_facturacion_programada extends \fs_model
             $factura->get_lineas_iva();
         }
     }
-    
 }

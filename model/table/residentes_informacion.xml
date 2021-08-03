@@ -125,7 +125,6 @@
     </restriccion>
     <restriccion>
         <nombre>residentes_informacion_clientes</nombre>
-        <consulta>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE</consulta>
+        <consulta>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente) ON UPDATE CASCADE ON DELETE CASCADE</consulta>
     </restriccion>
 </tabla>

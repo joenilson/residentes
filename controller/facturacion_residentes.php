@@ -164,14 +164,14 @@ class facturacion_residentes extends residentes_controller
     {
         $estado = false;
         $idProgramacion = $this->filter_request('idprogramacion');
-        if ($this->user->allow_delete_on(__CLASS__) and isset($idProgramacion) and $idProgramacion !== '') {
+        if ($this->user->allow_delete_on(__CLASS__) && isset($idProgramacion) && $idProgramacion != '') {
             $programaciones = new residentes_facturacion_programada();
             $programa = $programaciones->get($idProgramacion);
             if ($programa) {
                 $estado = $programa->delete();
             }
         }
-        if ($estado == true) {
+        if ($estado === true) {
             $this->new_message('Programaci&oacute;n eliminada correctamente.');
         } else {
             $this->new_error_msg('La Programaci&oacute;n no pudo ser eliminada, verifique los datos o sus permisos.');
@@ -182,7 +182,7 @@ class facturacion_residentes extends residentes_controller
     {
         $estado = false;
         $idProgramacion = $this->filter_request('idprogramacion');
-        if ($this->user->allow_delete_on(__CLASS__) and isset($idProgramacion) and $idProgramacion !== '') {
+        if ($this->user->allow_delete_on(__CLASS__) && isset($idProgramacion) && $idProgramacion != '') {
             $programaciones = new residentes_facturacion_programada();
             $programa = $programaciones->get($idProgramacion);
             if ($programa) {
@@ -192,7 +192,7 @@ class facturacion_residentes extends residentes_controller
                 $estado = $programa->save();
             }
         }
-        if ($estado == true) {
+        if ($estado === true) {
             $this->new_message('Programaci&oacute;n reiniciada correctamente.');
         } else {
             $this->new_error_msg('La Programaci&oacute;n no pudo ser reiniciada, verifique los datos o sus permisos.');
@@ -201,7 +201,6 @@ class facturacion_residentes extends residentes_controller
     
     public function guardarProgramacion()
     {
-
         $residentesProcesar = $this->cantidadResidentesProcesar();
         $cantidadResidentesProcesar  = count($residentesProcesar);
         $idProgramacion = $this->cabeceraProgramacion($cantidadResidentesProcesar);
@@ -223,7 +222,7 @@ class facturacion_residentes extends residentes_controller
         $hora_envio = $this->filter_request('hora_envio');
         
         $rfp = new residentes_facturacion_programada();
-        $rfp->id = (isset($id) && $id !== '')?$id:null;
+        $rfp->id = (isset($id) && $id != '')?$id:null;
         $rfp->descripcion = htmlentities(trim($descripcion));
         $rfp->forma_pago = $forma_pago;
         $rfp->fecha_envio = $fecha_envio;
@@ -314,9 +313,10 @@ class facturacion_residentes extends residentes_controller
             $sql = "SELECT count(referencia) as facturado from lineasfacturascli where referencia = '".$referencia."' ".
                " AND idfactura IN (select idfactura from facturascli WHERE codcliente = '".$codcliente."');";
             $data = $this->db->select($sql);
-            if ($data[0]['facturado'] === 0) {
+            if (!$data[0]['facturado']) {
                 $listaResidentes[$codcliente][] = $referencia;
             }
         }
+
     }
 }

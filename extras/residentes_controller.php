@@ -73,14 +73,14 @@ class residentes_controller extends fs_controller
     {
         $nombre_post = \filter_input(INPUT_POST, $nombre);
         $nombre_get = \filter_input(INPUT_GET, $nombre);
-        return ($nombre_post) ? $nombre_post : $nombre_get;
+        return ($nombre_post) ?: $nombre_get;
     }
 
     public function filter_request_array($nombre)
     {
         $nombre_post = \filter_input(INPUT_POST, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
         $nombre_get = \filter_input(INPUT_GET, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
-        return ($nombre_post) ? $nombre_post : $nombre_get;
+        return ($nombre_post) ?: $nombre_get;
     }
 
     public function init()
@@ -104,7 +104,8 @@ class residentes_controller extends fs_controller
     {
         $fsvar = new fs_var();
         $residentes_email_plantillas = array();
-        $residentes_email_plantillas['mail_informe_residentes'] = "Buenos días, le adjunto su #DOCUMENTO#.\n\n#FIRMA# 4";
+        $residentes_email_plantillas['mail_informe_residentes'] = "Buenos días, le adjunto su #DOCUMENTO#.".
+                            "\n\n#FIRMA# 4";
         $email_plantillas = $fsvar->array_get($residentes_email_plantillas, FALSE);
         $fsvar->array_save($email_plantillas);
     }
@@ -113,7 +114,7 @@ class residentes_controller extends fs_controller
         $this->template = 'mostrar_informacion_residente';
         $cod = $this->filter_request('codcliente');
         $this->cliente_residente = $this->clientes->get($cod);
-        $this->cliente_residente->residente = $this->edificaciones->get_by_field('codcliente',$cod);
+        $this->cliente_residente->residente = $this->edificaciones->get_by_field('codcliente', $cod);
         $this->pagos_pendientes = $this->pagosFactura(false);
         $this->pagos_realizados = $this->pagosFactura(true);
     }
@@ -121,12 +122,14 @@ class residentes_controller extends fs_controller
     public function pagosFactura($pagada=false)
     {
         $fecha = '';
-        if(isset($this->desde) AND isset($this->hasta)){
-            $fecha = " AND f.fecha between ".$this->empresa->var2str(\date('Y-m-d',strtotime($this->desde))). " AND ".
-            $this->empresa->var2str(\date('Y-m-d',strtotime($this->hasta)));
+        if (isset($this->desde, $this->hasta)) {
+            $fecha = " AND f.fecha between ".$this->empresa->var2str(\date('Y-m-d', strtotime($this->desde))).
+            " AND ".
+            $this->empresa->var2str(\date('Y-m-d', strtotime($this->hasta)));
         }
         $tipo_pagada = ($pagada)?'TRUE':'FALSE';
-        $sql = "SELECT f.idfactura, f.numero2, f.vencimiento, lf.referencia, lf.descripcion, f.fecha, lf.pvpsindto, lf.dtopor, lf.pvptotal".
+        $sql = "SELECT f.idfactura, f.numero2, f.vencimiento, lf.referencia, lf.descripcion, f.fecha, lf.pvpsindto, ".
+            "lf.dtopor, lf.pvptotal".
             " FROM facturascli as f left join lineasfacturascli as lf ON (f.idfactura = lf.idfactura)".
             " WHERE f.anulada = FALSE AND f.pagada = ".$tipo_pagada.
             " AND f.codcliente = ".$this->empresa->var2str($this->cliente_residente->codcliente).
@@ -134,14 +137,13 @@ class residentes_controller extends fs_controller
         $data = $this->db->select($sql);
         $lista = array();
         $fact = new factura_cliente();
-        foreach($data as $l){
+        foreach ($data as $l) {
             $linea = (object) $l;
             $linea->f_pago = $linea->fecha;
             $linea->dias_atraso = ($pagada)?0:$this->diasAtraso($linea->vencimiento, \date('d-m-Y'));
-            if(in_array('tesoreria', $GLOBALS['plugins'])){
-
+            if (in_array('tesoreria', $GLOBALS['plugins'], true)) {
             }
-            if($pagada){
+            if ($pagada) {
                 $f = $fact->get($linea->idfactura);
                 $fp = $f->get_asiento_pago();
                 $linea->f_pago = ($fp)?$fp->fecha:$linea->f_pago;
@@ -149,7 +151,6 @@ class residentes_controller extends fs_controller
             $lista[] = $linea;
         }
         return $lista;
-
     }
 
     /**
@@ -163,16 +164,16 @@ class residentes_controller extends fs_controller
     {
         $cli = new cliente();
         $cliente = $cli->get($codcliente);
-        if($iddireccion !== ''){
-            foreach($cliente->get_direcciones() as $dir){
-                if($dir->id == (int)$iddireccion){
+        if ($iddireccion !== '') {
+            foreach ($cliente->get_direcciones() as $dir) {
+                if ($dir->id === (int)$iddireccion) {
                     $dir->direccion = $nueva_direccion;
                     $dir->save();
                     break;
                 }
             }
             return $iddireccion;
-        }else{
+        } else {
             $dir = new direccion_cliente();
             $dir->direccion = $nueva_direccion;
             $dir->codcliente = $codcliente;

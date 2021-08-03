@@ -50,7 +50,6 @@
     </restriccion>
     <restriccion>
         <nombre>residentes_factprogref_factprog</nombre>
-        <consulta>FOREIGN KEY (idprogramacion) REFERENCES residentes_fact_prog (id) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE</consulta>
+        <consulta>FOREIGN KEY (idprogramacion) REFERENCES residentes_fact_prog (id) ON UPDATE CASCADE ON DELETE CASCADE</consulta>
     </restriccion>
 </tabla>

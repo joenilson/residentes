@@ -82,10 +82,10 @@ MA 02110-1301  USA
                         <span class="input-group-addon">
                             <span class="fa fa-calendar fa-fw"></span>
                         </span>
-                        <input type="text" name="fecha_envio" value="{$fsc->today()}" class="form-control datepicker input-sm" style='width:180px;' required="" autocomplete="off"/>
+                        <input type="text" name="fecha_envio" value="{$fsc->today()}" class="form-control datepicker input-sm" style='width:120px;' required="" autocomplete="off"/>
                     </div>
                 </div>
-                <div class="col-sm-1">
+                <div class="col-sm-2">
                 Hora de envio:
                 </div>
                 <div class="col-sm-2">
@@ -100,14 +100,14 @@ MA 02110-1301  USA
                 <div class="col-sm-3 text-left">
                     <a href='#' class="add-one btn btn-sm btn-info"><i class='fa fa-plus fa-fw'></i> Añadir Conceptos a facturar</a>
                 </div>
-                <div class="col-sm-2 text-right">
+                <div class="col-sm-3 text-right">
                     <label class='control-label'><b>Total a Facturar: </b></label>
                 </div>
                 <div class="col-sm-2 text-left">
                     <input type="hidden" name="accion" value="guardar_programacion">
                     <input type="text" name="total_importe" id="total_importe" readonly="" value="0" class="form-control input-sm text-right">
                 </div>
-                <div class="col-sm-3 text-right" style='margin-top: 10px;'>    
+                <div class="col-sm-4 text-right" style='margin-top: 10px;'>
                     <button class="btn btn-sm btn-success" type="submit">
                         <span class="fa fa-save fa-fw"></span>Guardar Programaci&oacute;n
                     </button>
@@ -120,7 +120,7 @@ MA 02110-1301  USA
                     <!-- You can call clone function once if you want it to show it a first element-->
                 </div>
                 <div class="col-sm-4" style='margin-top: 10px;'>
-                    <ul class="list-group col-sm-6 list-group-scroll">
+                    <ul class="list-group col-sm-12 list-group-scroll">
                         <li class="list-group-item active text-center">
                             Elegir el alcance de la facturaci&oacute;n
                         </li>
@@ -147,15 +147,15 @@ MA 02110-1301  USA
             var addto = ".dynamic-stuff";
             next = next + 1;
             var newIn = '<div class="form-group col-sm-12">' +
-                '<div class="col-sm-5 campo-referencia">' +
-                '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-sm" onchange="actualizarPrecio('+next+')">' +
+                '<div class="col-sm-4 campo-referencia">' +
+                '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-xs" onchange="actualizarPrecio('+next+')">' +
                 '       <option value="">Referencia</option>' +
-                        {loop="$fsc->familias->get_articulos()"}
+                        {loop="$fsc->familias->get_articulos(0,1000)"}
                 '       <option value="{$value->referencia}">{$value->descripcion}</option>' +
                         {/loop}
                 '   </select>' +
                 '</div>' +
-                '<div class="col-sm-1 campo-pvp">' +
+                '<div class="col-sm-2 campo-pvp">' +
                 '    <input type="text" name="pvp[]" id="pvp_'+next+'" value="" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
                 '</div>' +
                 '<div class="col-sm-1 campo-cantidad">' +
@@ -239,7 +239,7 @@ MA 02110-1301  USA
     function actualizarPrecio(inputId)
     {
         articulos = [];
-        {loop="$fsc->familias->get_articulos()"}
+        {loop="$fsc->familias->get_articulos(0,1000)"}
         articulos[{$counter}] = {referencia: '{$value->referencia}', descripcion: '{$value->descripcion}', pvp: '{$value->pvp}', impuesto: '{$value->codimpuesto}'};
         {/loop}
         var referencia = $("#referencia_"+inputId);

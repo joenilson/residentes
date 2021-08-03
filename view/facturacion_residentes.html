@@ -107,7 +107,8 @@ MA 02110-1301  USA
     });
     function confirmarEliminacion(id) {
         bootbox.confirm({
-            message: "¿Est&aacute; seguro que quiere eliminar esta programaci&oacute;n?",
+            message: "¿Est&aacute; seguro que quiere eliminar esta programaci&oacute;n?\<br> "+
+                        "- Se eliminarán las facturas asociadas.",
             buttons: {
                 confirm: {
                     label: 'Borrar',
@@ -121,7 +122,7 @@ MA 02110-1301  USA
             callback: function (result) {
                 if(result) {
                     $('#loader').show();
-                     window.location.href = '{#FS_PATH#}{$fsc->url()}&accion=eliminar_programacion&idprogramacion='+id;
+                    window.location.href = '{#FS_PATH#}{$fsc->url()}&accion=eliminar_programacion&idprogramacion='+id;
                 }
             }
         });

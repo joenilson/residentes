@@ -142,6 +142,7 @@ MA 02110-1301  USA
                 bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
                 return false;
             }
+
             e.preventDefault();
             bootbox.confirm({
                 message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
@@ -247,7 +248,6 @@ MA 02110-1301  USA
         }
         $('#total_importe').val(importe_total);
     }
-    
     </script>
     <style>
         .list-group-scroll{
