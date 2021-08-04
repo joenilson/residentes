@@ -25,17 +25,17 @@ namespace FacturaScripts\model;
 class residentes_edificaciones_tipo extends \fs_model{
     /**
      * El Id del tipo de edificacion
-     * @var type integer serial
+     * @var integer serial
      */
     public $id;
     /**
      * Esta es la descripción del tipo de edificación
-     * @var type varchar(64)
+     * @var varchar(64)
      */
     public $descripcion;
     /**
      * Todo tipo debe tener un padre, el primero que se crea tiene el padre 0
-     * @var type integer
+     * @var integer
      */
     public $padre;
     public function __construct($t = FALSE) {
@@ -55,16 +55,17 @@ class residentes_edificaciones_tipo extends \fs_model{
         return "insert into residentes_edificaciones_tipo (descripcion) VALUES ('Bloque');";
     }
 
-    public function all(){
+    public function all()
+    {
         $sql = "SELECT * FROM ".$this->table_name." ORDER BY padre";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             $lista = array();
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $lista[] = new residentes_edificaciones_tipo($d);
             }
             return $lista;
-        }else{
+        } else {
             return false;
         }
     }

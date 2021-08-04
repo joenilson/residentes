@@ -48,6 +48,7 @@ class lista_residentes extends residentes_controller
     public $residente_informacion;
     public $residente_vehiculo;
     public $cli;
+
     public function __construct()
     {
         parent::__construct(__CLASS__, 'Residentes', 'residentes', false, true);
@@ -74,14 +75,16 @@ class lista_residentes extends residentes_controller
                 $inq->fecha_ocupacion = null;
                 if ($inq->save()) {
                     $this->new_message('Inquilino removido correctamente.');
-                } else
+                } else {
                     $this->new_error_msg('Error al remover el inquilino.');
-            } else
+                }
+            } else {
                 $this->new_error_msg('Inquilino no encontrado.');
+            }
         }
         
         $tipo = $this->filter_request('type');
-        if ($tipo === 'select-iddireccion' ) {
+        if ($tipo === 'select-iddireccion') {
             $this->mostrar_direcciones_residente(\filter_input(INPUT_GET, 'codcliente'));
         }
 
@@ -103,6 +106,7 @@ class lista_residentes extends residentes_controller
     public function init_variables()
     {
         $this->bloque = '';
+        $this->offset = 0;
         $this->cliente = new cliente();
         $this->residente = new residentes_edificaciones();
         $this->residente_informacion = new residentes_informacion();
@@ -110,7 +114,6 @@ class lista_residentes extends residentes_controller
         $this->edificacion_tipo = new residentes_edificaciones_tipo();
         $this->edificacion_mapa = new residentes_edificaciones_mapa();
         $this->tipo_edificaciones = $this->edificacion_tipo->all();
-        $this->offset = 0;
     }
 
     public function filters()
@@ -140,7 +143,7 @@ class lista_residentes extends residentes_controller
             $this->order = $this->filter_request('orden');
         }
 
-        $this->offset = $this->filter_request('offset');
+        $this->offset = ($this->filter_request('offset')) ?: 0;
 
         $this->deudores = $this->filter_request('deudores');
         if ($this->deudores) {
@@ -173,7 +176,7 @@ class lista_residentes extends residentes_controller
             $where = " WHERE ".$this->buscar_inmuebles($param);
         }
 
-        list($this->resultados, $this->total_resultados) = $this->residente->lista_residentes(
+        [$this->resultados, $this->total_resultados] = $this->residente->lista_residentes(
             $where,
             $this->order,
             $this->sort,
@@ -240,7 +243,8 @@ class lista_residentes extends residentes_controller
         return $where;
     }
 
-    public function agregar_residente(){
+    public function agregar_residente()
+    {
         $id_edificacion = \filter_input(INPUT_POST, 'id_edificacion');
         $codcliente = \filter_input(INPUT_POST, 'codcliente');
         $iddireccion = \filter_input(INPUT_POST, 'iddireccion');
@@ -263,7 +267,7 @@ class lista_residentes extends residentes_controller
                 $this->new_error_msg('No se pudo agregar al residente confirme el nombre '.
                                     'del residente y las fechs de ocupación y disponibilidad');
             }
-        } elseif ($inmueble and $accion === 'quitar_residente') {
+        } elseif ($inmueble && $accion === 'quitar_residente') {
             $inmueble->ocupado = false;
             $inmueble->codcliente = '';
             $inmueble->iddireccion = null;
@@ -336,8 +340,10 @@ class lista_residentes extends residentes_controller
         }
 
         header('Content-Type: application/json');
-        echo json_encode(array('query' => $_REQUEST['buscar_cliente_avanzado'], 'suggestions' => $json),
-            JSON_THROW_ON_ERROR);
+        echo json_encode(
+            array('query' => $_REQUEST['buscar_cliente_avanzado'], 'suggestions' => $json),
+            JSON_THROW_ON_ERROR
+        );
     }
 
     private function buscar_inmueble()
@@ -346,15 +352,17 @@ class lista_residentes extends residentes_controller
         $this->template = false;
 
         $json = array();
-        foreach ($this->residente->search($_REQUEST['buscar_inmueble'],'inmueble') as $inmueble) {
+        foreach ($this->residente->search($_REQUEST['buscar_inmueble'], 'inmueble') as $inmueble) {
             if (!$inmueble->ocupado) {
                 $json[] = array('value' => $inmueble->codigo.$inmueble->numero, 'data' => $inmueble->id);
             }
         }
 
         header('Content-Type: application/json');
-        echo json_encode(array('query' => $_REQUEST['buscar_inmueble'], 'suggestions' => $json),
-            JSON_THROW_ON_ERROR);
+        echo json_encode(
+            array('query' => $_REQUEST['buscar_inmueble'], 'suggestions' => $json),
+            JSON_THROW_ON_ERROR
+        );
     }
 
     public function paginas()

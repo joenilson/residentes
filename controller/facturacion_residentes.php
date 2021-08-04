@@ -267,7 +267,7 @@ class facturacion_residentes extends residentes_controller
             $rfpe = new residentes_facturacion_programada_edificaciones();
             $rfpe->idprogramacion = $idProgramacion;
             $rfpe->codcliente = $codcliente;
-            $rfpe->id_edificacion = $data_edificacion[0]->id_edificacion;
+            $rfpe->id_edificacion = $data_edificacion[0]->id;
             $rfpe->save();
         }
     }

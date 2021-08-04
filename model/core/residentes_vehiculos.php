@@ -27,43 +27,43 @@ require_model('cliente.php');
 class residentes_vehiculos extends \fs_model{
     /**
      * El Id del vehiculo
-     * @var type integer serial
+     * @var integer serial
      */
     public $idvehiculo;
     /**
      * El codigo del Residente o cliente al que pertenece el vehiculo
-     * @var type varchar(6)
+     * @var varchar(6)
      */
     public $codcliente;
     /**
      * La marca del Vehiculo
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $vehiculo_marca;
     /**
      * El modelo del Vehiculo
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $vehiculo_modelo;
     /**
      * El color del Vehiculo
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $vehiculo_color;
     /**
      * La placa del Vehiculo
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $vehiculo_placa;
     /**
      * El tipo de Vehiculo
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $vehiculo_tipo;
     /**
      * Si posee una tarjeta de acceso asignada al vehiculo
      * este código se guarda aquí
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $codigo_tarjeta;
     public $cliente;

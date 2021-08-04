@@ -157,7 +157,7 @@ class residentes_controller extends fs_controller
      * Función para actualizar la dirección de un cliente al asignarlo a un inmueble
      * @param string $codcliente
      * @param integer $iddireccion
-     * @param varchar $nueva_direccion
+     * @param string $nueva_direccion
      * @return integer
      */
     public function actualizar_direccion_residente($codcliente, $iddireccion, $nueva_direccion)

@@ -48,7 +48,7 @@ MA 02110-1301  USA
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th></th>
+                        <th><input type='checkbox' name='marcar_edificacion' onchange='procesar_checkboxs(this)'></th>
                         <th class="text-left">Codigo</th>
                         <th class="text-left">Residente</th>
                         <th class="text-left">Edificaci&oacute;n</th>
@@ -63,7 +63,7 @@ MA 02110-1301  USA
                 <tbody>
                     {loop="$fsc->lista_programaciones"}
                     <tr>
-                        <td><input type="checkbox" name="facturacion[]" value="{$value->idfactura}" class="form-control input-sm"></td>
+                        <td><input type="checkbox" name="facturacion[]" value="{$value->idfactura}" class="input-xs"></td>
                         <td>{$value->codcliente}</td>
                         <td class="text-left">{$value->nombre_residente}</td>
                         <td class="text-center">{$value->codigo} {$value->numero}</td>
@@ -89,94 +89,95 @@ MA 02110-1301  USA
     <script>
     $(document).ready(function(){
         var next = 0;
-        $('.add-one').click(function(){
-            var addto = ".dynamic-stuff";
-            next = next + 1;
-            var newIn = '<div class="form-group col-sm-12">' +
-                '<div class="col-sm-5 campo-referencia">' +
-                '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-sm" onchange="actualizarPrecio('+next+')">' +
-                '       <option value="">Referencia</option>' +
-                        {loop="$fsc->familias->get_articulos()"}
-                '       <option value="{$value->referencia}">{$value->descripcion}</option>' +
-                        {/loop}
-                '   </select>' +
-                '</div>' +
-                '<div class="col-sm-1 campo-pvp">' +
-                '    <input type="text" name="pvp[]" id="pvp_'+next+'" value="" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
-                '</div>' +
-                '<div class="col-sm-1 campo-cantidad">' +
-                '    <input type="text" name="cantidad[]" id="cantidad_'+next+'" value="1" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
-                '</div>' +
-                '<div class="col-sm-2 campo-impuesto">' +
-                '    <select name="impuesto[]" id="impuesto_'+next+'" class="form-control input-sm" onchange="recalcular('+next+')">' +
-                '        <option selected>impuesto</option>' +
-                        {loop="$fsc->impuesto->all()"}
-                '        <option value="{$value->codimpuesto}" {if="$value->is_default()"}selected{/if}>{$value->descripcion}</option>' +
-                        {/loop}
-                '    </select>' +
-                '</div>' +
-                '<div class="col-sm-2 campo-importe">' +
-                '    <input type="text" name="importe[]" id="importe_'+next+'" value="" readonly="" class="form-control input-sm text-right">' +
-                '</div>' +
-                '<div class="col-sm-1 text-center">' +
-                '    <p class="delete btn-sm btn-danger text-center text-capitalize"><i class="fa fa-trash fa-fw"></i></p>' +
-                '</div>' +
-            '</div>';
-            
-            var newInput = $(newIn);
-            $(addto).append(newInput);
-            $('#referencia_'+next).selectpicker({liveSearch: true});
-            $('#impuesto_'+next).selectpicker({liveSearch: true});
-            attach_delete();
-        });
+        // $('.add-one').click(function(){
+        //     var addto = ".dynamic-stuff";
+        //     next = next + 1;
+        //     var newIn = '<div class="form-group col-sm-12">' +
+        //         '<div class="col-sm-5 campo-referencia">' +
+        //         '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-sm" onchange="actualizarPrecio('+next+')">' +
+        //         '       <option value="">Referencia</option>' +
+        //                 {loop="$fsc->familias->get_articulos()"}
+        //         '       <option value="{$value->referencia}">{$value->descripcion}</option>' +
+        //                 {/loop}
+        //         '   </select>' +
+        //         '</div>' +
+        //         '<div class="col-sm-1 campo-pvp">' +
+        //         '    <input type="text" name="pvp[]" id="pvp_'+next+'" value="" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
+        //         '</div>' +
+        //         '<div class="col-sm-1 campo-cantidad">' +
+        //         '    <input type="text" name="cantidad[]" id="cantidad_'+next+'" value="1" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
+        //         '</div>' +
+        //         '<div class="col-sm-2 campo-impuesto">' +
+        //         '    <select name="impuesto[]" id="impuesto_'+next+'" class="form-control input-sm" onchange="recalcular('+next+')">' +
+        //         '        <option selected>impuesto</option>' +
+        //                 {loop="$fsc->impuesto->all()"}
+        //         '        <option value="{$value->codimpuesto}" {if="$value->is_default()"}selected{/if}>{$value->descripcion}</option>' +
+        //                 {/loop}
+        //         '    </select>' +
+        //         '</div>' +
+        //         '<div class="col-sm-2 campo-importe">' +
+        //         '    <input type="text" name="importe[]" id="importe_'+next+'" value="" readonly="" class="form-control input-sm text-right">' +
+        //         '</div>' +
+        //         '<div class="col-sm-1 text-center">' +
+        //         '    <p class="delete btn-sm btn-danger text-center text-capitalize"><i class="fa fa-trash fa-fw"></i></p>' +
+        //         '</div>' +
+        //     '</div>';
+        //
+        //     var newInput = $(newIn);
+        //     $(addto).append(newInput);
+        //     $('#referencia_'+next).selectpicker({liveSearch: true});
+        //     $('#impuesto_'+next).selectpicker({liveSearch: true});
+        //     attach_delete();
+        // });
         
-        $('#f_generar_facturacion').submit(function(e) {
-            var currentForm = this;
-
-            if($('#total_importe').val() === 0) {
-                bootbox.alert('Debes elegir primero un concepto a facturar.');
-                return false;
-            }
-
-            if(document.querySelectorAll('input[name="edificacion[]"]:checked').length === 0) {
-                bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
-                return false;
-            }
-
-            e.preventDefault();
-            bootbox.confirm({
-                message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
-                buttons: {
-                    confirm: {
-                        label: 'Programar',
-                        className: 'btn-success'
-                    },
-                    cancel: {
-                        label: 'Regresar',
-                        className: 'btn-danger'
-                    }
-                },
-                callback: function (result) {
-                    if(result) {
-                        $('#loader').show();
-                        currentForm.submit();
-                    }
-                }
-            });
-        });
+        // $('#f_generar_facturacion').submit(function(e) {
+        //     var currentForm = this;
+        //
+        //     if($('#total_importe').val() === 0) {
+        //         bootbox.alert('Debes elegir primero un concepto a facturar.');
+        //         return false;
+        //     }
+        //
+        //     if(document.querySelectorAll('input[name="edificacion[]"]:checked').length === 0) {
+        //         bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
+        //         return false;
+        //     }
+        //
+        //     e.preventDefault();
+        //     bootbox.confirm({
+        //         message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
+        //         buttons: {
+        //             confirm: {
+        //                 label: 'Programar',
+        //                 className: 'btn-success'
+        //             },
+        //             cancel: {
+        //                 label: 'Regresar',
+        //                 className: 'btn-danger'
+        //             }
+        //         },
+        //         callback: function (result) {
+        //             if(result) {
+        //                 $('#loader').show();
+        //                 currentForm.submit();
+        //             }
+        //         }
+        //     });
+        // });
     });
     
-    all_impuestos = [];
-    {loop="$fsc->impuesto->all()"}
-        all_impuestos[{$counter}] = {codimpuesto: '{$value->codimpuesto}', iva: '{$value->iva}'};
-    {/loop}
+    // all_impuestos = [];
+    // {loop="$fsc->impuesto->all()"}
+    //     all_impuestos[{$counter}] = {codimpuesto: '{$value->codimpuesto}', iva: '{$value->iva}'};
+    // {/loop}
         
     function procesar_checkboxs(inputCheckbox)
     {
         $('input:checkbox').prop('checked', inputCheckbox.checked);
     }
     
-    function attach_delete(){
+    function attach_delete()
+    {
         $('.delete').off();
         $('.delete').click(function(){
             $(this).closest('.form-group').remove();

@@ -24,7 +24,7 @@ namespace FacturaScripts\model;
 class residentes_edificaciones extends \fs_model{
     /**
      * El Id de la de edificacion
-     * @var type integer serial
+     * @var integer serial
      */
     public $id;
     /**
@@ -34,14 +34,14 @@ class residentes_edificaciones extends \fs_model{
     public $iddireccion;
     /**
      * Este es el id de la edificacion en el mapa de Edificaciones
-     * @var type integer
+     * @var integer
      */
     public $id_edificacion;
     /**
      * De cara al usuario se mostrará y buscara este código
      * pero esto se generará de los valores que ingrese de
      * los tipos de edificaciones
-     * @var type string
+     * @var string
      */
     public $codigo;
     /**
@@ -51,7 +51,7 @@ class residentes_edificaciones extends \fs_model{
      * será 1:LETRA_O_NUMERO del Bloque, si por el contrario tiene Bloque y Edificio
      * entonces el valor guardado será 1:1_2:1 que indicara que esta en el Bloque 1 Edificio 1
      * siendo el id de Edificio el 2.
-     * @var type string
+     * @var string
      */
     public $codigo_interno;
     /**
@@ -225,32 +225,35 @@ class residentes_edificaciones extends \fs_model{
      */
     public function get_by_field($field,$value){
         $query = (is_string($value))?$this->var2str($value):$this->intval($value);
-        $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query." ORDER BY codigo_interno,numero;";
+        $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query.
+            " ORDER BY codigo_interno,numero;";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             $lista = array();
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
                 $this->info($item);
                 $lista[] = $item;
             }
             return $lista;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function exists() {
-        if(is_null($this->id)){
+    public function exists()
+    {
+        if (is_null($this->id)) {
             return false;
-        }else{
+        } else {
             return $this->get($this->id);
         }
     }
 
-    public function save() {
-        if($this->exists()){
+    public function save()
+    {
+        if ($this->exists()) {
             $sql = "UPDATE ".$this->table_name." SET ".
                     "fecha_ocupacion = ".$this->var2str($this->fecha_ocupacion).", ".
                     "fecha_disponibilidad = ".$this->var2str($this->fecha_disponibilidad).", ".
@@ -265,7 +268,7 @@ class residentes_edificaciones extends \fs_model{
                     "ocupado = ".$this->var2str($this->ocupado)." ".
                     "WHERE id = ".$this->intval($this->id).";";
             return $this->db->exec($sql);
-        }else{
+        } else {
             $sql = "INSERT INTO ".$this->table_name." (id_edificacion, iddireccion, codigo, codigo_interno, numero, ubicacion, coordenadas,codcliente, ocupado, fecha_ocupacion, fecha_disponibilidad) VALUES (".
                     $this->intval($this->id_edificacion).", ".
                     $this->intval($this->iddireccion).", ".
@@ -278,25 +281,27 @@ class residentes_edificaciones extends \fs_model{
                     $this->var2str($this->ocupado).", ".
                     $this->var2str($this->fecha_ocupacion).", ".
                     $this->var2str($this->fecha_disponibilidad).");";
-            if($this->db->exec($sql)){
+            if ($this->db->exec($sql)) {
                 return $this->db->lastval();
-            }else{
+            } else {
                 return false;
             }
         }
     }
 
-    public function delete() {
+    public function delete()
+    {
         $sql = "DELETE FROM ".$this->table_name." WHERE id = ".$this->intval($this->id).";";
         return $this->db->exec($sql);
     }
 
-    private function pertenencia($d){
+    private function pertenencia($d)
+    {
         $edificaciones_tipo = new residentes_edificaciones_tipo();
         $codigo_interno = $d->codigo_interno;
         $piezas = \json_decode($codigo_interno);
         $lista = array();
-        foreach($piezas as $id=>$data){
+        foreach ($piezas as $id=>$data) {
             $pertenencia = new \stdClass();
             $pertenencia->id = $id;
             $pertenencia->desc_id = $edificaciones_tipo->get($id)->descripcion;
@@ -312,13 +317,14 @@ class residentes_edificaciones extends \fs_model{
         $edificaciones_tipo = new residentes_edificaciones_tipo();
         $piezas = \json_decode($this->codigo_interno);
         $codigo_externo = '';
-        foreach($piezas as $id=>$data){
+        foreach ($piezas as $id=>$data) {
             $codigo_externo .= $edificaciones_tipo->get($id)->descripcion.' '.$data.' ';
         }
         return $codigo_externo;
     }
 
-    public function buscar_ubicacion_inmueble($id,$linea){
+    public function buscar_ubicacion_inmueble($id,$linea)
+    {
         $inicio_busqueda = ($linea==0)?"{\"":"{%\"";
         $sql = "SELECT * FROM ".$this->table_name." WHERE codigo_interno LIKE '".$inicio_busqueda.$id."\":%}' ORDER BY codigo;";
         $data = $this->db->select($sql);
@@ -409,7 +415,7 @@ class residentes_edificaciones extends \fs_model{
         return $lista;
     }
 
-    public function lista_residentes($where="", $order="", $sort="", $limit, $offset)
+    public function lista_residentes($where = "", $order = "", $sort = "", $limit = FS_ITEM_LIMIT, $offset = 0)
     {
         $sql = "select ".
         "r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
@@ -417,17 +423,19 @@ class residentes_edificaciones extends \fs_model{
         ", f1.total as pagado ".
         ", f2.total as pendiente ".
         ", count(v.idvehiculo) as cantidad_vehiculos ".
-        "from residentes_edificaciones as r   ".
-        "left join clientes as c on (r.codcliente = c.codcliente )  ".
-        "left join residentes_informacion as i ON (r.codcliente = i.codcliente)  ".
-        "left join residentes_vehiculos as v ON (r.codcliente = v.codcliente)   ".
-        "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = true group by codcliente) as f1 on (r.codcliente = f1.codcliente) ".
-        "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = false group by codcliente) as f2 on (r.codcliente = f2.codcliente) ".
+        "from residentes_edificaciones as r ".
+        "left join clientes as c on (r.codcliente = c.codcliente ) ".
+        "left join residentes_informacion as i ON (r.codcliente = i.codcliente) ".
+        "left join residentes_vehiculos as v ON (r.codcliente = v.codcliente) ".
+        "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = true ".
+            "group by codcliente) as f1 on (r.codcliente = f1.codcliente) ".
+        "left join (select codcliente,sum(total) as total from facturascli where anulada = false and pagada = false ".
+            "group by codcliente) as f2 on (r.codcliente = f2.codcliente) ".
         $where.
         " group by ".
         "r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
         "i.propietario, i.ca_nombres, i.ca_apellidos, r.fecha_ocupacion, pagado, pendiente ".
-        " order by ".$order." ".$sort;
+        "order by ".trim($order)." ".$sort;
 
         $sql_count = "SELECT count(r.id) as total ".
         "from residentes_edificaciones as r ".
@@ -435,12 +443,11 @@ class residentes_edificaciones extends \fs_model{
         "left join residentes_informacion as i ON (r.codcliente = i.codcliente) ".
         "left join residentes_vehiculos as v ON (r.codcliente = v.codcliente) ".
         $where;
-
         $data_total = $this->db->select($sql_count);
         $data = $this->db->select_limit($sql, $limit, $offset);
         $lista = array();
-        if($data){
-            foreach($data as $item){
+        if ($data) {
+            foreach ($data as $item) {
                 $lista[] = (object) $item;
             }
         }

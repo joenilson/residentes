@@ -24,38 +24,38 @@ namespace FacturaScripts\model;
 class residentes_edificaciones_mapa extends \fs_model{
     /**
      * ID correlativo de cada linea
-     * @var type serial
+     * @var serial
      */
     public $id;
     /**
      * El Id del tipo de edificacion
-     * @var type integer
+     * @var integer
      */
     public $id_tipo;
     /**
      * Código de la edificación A, 1, C1, como se tenga organizado ese tipo de edificación
-     * @var type varchar(6)
+     * @var varchar(6)
      */
     public $codigo_edificacion;
     /**
      * Código de la edificación padre A, 1, C1
-     * @var type varchar(6)
+     * @var varchar(6)
      */
     public $codigo_padre;
     /**
      * El número de la edificación, puede ser el número de la casa, del apartamento
      * o de la eficicación a controlar
-     * @var type varchar(16)
+     * @var varchar(16)
      */
     public $numero;
     /**
      * @todo padre del ID del tipo de edificación
-     * @var type integer
+     * @var integer
      */
     public $padre_tipo;
     /**
      * el ID de la edificacion padre
-     * @var type integer
+     * @var integer
      */
     public $padre_id;
     public $edificaciones_tipo;

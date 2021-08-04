@@ -28,114 +28,114 @@ require_model('cliente.php');
 class residentes_informacion extends \fs_model{
     /**
      * Codigo del cliente
-     * @var type varchar(6)
+     * @var varchar(6)
      */
     public $codcliente;
     /**
      * Codigo auxiliar del cliente
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $codigo;
     /**
      * Cantidad de ocupantes del inmueble
-     * @var type integer
+     * @var integer
      */
     public $ocupantes;
     /**
      * Cantidad de ocupantes menores de 5 años
-     * @var type integer
+     * @var integer
      */
     public $ocupantes5anos;
     /**
      * Cantidad de ocupantes menores de 12 años
-     * @var type integer
+     * @var integer
      */
     public $ocupantes12anos;
     /**
      * Cantidad de ocupantes menores de 18 años
-     * @var type integer
+     * @var integer
      */
     public $ocupantes18anos;
     /**
      * Cantidad de ocupantes menores de 30 años
-     * @var type integer
+     * @var integer
      */
     public $ocupantes30anos;
     /**
      * Cantidad de ocupantes menores de 50 años
-     * @var type integer
+     * @var integer
      */
     public $ocupantes50anos;
     /**
      * Cantidad de ocupantes menores de 70 años
-     * @var type integer
+     * @var integer
      */
     public $ocupantes70anos;
     /**
      * Cantidad de ocupantes mayores de 70 años
-     * @var type integer
+     * @var integer
      */
     public $ocupantes71anos;
     /**
      * Información sobre alguna discapacidad
-     * @var type text
+     * @var text
      */
     public $informacion_discapacidad;
     /**
      * Si es propietario valor TRUE si es solo inquilino FALSE
-     * @var type boolean
+     * @var boolean
      */
     public $propietario;
     /**
      * Información de la profesión del residente
-     * @var type varhcar(180)
+     * @var varhcar(180)
      */
     public $profesion;
     /**
      * Información de la ocupación del residente
      * sale del model residentes_ayudas tipo = 'ocupacion'
-     * @var type varchar(10)
+     * @var varchar(10)
      */
     public $ocupacion;
     /**
      * Nombres del Contacto Adicional
-     * @var type varchar(180)
+     * @var varchar(180)
      */
     public $ca_nombres;
     /**
      * Apellidos del contacto Adicional
-     * @var type varchar(180)
+     * @var varchar(180)
      */
     public $ca_apellidos;
     /**
      * Información del teléfono del contacto Adicional
-     * @var type varchar(32)
+     * @var varchar(32)
      */
     public $ca_telefono;
     /**
      * Correo electrónico del contacto Adicional
-     * @var type varchar(100)
+     * @var varchar(100)
      */
     public $ca_email;
     /**
      * si el contacto adicional es el propietario se pone TRUE, si no se pone FALSE
-     * @var type boolean
+     * @var boolean
      */
     public $ca_propietario;
     /**
      * Información de el parentezco del contacto Adicional
      * sale del model residentes_ayudas tipo = 'parentezco'
-     * @var type varchar(10)
+     * @var varchar(10)
      */
     public $ca_parentesco;
     /**
      * Si el tipo de parentezco es OTROS entonces se llena la información adicional
-     * @var type varchar(180)
+     * @var varchar(180)
      */
     public $ca_parentesco_obs;
     /**
      * Cantidad de Vehiculos a agregar
-     * @var type integer
+     * @var integer
      */
     public $vehiculos;
     public $cliente;

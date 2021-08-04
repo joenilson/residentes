@@ -25,17 +25,17 @@ namespace FacturaScripts\model;
 class residentes_ayudas extends \fs_model{
     /**
      * El codigo de la ayuda ya sea para parentesco u ocupacion
-     * @var type vharcar(10)
+     * @var vharcar(10)
      */
     public $codigo;
     /**
      * El tipo de la ayuda PARENTESCO | OCUPACION
-     * @var type varchar(16)
+     * @var varchar(16)
      */
     public $tipo;
     /**
      * Esta es la descripción de la ayuda
-     * @var type varchar(64)
+     * @var varchar(64)
      */
     public $descripcion;
     public function __construct($t = FALSE) {
