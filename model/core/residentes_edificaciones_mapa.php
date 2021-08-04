@@ -24,7 +24,7 @@ namespace FacturaScripts\model;
 class residentes_edificaciones_mapa extends \fs_model{
     /**
      * ID correlativo de cada linea
-     * @var serial
+     * @var integer
      */
     public $id;
     /**
@@ -34,18 +34,18 @@ class residentes_edificaciones_mapa extends \fs_model{
     public $id_tipo;
     /**
      * Código de la edificación A, 1, C1, como se tenga organizado ese tipo de edificación
-     * @var varchar(6)
+     * @var string
      */
     public $codigo_edificacion;
     /**
      * Código de la edificación padre A, 1, C1
-     * @var varchar(6)
+     * @var string
      */
     public $codigo_padre;
     /**
      * El número de la edificación, puede ser el número de la casa, del apartamento
      * o de la eficicación a controlar
-     * @var varchar(16)
+     * @var string
      */
     public $numero;
     /**
@@ -59,9 +59,11 @@ class residentes_edificaciones_mapa extends \fs_model{
      */
     public $padre_id;
     public $edificaciones_tipo;
-    public function __construct($t = FALSE) {
-        parent::__construct('residentes_mapa_edificaciones','plugins/residentes');
-        if($t){
+
+    public function __construct($t = false)
+    {
+        parent::__construct('residentes_mapa_edificaciones', 'plugins/residentes');
+        if ($t) {
             $this->id = $t['id'];
             $this->id_tipo = $t['id_tipo'];
             $this->codigo_edificacion = $t['codigo_edificacion'];
@@ -69,8 +71,7 @@ class residentes_edificaciones_mapa extends \fs_model{
             $this->numero = $t['numero'];
             $this->padre_tipo = $t['padre_tipo'];
             $this->padre_id = $t['padre_id'];
-
-        }else{
+        } else {
             $this->id = null;
             $this->id_tipo = null;
             $this->codigo_edificacion = null;

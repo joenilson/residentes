@@ -32,38 +32,38 @@ class residentes_vehiculos extends \fs_model{
     public $idvehiculo;
     /**
      * El codigo del Residente o cliente al que pertenece el vehiculo
-     * @var varchar(6)
+     * @var string
      */
     public $codcliente;
     /**
      * La marca del Vehiculo
-     * @var varchar(32)
+     * @var string
      */
     public $vehiculo_marca;
     /**
      * El modelo del Vehiculo
-     * @var varchar(32)
+     * @var string
      */
     public $vehiculo_modelo;
     /**
      * El color del Vehiculo
-     * @var varchar(32)
+     * @var string
      */
     public $vehiculo_color;
     /**
      * La placa del Vehiculo
-     * @var varchar(32)
+     * @var string
      */
     public $vehiculo_placa;
     /**
      * El tipo de Vehiculo
-     * @var varchar(32)
+     * @var string
      */
     public $vehiculo_tipo;
     /**
      * Si posee una tarjeta de acceso asignada al vehiculo
      * este código se guarda aquí
-     * @var varchar(32)
+     * @var string
      */
     public $codigo_tarjeta;
     public $cliente;

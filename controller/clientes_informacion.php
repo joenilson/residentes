@@ -35,11 +35,11 @@ class clientes_informacion extends \fs_controller
      */
     public $codcliente;
     /**
-     * @var string
+     * @var string|\FacturaScripts\model\cliente
      */
     public $cliente;
     /**
-     * @var array
+     * @var array|\FacturaScripts\model\cliente
      */
     public $clientes;
     /**
@@ -55,11 +55,11 @@ class clientes_informacion extends \fs_controller
      */
     public $residentes_ayudas;
     /**
-     * @var object|array
+     * @var object|array|boolean
      */
     public $lista_parentesco;
     /**
-     * @var object|array
+     * @var object|array|boolean
      */
     public $lista_ocupacion;
 

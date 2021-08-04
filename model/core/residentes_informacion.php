@@ -28,12 +28,12 @@ require_model('cliente.php');
 class residentes_informacion extends \fs_model{
     /**
      * Codigo del cliente
-     * @var varchar(6)
+     * @var string
      */
     public $codcliente;
     /**
      * Codigo auxiliar del cliente
-     * @var varchar(32)
+     * @var string
      */
     public $codigo;
     /**
@@ -78,7 +78,7 @@ class residentes_informacion extends \fs_model{
     public $ocupantes71anos;
     /**
      * Información sobre alguna discapacidad
-     * @var text
+     * @var string
      */
     public $informacion_discapacidad;
     /**
@@ -88,33 +88,33 @@ class residentes_informacion extends \fs_model{
     public $propietario;
     /**
      * Información de la profesión del residente
-     * @var varhcar(180)
+     * @var string
      */
     public $profesion;
     /**
      * Información de la ocupación del residente
      * sale del model residentes_ayudas tipo = 'ocupacion'
-     * @var varchar(10)
+     * @var string
      */
     public $ocupacion;
     /**
      * Nombres del Contacto Adicional
-     * @var varchar(180)
+     * @var string
      */
     public $ca_nombres;
     /**
      * Apellidos del contacto Adicional
-     * @var varchar(180)
+     * @var string
      */
     public $ca_apellidos;
     /**
      * Información del teléfono del contacto Adicional
-     * @var varchar(32)
+     * @var string
      */
     public $ca_telefono;
     /**
      * Correo electrónico del contacto Adicional
-     * @var varchar(100)
+     * @var string
      */
     public $ca_email;
     /**
@@ -125,12 +125,12 @@ class residentes_informacion extends \fs_model{
     /**
      * Información de el parentezco del contacto Adicional
      * sale del model residentes_ayudas tipo = 'parentezco'
-     * @var varchar(10)
+     * @var string
      */
     public $ca_parentesco;
     /**
      * Si el tipo de parentezco es OTROS entonces se llena la información adicional
-     * @var varchar(180)
+     * @var string
      */
     public $ca_parentesco_obs;
     /**
@@ -139,9 +139,10 @@ class residentes_informacion extends \fs_model{
      */
     public $vehiculos;
     public $cliente;
-    public function __construct($t = FALSE) {
+    public function __construct($t = false)
+    {
         parent::__construct('residentes_informacion','plugins/residentes');
-        if($t){
+        if ($t) {
             $this->codcliente=$t['codcliente'];
             $this->codigo=$t['codigo'];
             $this->ocupantes=$t['ocupantes'];

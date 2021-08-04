@@ -30,7 +30,7 @@ class residentes_edificaciones_tipo extends \fs_model{
     public $id;
     /**
      * Esta es la descripción del tipo de edificación
-     * @var varchar(64)
+     * @var string
      */
     public $descripcion;
     /**

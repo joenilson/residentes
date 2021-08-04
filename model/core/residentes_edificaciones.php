@@ -120,8 +120,8 @@ class residentes_edificaciones extends \fs_model{
             $this->coordenadas = null;
             $this->codcliente = null;
             $this->ocupado = false;
-            $this->fecha_ocupacion = NULL;
-            $this->fecha_disponibilidad = NULL;
+            $this->fecha_ocupacion = null;
+            $this->fecha_disponibilidad = null;
         }
 
     }
@@ -143,10 +143,11 @@ class residentes_edificaciones extends \fs_model{
         return "$familias_sql $articulos_sql";
     }
 
-    public function url(){
-        if(!is_null($this->id)){
+    public function url()
+    {
+        if (!is_null($this->id)) {
             return FS_PATH.'index.php?page=ver_residente&id='.$this->id;
-        }else{
+        } else {
             return FS_PATH.'index.php?page=residentes';
         }
     }
@@ -156,52 +157,45 @@ class residentes_edificaciones extends \fs_model{
         $cliente = new cliente();
         $cliente_info = new residentes_informacion();
         $cliente_vehiculo = new residentes_vehiculos();
-        if($item->codcliente){
+        if ($item->codcliente) {
             $item->nombre = $cliente->get($item->codcliente)->nombre;
             $item->telefono = $cliente->get($item->codcliente)->telefono1;
             $item->email = $cliente->get($item->codcliente)->email;
             $item->info = $cliente_info->get($item->codcliente);
             $item->vehiculos = $cliente_vehiculo->get_by_field('codcliente', $item->codcliente);
         }
-
     }
 
-    public function all(){
-        $sql = "SELECT * FROM ".$this->table_name." ORDER BY codigo_interno,numero";
-        $data = $this->db->select($sql);
-        if($data){
+    public function listaInfo($data)
+    {
+        if ($data) {
             $lista = array();
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
                 $this->info($item);
-
                 $lista[] = $item;
             }
             return $lista;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function all_ocupados(){
+    public function all()
+    {
+        $sql = "SELECT * FROM ".$this->table_name." ORDER BY codigo_interno,numero";
+        $data = $this->db->select($sql);
+        return $this->listaInfo($data);
+    }
+
+    public function all_ocupados()
+    {
         $sql = "SELECT re.*, c.nombre FROM ".$this->table_name." as re, clientes as c ".
                " WHERE ocupado = TRUE and re.codcliente != '' and re.codcliente = c.codcliente ".
                " ORDER BY re.codigo_interno, re.numero";
         $data = $this->db->select($sql);
-        if($data){
-            $lista = array();
-            foreach($data as $d){
-                $item = new residentes_edificaciones($d);
-                $item->pertenencia = $this->pertenencia($item);
-                $item->nombre = $d['nombre'];
-                $this->info($item);
-                $lista[] = $item;
-            }
-            return $lista;
-        }else{
-            return false;
-        }
+        return $this->listaInfo($data);
     }
 
     public function get($id){
@@ -228,18 +222,7 @@ class residentes_edificaciones extends \fs_model{
         $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query.
             " ORDER BY codigo_interno,numero;";
         $data = $this->db->select($sql);
-        if ($data) {
-            $lista = array();
-            foreach ($data as $d) {
-                $item = new residentes_edificaciones($d);
-                $item->pertenencia = $this->pertenencia($item);
-                $this->info($item);
-                $lista[] = $item;
-            }
-            return $lista;
-        } else {
-            return false;
-        }
+        return $this->listaInfo($data);
     }
 
     public function exists()
@@ -299,9 +282,9 @@ class residentes_edificaciones extends \fs_model{
     {
         $edificaciones_tipo = new residentes_edificaciones_tipo();
         $codigo_interno = $d->codigo_interno;
-        $piezas = \json_decode($codigo_interno);
+        $piezas = \json_decode($codigo_interno, true);
         $lista = array();
-        foreach ($piezas as $id=>$data) {
+        foreach ($piezas as $id => $data) {
             $pertenencia = new \stdClass();
             $pertenencia->id = $id;
             $pertenencia->desc_id = $edificaciones_tipo->get($id)->descripcion;
@@ -315,67 +298,73 @@ class residentes_edificaciones extends \fs_model{
     public function codigo_externo()
     {
         $edificaciones_tipo = new residentes_edificaciones_tipo();
-        $piezas = \json_decode($this->codigo_interno);
+        $piezas = \json_decode($this->codigo_interno, true);
         $codigo_externo = '';
-        foreach ($piezas as $id=>$data) {
+        foreach ($piezas as $id => $data) {
             $codigo_externo .= $edificaciones_tipo->get($id)->descripcion.' '.$data.' ';
         }
         return $codigo_externo;
     }
 
-    public function buscar_ubicacion_inmueble($id,$linea)
+    public function buscar_ubicacion_inmueble($id, $linea)
     {
-        $inicio_busqueda = ($linea==0)?"{\"":"{%\"";
-        $sql = "SELECT * FROM ".$this->table_name." WHERE codigo_interno LIKE '".$inicio_busqueda.$id."\":%}' ORDER BY codigo;";
+        $inicio_busqueda = ($linea===0)?"{\"":"{%\"";
+        $sql = "SELECT * FROM ".$this->table_name." WHERE codigo_interno LIKE '".
+            $inicio_busqueda.$id."\":%}' ORDER BY codigo;";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             $lista = array();
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $l = new residentes_edificaciones($d);
                 $lista[] = $this->pertenencia($l);
             }
             return $lista;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function buscar_cantidad_inmuebles($id,$linea){
-        $inicio_busqueda = ($linea==0)?"{\"":"{%\"";
-        $sql = "SELECT DISTINCT codigo FROM ".$this->table_name." WHERE codigo_interno LIKE '".$inicio_busqueda.$id."\":%}' ORDER BY codigo;";
+    public function buscar_cantidad_inmuebles($id,$linea)
+    {
+        $inicio_busqueda = ($linea===0)?"{\"":"{%\"";
+        $sql = "SELECT DISTINCT codigo FROM ".$this->table_name." WHERE codigo_interno LIKE '".
+            $inicio_busqueda.$id."\":%}' ORDER BY codigo;";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             $lista = array();
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $l = $this->get_by_field('codigo', $d['codigo']);
                 $lista[] = $l;
             }
             return $lista;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function cantidad_inmuebles($id_edificacion){
-        $sql = "SELECT count(*) as cantidad FROM ".$this->table_name." WHERE id_edificacion = ".$this->intval($id_edificacion).";";
+    public function cantidad_inmuebles($id_edificacion)
+    {
+        $sql = "SELECT count(*) as cantidad FROM ".$this->table_name." WHERE id_edificacion = ".
+            $this->intval($id_edificacion).";";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             return $data[0]['cantidad'];
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function generar_mapa(){
+    public function generar_mapa()
+    {
         $edificaciones_tipo = new residentes_edificaciones_tipo();
         $mapa = array();
         $linea = 0;
-        foreach($edificaciones_tipo->all() as $data){
-            if($linea==1){
+        foreach ($edificaciones_tipo->all() as $data) {
+            if ($linea===1) {
                 break;
             }
-            $items = $this->buscar_cantidad_inmuebles($data->id,$data->padre);
-            foreach($items as $inmueble){
+            $items = $this->buscar_cantidad_inmuebles($data->id, $data->padre);
+            foreach ($items as $inmueble) {
                 $mapa[$data->id][] = $inmueble;
             }
             $linea++;
@@ -383,14 +372,15 @@ class residentes_edificaciones extends \fs_model{
         return $mapa;
     }
 
-    public function search($query, $type=""){
+    public function search($query, $type = "")
+    {
         $sql = "SELECT * FROM ".$this->table_name." WHERE ";
         $OR = "";
-        if($type=='inmueble'){
+        if ($type=='inmueble') {
             $sql.=" numero LIKE '%".strtoupper($query)."%' ";
             $sql.=" OR codigo LIKE '%".strtoupper($query)."%' ";
-        }else{
-            if(is_int($query)){
+        } else {
+            if (is_int($query)) {
                 $sql.=" id_edificacion LIKE '%".$query."%' ";
                 $sql.=" id LIKE '%".$query."%' ";
                 $OR = "OR";
@@ -401,8 +391,8 @@ class residentes_edificaciones extends \fs_model{
         $sql.=" ORDER BY codigo,numero";
         $data = $this->db->select($sql);
         $lista = array();
-        if($data){
-            foreach($data as $d){
+        if ($data) {
+            foreach ($data as $d) {
                 $item = new residentes_edificaciones($d);
                 $item->pertenencia = $this->pertenencia($item);
                 $item->nombre = 'Libre';
