@@ -269,7 +269,7 @@ class residentes_facturacion_programada extends \fs_model
         $residentesFacturados = $residentesProgramados->getByIdProgramacion($jobDisponible->id);
         if ($residentesPendientes === false) {
             $jobDisponible->estado = 'CONCLUIDO';
-            $jobDisponible->facturas_generadas = count($residentesFacturados);
+            $jobDisponible->facturas_generadas = ($residentesFacturados) ? count($residentesFacturados) : 0;
             $jobDisponible->usuario_modificacion = 'cron';
             $jobDisponible->fecha_modificacion = \date('Y-m-d H:i:s');
             $jobDisponible->save();

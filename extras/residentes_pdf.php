@@ -26,7 +26,7 @@ class residentes_pdf extends fs_pdf
     const LOGO_X = 40;
     const LOGO_Y = 700;
 
-    private function calcular_tamanyo_logo()
+    public function calcular_tamanyo_logo()
     {
         $tamanyo = $size = getimagesize($this->logo);
         if ($size[0] > 200) {
@@ -47,20 +47,27 @@ class residentes_pdf extends fs_pdf
     public function generar_pdf_cabecera(&$empresa, &$lppag)
     {
         /// ¿Añadimos el logo?
-        if ($this->logo !== FALSE) {
+        if ($this->logo !== false) {
             if (function_exists('imagecreatefromstring')) {
                 $lppag -= 2; /// si metemos el logo, caben menos líneas
 
                 $tamanyo = $this->calcular_tamanyo_logo();
-                if (substr(strtolower($this->logo), -4) == '.png') {
+                if (strtolower(substr($this->logo, -4)) === '.png') {
                     $this->pdf->addPngFromFile($this->logo, self::LOGO_X, self::LOGO_Y, $tamanyo[0], $tamanyo[1]);
-                } else if (function_exists('imagepng')) {
+                } elseif (function_exists('imagepng')) {
                     /**
                      * La librería ezpdf tiene problemas al redimensionar jpegs,
                      * así que hacemos la conversión a png para evitar estos problemas.
                      */
-                    if (imagepng(imagecreatefromstring(file_get_contents($this->logo)), FS_MYDOCS . 'images/logo.png')) {
-                        $this->pdf->addPngFromFile(FS_MYDOCS . 'images/logo.png', self::LOGO_X, self::LOGO_Y, $tamanyo[0], $tamanyo[1]);
+                    if (imagepng(imagecreatefromstring(file_get_contents($this->logo)), FS_MYDOCS
+                        . 'images/logo.png')) {
+                        $this->pdf->addPngFromFile(
+                            FS_MYDOCS . 'images/logo.png',
+                            self::LOGO_X,
+                            self::LOGO_Y,
+                            $tamanyo[0],
+                            $tamanyo[1]
+                        );
                     } else {
                         $this->pdf->addJpegFromFile($this->logo, self::LOGO_X, self::LOGO_Y, $tamanyo[0], $tamanyo[1]);
                     }
@@ -69,7 +76,11 @@ class residentes_pdf extends fs_pdf
                 }
 
                 $this->pdf->ez['rightMargin'] = 40;
-                $this->pdf->ezText("<b>" . fs_fix_html($empresa->nombre) . "</b>", 12, array('justification' => 'right'));
+                $this->pdf->ezText(
+                    "<b>" . fs_fix_html($empresa->nombre) . "</b>",
+                    12,
+                    array('justification' => 'right')
+                );
                 $this->pdf->ezText(FS_CIFNIF . ": " . $empresa->cifnif, 8, array('justification' => 'right'));
 
                 $direccion = $empresa->direccion . "\n";
@@ -93,14 +104,18 @@ class residentes_pdf extends fs_pdf
                     $direccion .= "\nTeléfono: " . $empresa->telefono;
                 }
 
-                $this->pdf->ezText(fs_fix_html($direccion) . "\n", 9, array('justification' => 'right'));
+                $this->pdf->ezText(fs_fix_html($direccion) . "\n", 8, array('justification' => 'right'));
                 $this->set_y(self::LOGO_Y + 10);
             } else {
                 die('ERROR: no se encuentra la función imagecreatefromstring(). '
                     . 'Y por tanto no se puede usar el logotipo en los documentos.');
             }
         } else {
-            $this->pdf->ezText("<b>" . fs_fix_html($empresa->nombre) . "</b>", 16, array('justification' => 'center'));
+            $this->pdf->ezText(
+                "<b>" . fs_fix_html($empresa->nombre) . "</b>",
+                12,
+                array('justification' => 'center')
+            );
             $this->pdf->ezText(FS_CIFNIF . ": " . $empresa->cifnif, 8, array('justification' => 'center'));
 
             $direccion = $empresa->direccion;
@@ -124,7 +139,7 @@ class residentes_pdf extends fs_pdf
                 $direccion .= ' - Teléfono: ' . $empresa->telefono;
             }
 
-            $this->pdf->ezText(fs_fix_html($direccion), 9, array('justification' => 'center'));
+            $this->pdf->ezText(fs_fix_html($direccion), 8, array('justification' => 'center'));
         }
     }
 }

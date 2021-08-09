@@ -22,25 +22,32 @@
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class clientes_vehiculos extends fs_controller {
+class clientes_vehiculos extends fs_controller
+{
     public $allow_delete;
+    /**
+     * @var string
+     */
     public $codcliente;
     public $cliente;
     public $clientes;
-    public $vehiculos_cliente;
+    public $cliente_vehiculos;
     public $residentes_vehiculos;
-    public function __construct() {
-        parent::__construct(__CLASS__, 'Vehiculos Residente', 'residentes', FALSE, FALSE, FALSE);
+
+    public function __construct()
+    {
+        parent::__construct(__CLASS__, 'Vehiculos Residente', 'residentes', false, false, false);
     }
 
-    protected function private_core() {
+    protected function private_core()
+    {
         $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
         $this->shared_extensions();
         $this->clientes = new cliente();
         $this->residentes_vehiculos = new residentes_vehiculos();
 
         $accion = \filter_input(INPUT_POST, 'accion');
-        if(!empty($accion)){
+        if (!empty($accion)) {
             $idvehiculo = \filter_input(INPUT_POST, 'idvehiculo');
             $codcliente_p = \filter_input(INPUT_POST, 'codcliente');
             $vehiculo_marca = $this->clean_text(\filter_input(INPUT_POST, 'vehiculo_marca'));
@@ -58,41 +65,45 @@ class clientes_vehiculos extends fs_controller {
             $vehiculo->vehiculo_placa = $vehiculo_placa;
             $vehiculo->vehiculo_tipo = $vehiculo_tipo;
             $vehiculo->codigo_tarjeta = $codigo_tarjeta;
-            if($accion=='agregar'){
-                if($vehiculo->save()){
+            if ($accion === 'agregar') {
+                if ($vehiculo->save()) {
                     $this->new_message('Vehiculo agregado exitosamente');
-                }else{
-                    $this->new_error_msg('No se pudieron agregar los datos del vehiculo, revise la información e intentelo nuevamente.');
+                } else {
+                    $this->new_error_msg('No se pudieron agregar los datos del vehiculo, revise la información e ".
+                    "intentelo nuevamente.');
                 }
-            }elseif($accion=='eliminar'){
-                if($vehiculo->delete()){
+            } elseif ($accion === 'eliminar') {
+                if ($vehiculo->delete()) {
                     $this->new_message('Vehiculo eliminado exitosamente');
-                }else{
-                    $this->new_error_msg('No se pudieron eliminar los datos del vehiculo, revise la información e intentelo nuevamente.');
+                } else {
+                    $this->new_error_msg('No se pudieron eliminar los datos del vehiculo, revise la información e ".
+                    "intentelo nuevamente.');
                 }
             }
         }
 
         $codcliente = \filter_input(INPUT_GET, 'cod');
-        if(!empty($codcliente)){
+        if (!empty($codcliente)) {
             $this->codcliente = $codcliente;
             $this->cliente = $this->clientes->get($codcliente);
-            $this->cliente_vehiculos = $this->residentes_vehiculos->get_by_field('codcliente',$this->codcliente);
+            $this->cliente_vehiculos = $this->residentes_vehiculos->get_by_field('codcliente', $this->codcliente);
         }
     }
 
-    public function clean_text($text){
+    public function clean_text($text)
+    {
         return strtoupper(htmlentities(strip_tags(trim($text))));
     }
 
-    private function shared_extensions() {
+    private function shared_extensions()
+    {
         $extensiones = array(
             array(
                 'name' => 'vehiculos_residente',
                 'page_from' => __CLASS__,
                 'page_to' => 'ventas_cliente',
                 'type' => 'tab',
-                    'text' => '<span class="fa fa-car" aria-hidden="true"></span>&nbsp;Residente Vehiculos',
+                'text' => '<span class="fa fa-car" aria-hidden="true"></span>&nbsp;Residente Vehiculos',
                 'params' => ''
             ),
         );

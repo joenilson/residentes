@@ -65,14 +65,19 @@ MA 02110-1301  USA
                     <tr>
                         <td><input type="checkbox" name="facturacion[]" value="{$value->idfactura}" class="input-xs"></td>
                         <td>{$value->codcliente}</td>
-                        <td class="text-left">{$value->nombre_residente}</td>
+                        <td class="text-left">{$value->nombre_residente} <br/><small>{$value->email}</small></td>
                         <td class="text-center">{$value->codigo} {$value->numero}</td>
                         <td class="text-center">{$value->fecha}</td>
                         <td class="text-center">{$value->idfactura} {$value->numero2}</td>
                         <td class="text-center">{$value->importe}</td>
                         <td class="text-center">{$value->forma_pago}</td>
                         <td class="text-center">{if="$value->femail"}<b class="text-success">SI</b>{else}<b class="text-danger">NO</b>{/if}</td>
-                        <td><button type="button" class="btn btn-sm btn-default"><i class="fa fa-envelope fa-fw"></i>Enviar</button></td>
+                        <td>
+                            {if="$value->email AND $fsc->empresa->can_send_mail()"}
+                            <button type="button" data-toggle="tooltip" title="Enviar Documento" class="btn btn-sm btn-default" onClick="enviarFactura('{$value->codcliente}','{$value->email}',{$value->idfactura})"><i class="fa fa-envelope fa-fw"></i><span class="sr-only">Enviar</span></button>
+                            {/if}
+                            <button type="button" data-toggle="tooltip" title="Ver Documento" class="btn btn-sm btn-info" onClick="verFactura('{$value->codcliente}',{$value->idfactura})"><i class="fa fa-eye fa-fw"></i><span class="sr-only">Ver</span></button>
+                        </td>
                     </tr>
                     {else}
                     <tr>
@@ -84,189 +89,162 @@ MA 02110-1301  USA
         </div>
     </div>
 </div>
+<div class="modal" id="modal_factura_residente">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Factura Detallada</h4>
+            </div>
+            <div class="modal-body" id='mostrar_factura_residente_body'>
 
-    
-    <script>
-    $(document).ready(function(){
-        var next = 0;
-        // $('.add-one').click(function(){
-        //     var addto = ".dynamic-stuff";
-        //     next = next + 1;
-        //     var newIn = '<div class="form-group col-sm-12">' +
-        //         '<div class="col-sm-5 campo-referencia">' +
-        //         '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-sm" onchange="actualizarPrecio('+next+')">' +
-        //         '       <option value="">Referencia</option>' +
-        //                 {loop="$fsc->familias->get_articulos()"}
-        //         '       <option value="{$value->referencia}">{$value->descripcion}</option>' +
-        //                 {/loop}
-        //         '   </select>' +
-        //         '</div>' +
-        //         '<div class="col-sm-1 campo-pvp">' +
-        //         '    <input type="text" name="pvp[]" id="pvp_'+next+'" value="" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
-        //         '</div>' +
-        //         '<div class="col-sm-1 campo-cantidad">' +
-        //         '    <input type="text" name="cantidad[]" id="cantidad_'+next+'" value="1" class="form-control input-sm text-right" onkeyup="recalcular('+next+')">' +
-        //         '</div>' +
-        //         '<div class="col-sm-2 campo-impuesto">' +
-        //         '    <select name="impuesto[]" id="impuesto_'+next+'" class="form-control input-sm" onchange="recalcular('+next+')">' +
-        //         '        <option selected>impuesto</option>' +
-        //                 {loop="$fsc->impuesto->all()"}
-        //         '        <option value="{$value->codimpuesto}" {if="$value->is_default()"}selected{/if}>{$value->descripcion}</option>' +
-        //                 {/loop}
-        //         '    </select>' +
-        //         '</div>' +
-        //         '<div class="col-sm-2 campo-importe">' +
-        //         '    <input type="text" name="importe[]" id="importe_'+next+'" value="" readonly="" class="form-control input-sm text-right">' +
-        //         '</div>' +
-        //         '<div class="col-sm-1 text-center">' +
-        //         '    <p class="delete btn-sm btn-danger text-center text-capitalize"><i class="fa fa-trash fa-fw"></i></p>' +
-        //         '</div>' +
-        //     '</div>';
-        //
-        //     var newInput = $(newIn);
-        //     $(addto).append(newInput);
-        //     $('#referencia_'+next).selectpicker({liveSearch: true});
-        //     $('#impuesto_'+next).selectpicker({liveSearch: true});
-        //     attach_delete();
-        // });
-        
-        // $('#f_generar_facturacion').submit(function(e) {
-        //     var currentForm = this;
-        //
-        //     if($('#total_importe').val() === 0) {
-        //         bootbox.alert('Debes elegir primero un concepto a facturar.');
-        //         return false;
-        //     }
-        //
-        //     if(document.querySelectorAll('input[name="edificacion[]"]:checked').length === 0) {
-        //         bootbox.alert('Debes elegir primero una edificación para generar la facturaci&oacute;n.');
-        //         return false;
-        //     }
-        //
-        //     e.preventDefault();
-        //     bootbox.confirm({
-        //         message: "¿Est&aacute; seguro que están los datos completos para generar la facturación?,<br>Si hubo un error esta programación no se podr&aacute; modificar, deber&aacute; eliminarse.",
-        //         buttons: {
-        //             confirm: {
-        //                 label: 'Programar',
-        //                 className: 'btn-success'
-        //             },
-        //             cancel: {
-        //                 label: 'Regresar',
-        //                 className: 'btn-danger'
-        //             }
-        //         },
-        //         callback: function (result) {
-        //             if(result) {
-        //                 $('#loader').show();
-        //                 currentForm.submit();
-        //             }
-        //         }
-        //     });
-        // });
+            </div>
+        </div>
+    </div>
+</div>
+
+{if="$fsc->empresa->can_send_mail()"}
+<form class="form" role="form" name="f_enviar_email" action="{#FS_PATH#}index.php?page=documentos_residentes" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="codcliente" id="enviar_codcliente" value=""/>
+    <input type="hidden" name="idfactura" id="enviar_idfactura" value=""/>
+    <input type="hidden" name="tipo_documento" value="factura_residente_detallada">
+    <input type="hidden" name="idprogramacion" value="{$fsc->idProg}">
+    <div class="modal" id="modal_enviar">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-envelope"></span>&nbsp;
+                        Enviar Factura Residente Detallada
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon">De</span>
+                            <select name="de" class="form-control">
+                                {if="$fsc->user->email"}
+                                <option>{$fsc->user->email}</option>
+                                {/if}
+                                <option>{$fsc->empresa->email}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon">Para</span>
+                            <input id="enviar_email" class="form-control" type="text" name="email" autocomplete="off"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon">Copia</span>
+                            <input id="ac_email2" class="form-control" type="text" name="email_copia" autocomplete="off"/>
+                            <span class="input-group-addon" title="Copia de carbón oculta">
+                                <input type="checkbox" name="cco" value="TRUE"/>
+                                <span class="glyphicon glyphicon-eye-close"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" name="mensaje" rows="6">Estimado vecino, ver anexo su factura detallada. {function="chr(13)"}{function="chr(13)"} Cordialmente, {function="chr(13)"}{function="chr(13)"} {$fsc->empresa->email_config['mail_firma']}</textarea>
+                        <p class="help-block">
+                            <a href="index.php?page=admin_empresa#email">Editar la firma</a>
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <input name="adjunto" type="file"/>
+                        <p class="help-block">
+                            Se va a adjuntar la factura, pero si lo deseas
+                            puedes añadir otro archivo de hasta {$fsc->get_max_file_upload()} MB
+                        </p>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-sm btn-primary" name='info_accion' value='enviar'>
+                            <span class="fa fa-send fa-fw"></span>
+                            <span aria-hidden="true">Enviar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{else}
+<div class="modal" id="modal_enviar">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span class="glyphicon glyphicon-envelope"></span>&nbsp; Enviar por email
+                </h4>
+            </div>
+            <div class="modal-body">
+                <a href='index.php?page=admin_empresa#email' class="btn btn-sm btn-warning">
+                    <span class="glyphicon glyphicon-wrench"></span>&nbsp; Configurar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{/if}
+<script>
+    function enviarFactura(codCliente, emailCliente, idFactura)
+    {
+        if(!$('#enviar_codcliente') == '') {
+            $('#enviar_codcliente').val(codCliente);
+            $('#enviar_idfactura').val(idFactura);
+            $('#enviar_email').val(emailCliente);
+            $('#modal_enviar').modal('show');
+        }
+    }
+
+    function verFactura(codCliente, idFactura)
+    {
+        $('#modal_factura_residente').modal('show');
+        $("#mostrar_factura_residente").detach();
+        $("<iframe id='mostrar_factura_residente' />")
+            .attr('src', '{#FS_PATH#}index.php?page=documentos_residentes&codcliente='+codCliente+
+                '&idfactura='+idFactura+
+                '&idprogramacion={$fsc->idProg}&info_accion=imprimir&tipo_documento=factura_residente_detallada')
+            .attr('width', '100%')
+            .attr('height', '500')
+            .appendTo('#mostrar_factura_residente_body');
+    }
+
+    $(document).ready(function() {
+
+        function procesar_checkboxs(inputCheckbox) {
+            $('input:checkbox').prop('checked', inputCheckbox.checked);
+        }
+
+        function attach_delete() {
+            $('.delete').off();
+            $('.delete').click(function () {
+                $(this).closest('.form-group').remove();
+            });
+        }
     });
-    
-    // all_impuestos = [];
-    // {loop="$fsc->impuesto->all()"}
-    //     all_impuestos[{$counter}] = {codimpuesto: '{$value->codimpuesto}', iva: '{$value->iva}'};
-    // {/loop}
-        
-    function procesar_checkboxs(inputCheckbox)
-    {
-        $('input:checkbox').prop('checked', inputCheckbox.checked);
+</script>
+<style>
+    .list-group-scroll{
+        max-height: 450px;
+        margin-bottom: 10px;
+        overflow:scroll;
+        -webkit-overflow-scrolling: touch;
     }
-    
-    function attach_delete()
-    {
-        $('.delete').off();
-        $('.delete').click(function(){
-            $(this).closest('.form-group').remove();
-        });
+    #loader {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.75) url('{#FS_PATH#}plugins/residentes/view/images/loading_spinner.gif') no-repeat center center;
+        z-index: 10000;
     }
-    
-    function actualizarPrecio(inputId)
-    {
-        articulos = [];
-        {loop="$fsc->familias->get_articulos()"}
-        articulos[{$counter}] = {referencia: '{$value->referencia}', descripcion: '{$value->descripcion}', pvp: '{$value->pvp}', impuesto: '{$value->codimpuesto}'};
-        {/loop}
-        var referencia = $("#referencia_"+inputId);
-        var pvp = $("#pvp_"+inputId);
-        var cantidad = $("#cantidad_"+inputId);
-        var impuesto = $("#impuesto_"+inputId);
-        
-        for(var i=0; i<articulos.length; i++)
-        {
-            if(referencia.val() === articulos[i].referencia)
-            {
-                pvp.val(articulos[i].pvp);
-                impuesto.selectpicker('val',articulos[i].impuesto);
-                recalcular(inputId);
-            }
-        }
-    }
-    
-    function buscar_impuesto(cod){
-        for(var i=0; i<all_impuestos.length; i++)
-        {
-            if(cod === all_impuestos[i].codimpuesto)
-            {
-               return all_impuestos[i].iva;
-            }
-        }
-    }
-    
-    function recalcular(inputId){
-        
-        var importe = 0;
-        
-        var inputReferencia = $("#referencia_"+inputId);
-        var inputPvp = $("#pvp_"+inputId);
-        var inputCantidad = $("#cantidad_"+inputId);
-        var inputImpuesto = $("#impuesto_"+inputId);
-        var inputImporte = $("#importe_"+inputId);
-        pvp = inputPvp.val();
-        cantidad = inputCantidad.val();
-        codimpuesto = inputImpuesto.val();
-        
-        impuesto = buscar_impuesto(codimpuesto);
-        if(impuesto === 0) {
-            importe = pvp*cantidad;
-        } else {
-            importe = (parseFloat(pvp)+(parseFloat(pvp)*parseFloat(impuesto/100)))*parseFloat(cantidad);
-        }
-        
-        inputImporte.val(importe);
-        totalizar();
-    }
-    
-    function totalizar(){
-        var importe_total=0;
-        var importes = document.getElementsByName('importe[]');
-        for (var i = 0; i < importes.length; i++) {
-        var importe=importes[i];
-            importe_total=importe_total+parseFloat(importe.value);
-        }
-        $('#total_importe').val(importe_total);
-    }
-    </script>
-    <style>
-        .list-group-scroll{
-            max-height: 450px;
-            margin-bottom: 10px;
-            overflow:scroll;
-            -webkit-overflow-scrolling: touch;
-        }
-        #loader {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.75) url('{#FS_PATH#}plugins/residentes/view/images/loading_spinner.gif') no-repeat center center;
-            z-index: 10000;
-        }
-    </style>
+</style>
 {include="footer"}

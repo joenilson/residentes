@@ -376,22 +376,22 @@ class informe_residentes extends residentes_controller
         return array($data, $data_cantidad[0]['total']);
     }
 
-    public function informacion_interna($id)
-    {
-        $lista_tipo = $this->edificaciones_tipo->get_by_field('padre', $id);
-        if ($lista_tipo) {
-            foreach ($lista_tipo as $linea) {
-                $l = new stdClass();
-                $l->descripcion = $linea->descripcion;
-                $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $linea->id));
-                $this->resultado[] = $l;
-                $this->total_resultado++;
-                $this->informacion_interna($linea->id);
-            }
-        } else {
-            return true;
-        }
-    }
+//    public function informacion_interna($id)
+//    {
+//        $lista_tipo = $this->edificaciones_tipo->get_by_field('padre', $id);
+//        if ($lista_tipo) {
+//            foreach ($lista_tipo as $linea) {
+//                $l = new stdClass();
+//                $l->descripcion = $linea->descripcion;
+//                $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $linea->id));
+//                $this->resultado[] = $l;
+//                $this->total_resultado++;
+//                $this->informacion_interna($linea->id);
+//            }
+//        } else {
+//            return true;
+//        }
+//    }
 
     /**
      * Función para devolver un valor u otro dependiendo si está presente

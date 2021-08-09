@@ -55,7 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </form>
         </div>
         <div class="col-sm-6">
-            <div class='col-sm-4 bg-info' id='pdf' style="width: 100%; height: 450px;">
+            <div class='col-sm-4 bg-info' id='pdf' style="width: 100%; height: 540px;">
             </div>
         </div>
     </div>
@@ -186,20 +186,20 @@ function createPDFObject(orientacion,page_size,texto,logo,cabecera,cuerpo,pie_pa
         linea_texto+=(linea.length*4);
         linea_texto+=4;
         doc.setFontStyle('bold');
-        doc.text(5, linea_texto, 'Factura');
-        doc.text(pageWidth/3, linea_texto, 'Fecha');
-        doc.text(pageWidth/1.5, linea_texto, 'Monto');
+        doc.text(4, linea_texto, 'Factura');
+        doc.text(pageWidth/2.8, linea_texto, 'Fecha');
+        doc.text(pageWidth/1.2, linea_texto, 'Monto', 'center');
         {loop="$fsc->facturas_pendientes"}
             linea_texto+=4;
             doc.setFontStyle('normal');
-            doc.text(5, linea_texto, '{$value['factura']}');
-            doc.text(pageWidth/3, linea_texto, '{$value['fecha']}');
-            doc.text(pageWidth/1.5, linea_texto, '{$fsc->show_numero($value['monto'])}');
+            doc.text(4, linea_texto, '{$value['factura']}');
+            doc.text(pageWidth/2.8, linea_texto, '{$value['fecha']}');
+            doc.text(pageWidth/1.2, linea_texto, '{$fsc->show_numero($value['monto'])}', 'right');
         {/loop}
         linea_texto+=4;
         doc.setFontStyle('bold');
-        doc.text(5, linea_texto, 'Total');
-        doc.text(pageWidth/1.5, linea_texto, '{$fsc->show_numero($fsc->total_facturas_pendientes)}');
+        doc.text(4, linea_texto, 'Total');
+        doc.text(pageWidth/1.2, linea_texto, '{$fsc->show_numero($fsc->total_facturas_pendientes)}', 'right');
     }
     linea_texto+=12;
     doc.setFontStyle('normal');
@@ -208,7 +208,6 @@ function createPDFObject(orientacion,page_size,texto,logo,cabecera,cuerpo,pie_pa
     iframe.setAttribute('style','position:absolute;right:0; top:0; bottom:0; height:100%; width:100%');
     document.getElementById('pdf').appendChild(iframe);
     iframe.src = doc.output('datauristring');
-
 }
 </script>
 {include="footer"}

@@ -17,7 +17,7 @@
  */
 namespace FacturaScripts\model;
 
-require_model('cliente.php');
+//require_model('cliente.php');
 /**
  * Model de la tabla donde se almacenan los distintos vehiculos y la información de los mismos
  * de cada residente
@@ -67,9 +67,11 @@ class residentes_vehiculos extends \fs_model{
      */
     public $codigo_tarjeta;
     public $cliente;
-    public function __construct($t = FALSE) {
-        parent::__construct('residentes_vehiculos','plugins/residentes');
-        if($t){
+
+    public function __construct($t = false)
+    {
+        parent::__construct('residentes_vehiculos', 'plugins/residentes');
+        if ($t) {
             $this->idvehiculo = $t['idvehiculo'];
             $this->codcliente = $t['codcliente'];
             $this->vehiculo_marca = $t['vehiculo_marca'];
@@ -78,24 +80,26 @@ class residentes_vehiculos extends \fs_model{
             $this->vehiculo_placa = $t['vehiculo_placa'];
             $this->vehiculo_tipo = $t['vehiculo_tipo'];
             $this->codigo_tarjeta = $t['codigo_tarjeta'];
-        }else{
+        } else {
             $this->idvehiculo = null;
             $this->codcliente = null;
-            $this->vehiculo_marca = NULL;
-            $this->vehiculo_modelo = NULL;
-            $this->vehiculo_color = NULL;
-            $this->vehiculo_placa = NULL;
-            $this->vehiculo_tipo = NULL;
+            $this->vehiculo_marca = null;
+            $this->vehiculo_modelo = null;
+            $this->vehiculo_color = null;
+            $this->vehiculo_placa = null;
+            $this->vehiculo_tipo = null;
             $this->codigo_tarjeta = null;
         }
         $this->cliente = new cliente();
     }
 
-    public function install(){
+    public function install()
+    {
         return "";
     }
 
-    public function info_adicional($i){
+    public function info_adicional($i)
+    {
         $data = $this->cliente->get($i->codcliente);
         $i->nombre = $data->nombre;
         $i->telefono1 = $data->telefono1;
@@ -105,63 +109,69 @@ class residentes_vehiculos extends \fs_model{
         return $i;
     }
 
-    public function all(){
+    public function all()
+    {
         $sql = "SELECT * FROM ".$this->table_name." ORDER BY codcliente,idvehiculo";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             $lista = array();
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $item = new residentes_vehiculos($d);
                 $lista[] = $item;
             }
             return $lista;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function get($codcliente,$id){
-        $sql = "SELECT * FROM ".$this->table_name." WHERE codcliente = ".$this->var2str($codcliente)." AND idvehiculo = ".$this->intval($id).";";
+    public function get($codcliente, $id)
+    {
+        $sql = "SELECT * FROM ".$this->table_name." WHERE codcliente = ".$this->var2str($codcliente).
+            " AND idvehiculo = ".$this->intval($id).";";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             return new residentes_vehiculos($data[0]);
-        }else{
+        } else {
             return false;
         }
     }
 
     /**
      * //Si queremos buscar por marca o modelo o codcliente o idvehiculo o tipo o placa
-     * @param type $field string
-     * @param type $value string
+     * @param $field string
+     * @param $value string
      * @return boolean|\FacturaScripts\model\residentes_vehiculos
      */
-    public function get_by_field($field,$value){
+    public function get_by_field($field, $value)
+    {
         $query = (is_string($value))?$this->var2str($value):$this->intval($value);
         $sql = "SELECT * FROM ".$this->table_name." WHERE ".strtoupper(trim($field))." = ".$query.";";
         $data = $this->db->select($sql);
-        if($data){
+        if ($data) {
             $lista = array();
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $item = new residentes_vehiculos($d);
                 $lista[] = $item;
             }
             return $lista;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function exists() {
-        if(is_null($this->idvehiculo)){
+    public function exists()
+    {
+        if (is_null($this->idvehiculo)) {
             return false;
-        }else{
-            return $this->get($this->codcliente,$this->idvehiculo);
+        } else {
+            return $this->get($this->codcliente, $this->idvehiculo);
         }
     }
 
-    public function save() {
-        if($this->exists()){
+    public function save()
+    {
+        if ($this->exists()) {
             $sql = "UPDATE ".$this->table_name." SET ".
                     "vehiculo_marca = ".$this->var2str($this->vehiculo_marca).", ".
                     "vehiculo_modelo = ".$this->var2str($this->vehiculo_modelo).", ".
@@ -172,8 +182,9 @@ class residentes_vehiculos extends \fs_model{
                     "WHERE idvehiculo = ".$this->intval($this->idvehiculo)." AND ".
                     "codcliente = ".$this->var2str($this->codcliente).";";
             return $this->db->exec($sql);
-        }else{
-            $sql = "INSERT INTO ".$this->table_name." (codcliente, vehiculo_marca, vehiculo_modelo, vehiculo_color, vehiculo_placa, vehiculo_tipo, codigo_tarjeta) VALUES (".
+        } else {
+            $sql = "INSERT INTO ".$this->table_name." (codcliente, vehiculo_marca, vehiculo_modelo, vehiculo_color, ".
+                "vehiculo_placa, vehiculo_tipo, codigo_tarjeta) VALUES (".
                     $this->var2str($this->codcliente).", ".
                     $this->var2str($this->vehiculo_marca).", ".
                     $this->var2str($this->vehiculo_modelo).", ".
@@ -181,9 +192,9 @@ class residentes_vehiculos extends \fs_model{
                     $this->var2str($this->vehiculo_placa).", ".
                     $this->var2str($this->vehiculo_tipo).", ".
                     $this->var2str($this->codigo_tarjeta).");";
-            if($this->db->exec($sql)){
+            if ($this->db->exec($sql)) {
                 return $this->db->lastval();
-            }else{
+            } else {
                 return false;
             }
         }
@@ -191,9 +202,10 @@ class residentes_vehiculos extends \fs_model{
 
     /**
      * Función para realizar buquedas en la mayor cantidad de información de vehiculos del residente
-     * @param type $query string/integer
+     * @param $query string/integer
      */
-    public function search($busqueda, $offset = 0) {
+    public function search($busqueda, $offset = 0)
+    {
         $clilist = array();
         $query = mb_strtolower($this->no_html($busqueda), 'UTF8');
 
@@ -202,9 +214,12 @@ class residentes_vehiculos extends \fs_model{
             $consulta .= "(codigo_tarjeta LIKE '%" . $query . "%' OR CAST(idvehiculo as CHAR) = '%" . $query . "%')";
         } else {
             $buscar = str_replace(' ', '%', $query);
-            $consulta .= "(lower(codigo_tarjeta) LIKE '%" . $buscar . "%' OR lower(vehiculo_color) LIKE '%" . $buscar . "%'"
-                    . " OR lower(vehiculo_marca) LIKE '%" . $buscar . "%' OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'"
-                    . " OR lower(vehiculo_placa) LIKE '%" . $buscar . "%' OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%')";
+            $consulta .= "(lower(codigo_tarjeta) LIKE '%" . $buscar .
+                "%' OR lower(vehiculo_color) LIKE '%" . $buscar . "%'" .
+                " OR lower(vehiculo_marca) LIKE '%" . $buscar .
+                "%' OR lower(vehiculo_modelo) LIKE '%" . $buscar . "%'" .
+                " OR lower(vehiculo_placa) LIKE '%" . $buscar .
+                "%' OR lower(vehiculo_tipo) LIKE '%" . $buscar . "%')";
         }
         $consulta .= " ORDER BY codcliente ASC";
 
@@ -219,8 +234,10 @@ class residentes_vehiculos extends \fs_model{
         return $clilist;
     }
 
-    public function delete() {
-        $sql = "DELETE FROM ".$this->table_name." WHERE idvehiculo = ".$this->intval($this->idvehiculo)." and codcliente = ".$this->var2str($this->codcliente).";";
+    public function delete()
+    {
+        $sql = "DELETE FROM ".$this->table_name." WHERE idvehiculo = ".$this->intval($this->idvehiculo).
+            " and codcliente = ".$this->var2str($this->codcliente).";";
         return $this->db->exec($sql);
     }
 

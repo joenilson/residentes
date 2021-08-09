@@ -158,12 +158,13 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
         $infoEdif = $redif->get($item->id_edificacion);
         $item->codigo = $infoEdif->codigo;
         $item->numero = $infoEdif->numero;
+        $item->email = $infoCli->email;
         $item->numero2 = '';
         $item->femail = '';
         $item->fecha = '';
         $item->importe = 0;
         $item->forma_pago = '';
-        if($item->idfactura) {
+        if ($item->idfactura) {
             $fact = new factura_cliente();
             $infoFact = $fact->get($item->idfactura);
             if ($infoFact) {

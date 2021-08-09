@@ -17,11 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * Description of imprimir_factura_residentes
+ * Description of imprimir_factura_residentes_detallada
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class imprimir_factura_residentes extends fs_controller
+class imprimir_factura_residentes_detallada extends fs_controller
 {
     public $imprimir;
     public $id;
@@ -35,7 +35,7 @@ class imprimir_factura_residentes extends fs_controller
 
     public function __construct()
     {
-        parent::__construct(__CLASS__, 'Factura Residente', 'ventas', true, false, false);
+        parent::__construct(__CLASS__, 'Factura Residente Detallada', 'ventas', true, false, false);
     }
 
     protected function private_core()
@@ -62,11 +62,11 @@ class imprimir_factura_residentes extends fs_controller
         }
 
         if ($this->id) {
-            $this->crearFacturaResidentesStandar();
+            $this->crearFacturaResidentesDetallada();
         }
     }
 
-    private function crearFacturaResidentesStandar()
+    private function crearFacturaResidentesDetallada()
     {
         $fac = new factura_cliente();
         $this->factura = $fac->get($this->id);
@@ -108,11 +108,11 @@ class imprimir_factura_residentes extends fs_controller
     {
         $extensiones = array(
             array(
-                'name' => 'factura_residentes',
+                'name' => 'factura_residentes_detallada',
                 'page_from' => __CLASS__,
                 'page_to' => 'ventas_factura',
                 'type' => 'pdf',
-                'text' => 'Factura Residentes',
+                'text' => 'Factura Residentes Detallada',
                 'params' => ''
             ),
             array(

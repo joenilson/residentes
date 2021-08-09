@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require_once 'plugins/residentes/extras/residentes_pdf.php';
+require_once 'plugins/residentes/extras/fpdf183/ResidentesFpdf.php';
 require_once 'extras/phpmailer/class.phpmailer.php';
 require_once 'extras/phpmailer/class.smtp.php';
 require_once 'plugins/residentes/extras/residentes_controller.php';
@@ -27,13 +28,15 @@ require_once 'plugins/residentes/extras/residentes_controller.php';
  */
 class documentos_residentes extends residentes_controller
 {
-
     public $archivo;
     public $cliente_residente;
     public $documento;
     public $numpaginas;
     public $pagado;
     public $pendiente;
+    public $tipo_accion;
+    public $idprogramacion;
+    public $idfactura;
 
     public function __construct()
     {
@@ -44,7 +47,7 @@ class documentos_residentes extends residentes_controller
     {
         parent::private_core();
         $this->init();
-        $cod = filter_input(INPUT_POST, 'codcliente');
+        $cod = $this->filter_request('codcliente');
         if ($cod) {
             $cliente = new cliente();
             $this->cliente_residente = $cliente->get($cod);
@@ -55,9 +58,10 @@ class documentos_residentes extends residentes_controller
             $this->cliente_residente->inmueble = $residente[0];
             $this->cliente_residente->informacion = $informacion;
         }
-        $info_accion = filter_input(INPUT_POST, 'info_accion');
-        $tipo_documento = filter_input(INPUT_POST, 'tipo_documento');
-        if ($this->cliente_residente and $info_accion) {
+        $info_accion = $this->filter_request('info_accion');
+        $tipo_documento = $this->filter_request('tipo_documento');
+        $this->tipo_accion = $tipo_documento;
+        if ($this->cliente_residente && $info_accion) {
             switch ($info_accion) {
                 case 'imprimir':
                     $this->template = false;
@@ -75,10 +79,9 @@ class documentos_residentes extends residentes_controller
     public function crear_documento($tipo_documento)
     {
         $this->archivo = \date('dmYhis') . '.pdf';
-        $this->documento = new residentes_pdf('letter');
-
         switch ($tipo_documento) {
             case 'informacion_cobros':
+                $this->documento = new residentes_pdf('letter', 'portrait');
                 $this->documento->pdf->addInfo('Title', 'Pagos Residente ' .
                                         $this->cliente_residente->codcliente);
                 $this->documento->pdf->addInfo('Subject', 'Pagos del Residente ' .
@@ -87,9 +90,125 @@ class documentos_residentes extends residentes_controller
                 $this->documento->pdf->ezSetMargins(10, 10, 10, 10);
                 $this->crear_documento_cobros();
                 break;
+            case 'factura_residente_detallada':
+                $this->idprogramacion = $this->filter_request('idprogramacion');
+                $this->crearFacturaDetallada();
+                break;
             default:
                 $this->documento = false;
                 break;
+        }
+    }
+
+    private function datosFactura()
+    {
+        $datosFacturaCabecera = [];
+        $datosFacturaDetalle = [];
+        $this->idfactura = $this->filter_request('idfactura');
+        if ($this->idfactura != '') {
+            $facturas = new factura_cliente();
+            $factura = $facturas->get($this->idfactura);
+            $datosFacturaCabecera = (array) $factura;
+            if ($this->RD_plugin) {
+                $ncf = new ncf_ventas();
+                $ncfTipo = $ncf->get($this->empresa->id, $factura->numero2);
+                //var_dump($ncfTipo);
+                $datosFacturaCabecera['tiponcf'] = $ncfTipo[0]->tipo_descripcion;
+                $datosFacturaCabecera['vencimientoncf'] = $ncfTipo[0]->fecha_vencimiento;
+            }
+
+            $lineas = $factura->get_lineas();
+            $totalAntesDescuento = 0;
+            $totalDescuento = 0;
+            foreach ($lineas as $linea) {
+                $totalAntesDescuento += $linea->pvpsindto;
+                $totalDescuento += ($linea->pvpsindto - $linea->pvptotal);
+                $datosFacturaDetalle[] = (array) $linea;
+            }
+            $datosFacturaCabecera['total_antes_descuento'] = $totalAntesDescuento;
+            $datosFacturaCabecera['total_descuento'] = $totalDescuento;
+        }
+        return [$datosFacturaCabecera, $datosFacturaDetalle];
+    }
+
+    public function crearFacturaDetallada()
+    {
+        $customerInfo = (array) $this->cliente_residente;
+        $customerInfo['direccion'] = trim($this->cliente_residente->inmueble->codigo_externo()) . ' numero '
+            . $this->cliente_residente->inmueble->numero;
+        $datosFactura = $this->datosFactura();
+        $datosEmpresa = (array) $this->empresa;
+        $this->documento = new ResidentesFpdf('L', 'mm', 'A5');
+        //var_dump($datosFactura[1]);
+        $this->documento->createDocument($datosEmpresa, $datosFactura[0], $datosFactura[1], $customerInfo);
+        $this->documento->Output('I');
+    }
+
+    public function crearFacturaDetalladaOLD()
+    {
+        $this->pendiente = $this->pagosFactura(false);
+        $this->pagado = $this->pagosFactura(true);
+        $linea_actual = 0;
+        $pagina = 1;
+        $lppag = 28; /// líneas por página
+        while ($linea_actual < count($this->pendiente)) {
+            /// salto de página
+            if ($linea_actual > 0) {
+                $this->documento->pdf->ezNewPage();
+            }
+            $this->pdfGenerarCabecera($this->documento, $this->empresa, $lppag);
+            $this->generar_datos_residente($this->documento, 'factura_detallada', $lppag);
+            $this->pdfFacturaResumen($this->documento, $this->empresa, $lppag);
+            $this->pdfFacturaDetalle($this->documento, $empresa, $lppag, $lppag);
+
+            $this->generar_pdf_lineas(
+                $this->documento,
+                $this->pendiente,
+                $linea_actual,
+                $lppag,
+                'pendiente'
+            );
+            //$this->documento->set_y($this->documento->pdf->y - 16);
+            $pagina++;
+        }
+
+//        $linea_actual2 = 0;
+//        $linea_actual2 = $linea_actual;
+//        while ($linea_actual2 < count($this->pagado)) {
+//            if ($linea_actual2 > 0) {
+//                $this->documento->pdf->ezNewPage();
+//                $this->pdfGenerarCabecera($this->documento, $this->empresa, $lppag);
+//                $this->pdfFacturaResumen($this->documento, $this->empresa, $lppag);
+//                $this->generar_datos_residente($this->documento, 'factura_detallada', $lppag);
+//            } elseif ($linea_actual2 === 0) {
+//                $this->generar_datos_residente($this->documento, 'factura_detallada', $lppag);
+//            }
+//            $this->generar_pdf_lineas(
+//                $this->documento,
+//                $this->pagado,
+//                $linea_actual2,
+//                $lppag,
+//                'pagado'
+//            );
+//            $pagina++;
+//        }
+
+        $this->documento->set_y(80);
+        if ($this->empresa->pie_factura) {
+            $this->documento->pdf->addText(20, 40, 8, fs_fix_html('<b>Generado por:</b> ' .
+                $this->user->get_agente_fullname()), 0);
+            $this->documento->pdf->addText(
+                10,
+                20,
+                8,
+                $this->documento->center_text(fs_fix_html($this->empresa->pie_factura), 180)
+            );
+        }
+
+        if ($this->filter_request('info_accion') == 'enviar') {
+            $this->documento->save('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
+        } else {
+            $this->documento->show('documento_cobros_' . \date('dmYhis') . '.pdf');
         }
     }
 
@@ -108,8 +227,13 @@ class documentos_residentes extends residentes_controller
             }
             $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
             $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
-            $this->generar_pdf_lineas($this->documento, $this->pendiente,
-                $linea_actual, $lppag, 'pendiente');
+            $this->generar_pdf_lineas(
+                $this->documento,
+                $this->pendiente,
+                $linea_actual,
+                $lppag,
+                'pendiente'
+            );
             $this->documento->set_y($this->documento->pdf->y - 16);
         }
 
@@ -121,19 +245,28 @@ class documentos_residentes extends residentes_controller
                 $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
                 $this->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
             }
-            $this->generar_pdf_lineas($this->documento, $this->pagado,
-                $linea_actual2, $lppag, 'pagado');
+            $this->generar_pdf_lineas(
+                $this->documento,
+                $this->pagado,
+                $linea_actual2,
+                $lppag,
+                'pagado'
+            );
             $pagina++;
         }
         $this->documento->set_y(80);
         if ($this->empresa->pie_factura) {
             $this->documento->pdf->addText(20, 40, 8, fs_fix_html('<b>Generado por:</b> ' .
                 $this->user->get_agente_fullname()), 0);
-            $this->documento->pdf->addText(10, 30, 8,
-                $this->documento->center_text(fs_fix_html($this->empresa->pie_factura), 180));
+            $this->documento->pdf->addText(
+                10,
+                30,
+                8,
+                $this->documento->center_text(fs_fix_html($this->empresa->pie_factura), 180)
+            );
         }
 
-        if (filter_input(INPUT_POST, 'info_accion') === 'enviar') {
+        if ($this->filter_request('info_accion') == 'enviar') {
             $this->documento->save('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
         } else {
             $this->documento->show('documento_cobros_' . \date('dmYhis') . '.pdf');
@@ -189,7 +322,7 @@ class documentos_residentes extends residentes_controller
         }
     }
 
-    public function generar_datos_residente(&$pdf_doc, $tipo_documento, &$lppag)
+    public function generar_datos_residente(&$pdf_doc, $tipo_documento, &$lppag, $table_width = 560)
     {
         $width_campo1 = 110;
         $tipo_doc = $this->generar_tipo_doc($tipo_documento);
@@ -245,14 +378,15 @@ class documentos_residentes extends residentes_controller
                     'campo2' => array('justification' => 'right')
                 ),
                 'showLines' => 0,
-                'width' => 580,
-                'shaded' => 0
+                'width' => $table_width,
+                'shaded' => 0,
+                'fontSize' => 8
             )
         );
         $pdf_doc->pdf->ezText("\n", 10);
     }
 
-    public function generar_pdf_lineas(&$pdf_doc, &$items, &$linea_actual, &$lppag, $tipo)
+    public function generar_pdf_lineas(&$pdf_doc, &$items, &$linea_actual, &$lppag, $tipo, $table_width = 540)
     {
         /// calculamos el número de páginas
         if (!isset($this->numpaginas)) {
@@ -265,7 +399,7 @@ class documentos_residentes extends residentes_controller
                 $this->numpaginas++;
             }
 
-            if ($this->numpaginas == 0) {
+            if ($this->numpaginas === 0) {
                 $this->numpaginas = 1;
             }
         }
@@ -277,7 +411,7 @@ class documentos_residentes extends residentes_controller
          * Creamos la tabla con las lineas de pendientes
          */
         $pdf_doc->new_table();
-        list($table_header,$array_cols) = $this->generar_pdf_lineas_tablas($tipo);
+        [$table_header, $array_cols] = $this->generar_pdf_lineas_tablas($tipo);
         $pdf_doc->add_table_header($table_header);
 
         for ($i = $linea_actual; (($linea_actual < ($lppag + $i)) && ( $linea_actual < count($items)));) {
@@ -288,9 +422,9 @@ class documentos_residentes extends residentes_controller
 
         $pdf_doc->save_table(
             array(
-                'fontSize' => 9,
+                'fontSize' => 8,
                 'cols' => $array_cols,
-                'width' => 520,
+                'width' => $table_width,
                 'shaded' => 1,
                 'shadeCol' => array(0.95, 0.95, 0.95),
                 'lineCol' => array(0.3, 0.3, 0.3),
@@ -369,6 +503,225 @@ class documentos_residentes extends residentes_controller
         }
     }
 
+    public function pdfGenerarCabecera(&$pdf_doc, &$empresa, &$lppag)
+    {
+        /// ¿Añadimos el logo?
+        if ($pdf_doc->logo !== false) {
+            if (function_exists('imagecreatefromstring')) {
+                $lppag -= 4; /// si metemos el logo, caben menos líneas
+                $pdf_doc_LOGO_X = 20;
+                $pdf_doc_LOGO_Y = 320;
+                $tamanyo = $pdf_doc->calcular_tamanyo_logo();
+                if (strtolower(substr($pdf_doc->logo, -4)) === '.png') {
+                    $pdf_doc->pdf->addPngFromFile($pdf_doc->logo, $pdf_doc_LOGO_X, $pdf_doc_LOGO_Y, $tamanyo[0], $tamanyo[1]);
+                } elseif (function_exists('imagepng')) {
+                    /**
+                     * La librería ezpdf tiene problemas al redimensionar jpegs,
+                     * así que hacemos la conversión a png para evitar estos problemas.
+                     */
+                    if (imagepng(imagecreatefromstring(file_get_contents($pdf_doc->logo)), FS_MYDOCS
+                        . 'images/logo.png')) {
+                        $pdf_doc->pdf->addPngFromFile(
+                            FS_MYDOCS . 'images/logo.png',
+                            $pdf_doc_LOGO_X,
+                            $pdf_doc_LOGO_Y,
+                            $tamanyo[0],
+                            $tamanyo[1]
+                        );
+                    } else {
+                        $pdf_doc->pdf->addJpegFromFile($pdf_doc->logo, $pdf_doc_LOGO_X, $pdf_doc_LOGO_Y, $tamanyo[0], $tamanyo[1]);
+                    }
+                } else {
+                    $pdf_doc->pdf->addJpegFromFile($pdf_doc->logo, $pdf_doc_LOGO_X, $pdf_doc_LOGO_Y, $tamanyo[0], $tamanyo[1]);
+                }
+                $pdf_doc->set_y(400);
+                $pdf_doc->pdf->ez['leftMargin'] = 120;
+                $pdf_doc->pdf->ezText(
+                    "<b>" . fs_fix_html($empresa->nombre) . "</b>",
+                    12,
+                    array('justification' => 'left')
+                );
+                $pdf_doc->pdf->ezText(FS_CIFNIF . ": " . $empresa->cifnif, 8, array('justification' => 'left'));
+
+                $direccion = $empresa->direccion . "\n";
+                if ($empresa->apartado) {
+                    $direccion .= ucfirst(FS_APARTADO) . ': ' . $empresa->apartado . ' - ';
+                }
+
+                if ($empresa->codpostal) {
+                    $direccion .= 'CP: ' . $empresa->codpostal . ' - ';
+                }
+
+                if ($empresa->ciudad) {
+                    $direccion .= $empresa->ciudad . ' - ';
+                }
+
+                if ($empresa->provincia) {
+                    $direccion .= '(' . $empresa->provincia . ')';
+                }
+
+                if ($empresa->telefono) {
+                    $direccion .= "\nTeléfono: " . $empresa->telefono . ' - '.$pdf_doc_LOGO_X."/".$pdf_doc_LOGO_Y;
+                }
+
+                $pdf_doc->pdf->ezText(fs_fix_html($direccion) . "\n", 8, array('justification' => 'left'));
+                $pdf_doc->set_y($pdf_doc_LOGO_Y);
+
+                $pdf_doc->pdf->ez['leftMargin'] = 10;
+            } else {
+                die('ERROR: no se encuentra la función imagecreatefromstring(). '
+                    . 'Y por tanto no se puede usar el logotipo en los documentos.');
+            }
+        } else {
+            $pdf_doc->pdf->ezText(
+                "<b>" . fs_fix_html($empresa->nombre) . "</b>",
+                12,
+                array('justification' => 'left')
+            );
+            $pdf_doc->pdf->ezText(FS_CIFNIF . ": " . $empresa->cifnif, 8, array('justification' => 'left'));
+
+            $direccion = $empresa->direccion;
+            if ($empresa->apartado) {
+                $direccion .= ' - ' . ucfirst(FS_APARTADO) . ': ' . $empresa->apartado;
+            }
+
+            if ($empresa->codpostal) {
+                $direccion .= ' - CP: ' . $empresa->codpostal;
+            }
+
+            if ($empresa->ciudad) {
+                $direccion .= ' - ' . $empresa->ciudad;
+            }
+
+            if ($empresa->provincia) {
+                $direccion .= ' (' . $empresa->provincia . ')';
+            }
+
+            if ($empresa->telefono) {
+                $direccion .= ' - Teléfono: ' . $empresa->telefono;
+            }
+
+            $pdf_doc->pdf->ezText(fs_fix_html($direccion), 8, array('justification' => 'left'));
+        }
+    }
+
+    public function pdfFacturaResumen(&$pdf_doc, &$empresa, &$lppag)
+    {
+        $pdf_doc->set_y(420);
+        $pdf_doc->pdf->ez['leftMargin'] = 440;
+        $pdf_doc->pdf->ez['rightMargin'] = 10;
+
+        $facturas = new factura_cliente();
+        $clientes = new cliente();
+        $cliente = $clientes->get($this->filter_request('codcliente'));
+        $factura = $facturas->get($this->filter_request('idfactura'));
+        $tipo_factura = '';
+        if (isset($factura->ncf_tipo)) {
+            $tipo_factura = $factura->ncf_tipo;
+        }
+
+        $pdf_doc->new_table();
+        $pdf_doc->add_table_row(
+            array(
+                'campos' => "<b>" . ucfirst(FS_FACTURA) . ":</b>\n <b>".FS_NUMERO2.":</b>\n<b>Fecha:</b>\n<b>" . 'F. Pago' . ":</b>",
+                'factura' => $factura->codigo . "\n" . $factura->numero2 . "\n" . $factura->fecha . "\n" . $factura->codpago,
+            )
+        );
+        $pdf_doc->save_table(
+            array(
+                'cols' => array(
+                    'campos' => array('justification' => 'right', 'width' => 120),
+                    'factura' => array('justification' => 'left')
+                ),
+                'showLines' => 0,
+                'fontSize' => 9,
+                'width' => 320
+            )
+        );
+
+        $pdf_doc->set_y(240);
+        $pdf_doc->pdf->ez['leftMargin'] = 10;
+    }
+
+    public function pdfFacturaDetalle(&$pdf_doc, &$empresa, &$lppag,  &$linea_actual)
+    {
+        $facturas = new factura_cliente();
+        $clientes = new cliente();
+        $cliente = $clientes->get($this->filter_request('codcliente'));
+        $factura = $facturas->get($this->filter_request('idfactura'));
+        $lineas = $factura->get_lineas();
+
+        $pdf_doc->new_table();
+        $table_header = array(
+            'descripcion' => '<b>Ref. + Descripción</b>',
+            'cantidad' => '<b>Cant.</b>',
+            'pvp' => '<b>Precio</b>',
+            'dto' => '<b>Dto.</b>',
+            'importe' => '<b>Importe</b>'
+        );
+
+        $pdf_doc->add_table_header($table_header);
+
+        for ($i = $linea_actual; (($linea_actual < ($lppag + $i)) && ( $linea_actual < count($lineas)));) {
+            $descripcion = fs_fix_html($lineas[$linea_actual]->descripcion);
+            if (!is_null($lineas[$linea_actual]->referencia) && $this->impresion['print_ref']) {
+                $descripcion = '<b>' . $lineas[$linea_actual]->referencia . '</b> ' . $descripcion;
+            }
+
+            /// ¿El articulo tiene trazabilidad?
+            //$descripcion .= $this->generar_trazabilidad($lineas[$linea_actual]);
+
+            $due_lineas = $this->fbase_calc_desc_due([$lineas[$linea_actual]->dtopor, $lineas[$linea_actual]->dtopor2, $lineas[$linea_actual]->dtopor3, $lineas[$linea_actual]->dtopor4]);
+
+            $fila = array(
+                'descripcion' => $descripcion,
+                'cantidad' => $this->show_numero($lineas[$linea_actual]->cantidad, 0),
+                'pvp' => $this->show_precio($lineas[$linea_actual]->pvpunitario, $factura->coddivisa, true, FS_NF0_ART),
+                'dto' => $this->show_numero($due_lineas) . " %",
+                'importe' => $this->show_precio($lineas[$linea_actual]->pvptotal, $this->documento->coddivisa)
+            );
+
+            if ($lineas[$linea_actual]->dtopor == 0) {
+                $fila['dto'] = '';
+            }
+
+            if (!$lineas[$linea_actual]->mostrar_cantidad) {
+                $fila['cantidad'] = '';
+            }
+
+            if (!$lineas[$linea_actual]->mostrar_precio) {
+                $fila['pvp'] = '';
+                $fila['dto'] = '';
+                $fila['importe'] = '';
+            }
+
+            $pdf_doc->add_table_row($fila);
+            $linea_actual++;
+        }
+
+        $pdf_doc->save_table(
+            array(
+                'fontSize' => 8,
+                'cols' => array(
+                    'cantidad' => array('justification' => 'right'),
+                    'pvp' => array('justification' => 'right'),
+                    'dto' => array('justification' => 'right'),
+                    'iva' => array('justification' => 'right'),
+                    'importe' => array('justification' => 'right')
+                ),
+                'width' => 540,
+                'shaded' => 1,
+                'shadeCol' => array(0.95, 0.95, 0.95),
+                'lineCol' => array(0.3, 0.3, 0.3),
+            )
+        );
+
+        /// ¿Última página?
+        if ($linea_actual == count($lineas) && $this->documento->observaciones != '') {
+            $pdf_doc->pdf->ezText("\n" . fs_fix_html($this->documento->observaciones), 9);
+        }
+    }
+
     public function generar_tipo_doc($tipo_documento)
     {
         return ucfirst(str_replace('_', ' ', $tipo_documento));
@@ -382,16 +735,17 @@ class documentos_residentes extends residentes_controller
 
     public function init()
     {
+        $this->existe_tesoreria();
         $this->cliente_residente = false;
-        if (!file_exists('tmp/' . FS_TMP_NAME . 'enviar')) {
-            if (!mkdir($concurrentDirectory = 'tmp/' . FS_TMP_NAME . 'enviar') && !is_dir($concurrentDirectory)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-            }
+        if (!file_exists('tmp/' . FS_TMP_NAME . 'enviar') &&
+            !mkdir($concurrentDirectory = 'tmp/' . FS_TMP_NAME . 'enviar') &&
+            !is_dir($concurrentDirectory)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
     }
 
     public function is_html($txt)
     {
-        return ($txt != strip_tags($txt)) ? true : false;
+        return $txt !== strip_tags($txt);
     }
 }

@@ -17,7 +17,7 @@
  */
 namespace FacturaScripts\model;
 
-require_model('cliente.php');
+//require_model('cliente.php');
 /**
  * Tabla para guardar la información adicional de los residentes
  * para guardar la información de los vehiculos de los mismos
@@ -141,7 +141,7 @@ class residentes_informacion extends \fs_model{
     public $cliente;
     public function __construct($t = false)
     {
-        parent::__construct('residentes_informacion','plugins/residentes');
+        parent::__construct('residentes_informacion', 'plugins/residentes');
         if ($t) {
             $this->codcliente=$t['codcliente'];
             $this->codigo=$t['codigo'];
@@ -165,7 +165,7 @@ class residentes_informacion extends \fs_model{
             $this->ca_parentesco=$t['ca_parentesco'];
             $this->ca_parentesco_obs=$t['ca_parentesco_obs'];
             $this->vehiculos=$t['vehiculos'];
-        }else{
+        } else {
             $this->codcliente=NULL;
             $this->codigo=NULL;
             $this->ocupantes=NULL;

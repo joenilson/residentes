@@ -30,23 +30,29 @@ class residentes_controller extends fs_controller
     public $hasta;
     public $tesoreria;
     public $CRM_plugin;
+    public $RD_plugin;
+
     protected function private_core()
     {
         parent::private_core();
         $this->init();
     }
 
-    public function diasAtraso($f1,$f2)
+    /**
+     * @throws Exception
+     */
+    public function diasAtraso($f1, $f2)
     {
-        $date1 = new DateTime($f1);
-        $date2 = new DateTime($f2);
+        $date1 = new \DateTime($f1);
+        $date2 = new \DateTime($f2);
         return $date2->diff($date1)->format("%a");
     }
 
     public function existe_tesoreria()
     {
         $this->tesoreria = false;
-        $this->CRM_plugin = true;
+        $this->CRM_plugin = false;
+        $this->RD_plugin = false;
         //revisamos si esta el plugin de tesoreria
         $disabled = array();
         if (defined('FS_DISABLED_PLUGINS')) {
@@ -55,12 +61,16 @@ class residentes_controller extends fs_controller
             }
         }
         
-        if (in_array('tesoreria', $GLOBALS['plugins']) and !in_array('tesoreria', $disabled)) {
+        if (in_array('tesoreria', $GLOBALS['plugins'], true) && !in_array('tesoreria', $disabled, true)) {
             $this->tesoreria = true;
         }
         
-        if (in_array('CRM', $GLOBALS['plugins']) and !in_array('CRM', $disabled)) {
+        if (in_array('CRM', $GLOBALS['plugins'], true) && !in_array('CRM', $disabled, true)) {
             $this->CRM_plugin = true;
+        }
+
+        if (in_array('republica_dominicana', $GLOBALS['plugins'], true) && !in_array('republica_dominicana', $disabled, true)) {
+            $this->RD_plugin = true;
         }
     }
 
@@ -88,6 +98,7 @@ class residentes_controller extends fs_controller
         $this->clientes = new cliente();
         $this->edificaciones = new residentes_edificaciones();
         $this->init_templates();
+        $this->existe_tesoreria();
     }
 
     public function mostrar_direcciones_residente($codcliente)
@@ -97,7 +108,7 @@ class residentes_controller extends fs_controller
         $data = $cliente->get_direcciones();
         $this->template = false;
         header('Content-Type: application/json');
-        echo json_encode($data);
+        echo json_encode($data, JSON_THROW_ON_ERROR);
     }
 
     public function init_templates()
@@ -106,11 +117,12 @@ class residentes_controller extends fs_controller
         $residentes_email_plantillas = array();
         $residentes_email_plantillas['mail_informe_residentes'] = "Buenos días, le adjunto su #DOCUMENTO#.".
                             "\n\n#FIRMA# 4";
-        $email_plantillas = $fsvar->array_get($residentes_email_plantillas, FALSE);
+        $email_plantillas = $fsvar->array_get($residentes_email_plantillas, false);
         $fsvar->array_save($email_plantillas);
     }
 
-    public function mostrar_informacion_residente(){
+    public function mostrar_informacion_residente()
+    {
         $this->template = 'mostrar_informacion_residente';
         $cod = $this->filter_request('codcliente');
         $this->cliente_residente = $this->clientes->get($cod);
@@ -119,7 +131,7 @@ class residentes_controller extends fs_controller
         $this->pagos_realizados = $this->pagosFactura(true);
     }
 
-    public function pagosFactura($pagada=false)
+    public function pagosFactura($pagada = false)
     {
         $fecha = '';
         if (isset($this->desde, $this->hasta)) {
@@ -142,11 +154,12 @@ class residentes_controller extends fs_controller
             $linea->f_pago = $linea->fecha;
             $linea->dias_atraso = ($pagada)?0:$this->diasAtraso($linea->vencimiento, \date('d-m-Y'));
             if (in_array('tesoreria', $GLOBALS['plugins'], true)) {
+                //TO-DO
             }
             if ($pagada) {
                 $f = $fact->get($linea->idfactura);
                 $fp = $f->get_asiento_pago();
-                $linea->f_pago = ($fp)?$fp->fecha:$linea->f_pago;
+                $linea->f_pago = $fp->fecha ?? $linea->f_pago;
             }
             $lista[] = $linea;
         }

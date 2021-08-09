@@ -4,7 +4,12 @@
 <script type="text/javascript">
    function recargar()
    {
-      window.location.href = '{#FS_PATH#}index.php?page=lista_residentes&accion=mostrar_informacion_residente&codcliente={$fsc->cliente_residente->codcliente}';
+      {if="$fsc->tipo_accion=='informacion_cobros'"}
+      url = '{#FS_PATH#}index.php?page=lista_residentes&accion=mostrar_informacion_residente&codcliente={$fsc->cliente_residente->codcliente}';
+      {elseif="$fsc->tipo_accion='factura_residente_detallada'"}
+      url = '{#FS_PATH#}index.php?page=facturacion_residentes&accion=lista_programacion&idprogramacion={$fsc->idprogramacion}';
+      {/if}
+      window.location.href = url;
    }
    $(document).ready(function() {
       setTimeout(recargar, 2000);
@@ -15,8 +20,12 @@
 <div class="container-fluid">
    <div class="row">
       <div class="col-sm-12">
-         {if="$fsc->cliente_residente"}
+         {if="$fsc->cliente_residente AND $fsc->tipo_accion=='informacion_cobros'"}
          <a href="{#FS_PATH#}index.php?page=lista_residentes&accion=mostrar_informacion_residente&codcliente={$fsc->cliente_residente->codcliente}" class="btn btn-default">
+            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp; Volver
+         </a>
+         {elseif="$fsc->tipo_accion=='factura_residente_detallada'"}
+         <a href="{#FS_PATH#}index.php?page=facturacion_residentes&accion=lista_programacion&idprogramacion={$fsc->idprogramacion}" class="btn btn-default">
             <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp; Volver
          </a>
          {/if}
