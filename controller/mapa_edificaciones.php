@@ -15,8 +15,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-//require_model('residentes_edificaciones_tipo.php');
-//require_model('residentes_edificaciones_mapa.php');
 /**
  * Description of mapa_edificaciones
  *

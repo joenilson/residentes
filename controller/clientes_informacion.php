@@ -15,9 +15,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-//require_model('cliente.php');
-//require_model('residentes_informacion.php');
-//require_model('residentes_ayudas.php');
 /**
  * Controller para el tab de información adicional de los resodientes
  * Va agregado en Ventas > Clientes

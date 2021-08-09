@@ -17,7 +17,6 @@
  */
 namespace FacturaScripts\model;
 
-//require_model('cliente.php');
 /**
  * Model de la tabla donde se almacenan los distintos vehiculos y la información de los mismos
  * de cada residente

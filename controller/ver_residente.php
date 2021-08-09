@@ -21,13 +21,6 @@
  * @author Joe Nilson Zegarra Galvez      joenilson@gmail.com
  * @copyright 2015, Carlos García Gómez. All Rights Reserved.
  */
-//require_model('articulo.php');
-//require_model('asiento_factura.php');
-//require_model('familia.php');
-//require_model('cliente.php');
-//require_model('factura_cliente.php');
-//require_model('impuesto.php');
-//require_model('residentes_edificaciones.php');
 require_once 'plugins/residentes/extras/residentes_controller.php';
 
 /**
