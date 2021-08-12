@@ -153,8 +153,12 @@ class residentes_controller extends fs_controller
             $linea = (object) $l;
             $linea->f_pago = $linea->fecha;
             $linea->dias_atraso = ($pagada)?0:$this->diasAtraso($linea->vencimiento, \date('d-m-Y'));
+            $linea->abono = 0;
             if (in_array('tesoreria', $GLOBALS['plugins'], true)) {
-                //TO-DO
+                //TO-DO Restar recibos de pagos realizados
+                $recibos = new recibo_cliente();
+                $recibo = $recibos->all_from_factura($linea->idfactura);
+                //$recibos->get
             }
             if ($pagada) {
                 $f = $fact->get($linea->idfactura);

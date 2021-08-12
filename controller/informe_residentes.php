@@ -461,7 +461,7 @@ class informe_residentes extends residentes_controller
     public function prepararDatosXLSX($linea, $indice, &$total_importe)
     {
         $item = array();
-        foreach ($indice as $idx=>$desc) {
+        foreach ($indice as $idx => $desc) {
             $item[] = $linea[$idx];
             if ($idx === 'total') {
                 $total_importe += $linea['total'];
@@ -493,9 +493,9 @@ class informe_residentes extends residentes_controller
     {
         if (isset($_REQUEST['inmueble'])) {
             return 'index.php?page=informe_residentes&inmueble=' . $_REQUEST['inmueble'];
-        } else {
-            return parent::url();
         }
+
+        return parent::url();
     }
 
     private function str2bool($v)
@@ -503,7 +503,8 @@ class informe_residentes extends residentes_controller
         return ($v === 't' or $v === '1');
     }
 
-    public function shared_extensions() {
+    public function shared_extensions()
+    {
         $extensiones = array(
             array(
                 'name' => '001_informe_edificaciones_js',

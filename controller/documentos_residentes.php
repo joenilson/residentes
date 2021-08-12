@@ -112,11 +112,9 @@ class documentos_residentes extends residentes_controller
             if ($this->RD_plugin) {
                 $ncf = new ncf_ventas();
                 $ncfTipo = $ncf->get($this->empresa->id, $factura->numero2);
-                //var_dump($ncfTipo);
                 $datosFacturaCabecera['tiponcf'] = $ncfTipo[0]->tipo_descripcion;
                 $datosFacturaCabecera['vencimientoncf'] = $ncfTipo[0]->fecha_vencimiento;
             }
-
             $lineas = $factura->get_lineas();
             $totalAntesDescuento = 0;
             $totalDescuento = 0;
@@ -139,9 +137,22 @@ class documentos_residentes extends residentes_controller
         $datosFactura = $this->datosFactura();
         $datosEmpresa = (array) $this->empresa;
         $this->documento = new ResidentesFpdf('L', 'mm', 'A5');
-        //var_dump($datosFactura[1]);
+//        $this->documento = new ResidentesFpdf('P', 'mm', 'letter');
         $this->documento->createDocument($datosEmpresa, $datosFactura[0], $datosFactura[1], $customerInfo);
-        $this->documento->Output('I');
+        $this->pendiente = $this->pagosFactura(false);
+        $this->documento->addEstadoCuentaPendiente($this->pendiente);
+
+        if ($this->filter_request('info_accion') == 'enviar') {
+            $this->documento->Output(
+                'tmp/' . FS_TMP_NAME . 'enviar/',
+                $this->archivo
+            );
+        } else {
+            $this->documento->Output(
+                'I',
+                'factura_' .$datosFactura[0]['numero2']. '_' . \date('dmYhis') . '.pdf'
+            );
+        }
     }
 
     public function crearFacturaDetalladaOLD()
@@ -168,30 +179,8 @@ class documentos_residentes extends residentes_controller
                 $lppag,
                 'pendiente'
             );
-            //$this->documento->set_y($this->documento->pdf->y - 16);
             $pagina++;
         }
-
-//        $linea_actual2 = 0;
-//        $linea_actual2 = $linea_actual;
-//        while ($linea_actual2 < count($this->pagado)) {
-//            if ($linea_actual2 > 0) {
-//                $this->documento->pdf->ezNewPage();
-//                $this->pdfGenerarCabecera($this->documento, $this->empresa, $lppag);
-//                $this->pdfFacturaResumen($this->documento, $this->empresa, $lppag);
-//                $this->generar_datos_residente($this->documento, 'factura_detallada', $lppag);
-//            } elseif ($linea_actual2 === 0) {
-//                $this->generar_datos_residente($this->documento, 'factura_detallada', $lppag);
-//            }
-//            $this->generar_pdf_lineas(
-//                $this->documento,
-//                $this->pagado,
-//                $linea_actual2,
-//                $lppag,
-//                'pagado'
-//            );
-//            $pagina++;
-//        }
 
         $this->documento->set_y(80);
         if ($this->empresa->pie_factura) {
@@ -219,7 +208,7 @@ class documentos_residentes extends residentes_controller
 
         $linea_actual = 0;
         $pagina = 1;
-        $lppag = 30; /// líneas por página
+        $lppag = 32; /// líneas por página
         while ($linea_actual < count($this->pendiente)) {
             /// salto de página
             if ($linea_actual > 0) {
