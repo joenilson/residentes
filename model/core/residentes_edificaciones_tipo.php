@@ -152,4 +152,34 @@ class residentes_edificaciones_tipo extends \fs_model{
         }
         return empty($estructura)?null:$estructura;
     }
+
+    /**
+     * @return array
+     */
+    public function datosInformacion()
+    {
+        //Cantidad de Edificaciones
+        $sql_edificaciones = "SELECT ret.id,ret.descripcion, count(rme.id) as total " .
+            "FROM ". $this->table_name ." as ret " .
+            " join residentes_mapa_edificaciones as rme on (rme.id_tipo = ret.id) " .
+            " group by ret.id,ret.descripcion " .
+            " order by ret.padre;";
+        $data_edificaciones = $this->db->select($sql_edificaciones);
+        //cantidad de Inmuebles
+        $sql_inmuebles = "select count(*) as total from residentes_edificaciones;";
+        $data_inmuebles = $this->db->select($sql_inmuebles);
+        //cantidad de Inmuebles Ocupados
+        $sql_inmuebles_ocupados = "select count(*) as total from residentes_edificaciones WHERE ocupado = true;";
+        $data_inmuebles_ocupados = $this->db->select($sql_inmuebles_ocupados);
+        //cantidad de Vehiculos
+        $sql_vehiculos = "select count(*) as total from residentes_vehiculos;";
+        $data_vehiculos = $this->db->select($sql_vehiculos);
+
+        return array(
+            $data_edificaciones,
+            $data_inmuebles[0]['total'],
+            $data_vehiculos[0]['total'],
+            $data_inmuebles_ocupados[0]['total']
+        );
+    }
 }

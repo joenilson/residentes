@@ -29,6 +29,7 @@ class residentes_pdf extends fs_pdf
     const LOGO_Y = 700;
 
     public $cliente_residente;
+    public $numpaginas;
 
     public function calcular_tamanyo_logo()
     {
@@ -46,11 +47,6 @@ class residentes_pdf extends fs_pdf
         }
 
         return $tamanyo;
-    }
-
-    public function generar_tipo_doc($tipo_documento)
-    {
-        return ucfirst(str_replace('_', ' ', $tipo_documento));
     }
 
     public function generar_pdf_cabecera(&$empresa, &$lppag)
@@ -154,8 +150,9 @@ class residentes_pdf extends fs_pdf
 
     public function generar_datos_residente(&$pdf_doc, $tipo_documento, &$lppag, $table_width = 560)
     {
+        $residente_controller = new residentes_controller();
         $width_campo1 = 110;
-        $tipo_doc = $this->generar_tipo_doc($tipo_documento);
+        $tipo_doc = $residente_controller->generar_tipo_doc($tipo_documento);
         $tipo_residente = ($this->cliente_residente->informacion->propietario) ? 'Propietario' : 'Inquilino';
         /*
          * Esta es la tabla con los datos del cliente:

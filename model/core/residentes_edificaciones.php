@@ -444,4 +444,120 @@ class residentes_edificaciones extends \fs_model{
         return array($lista, $data_total[0]['total']);
     }
 
+    /**
+     * @param false $todo
+     * @param string $whereSQL
+     * @param string $sort
+     * @param string $order
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function listaResidentes(
+        $todo = false,
+        $whereSQL = '',
+        $sort = 'r.codigo, r.numero',
+        $order = 'ASC',
+        $limit = FS_ITEM_LIMIT,
+        $offset = 0
+    )
+    {
+        $sql = " select r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, codigo, numero, fecha_ocupacion ".
+            " from residentes_edificaciones as r, clientes as c ".
+            " where r.codcliente = c.codcliente ".$whereSQL.
+            " order by ".$sort." ".$order;
+        if ($todo) {
+            $data = $this->db->select($sql);
+        } else {
+            $data = $this->db->select_limit($sql, $limit, $offset);
+        }
+        $sql_cantidad = "select count(r.id) as total from residentes_edificaciones as r ".
+            " where r.codcliente != '' ".$whereSQL;
+        $data_cantidad = $this->db->select($sql_cantidad);
+        return array($data, $data_cantidad[0]['total']);
+    }
+
+    /**
+     * @param false $todo
+     * @param string $whereSQL
+     * @param string $sort
+     * @param string $order
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function listaInmuebles(
+        $todo = false,
+        $whereSQL = '',
+        $sort = 'r.codigo, r.numero',
+        $order = 'ASC',
+        $limit = FS_ITEM_LIMIT,
+        $offset = 0
+    )
+    {
+        $sql = "select r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
+            "case when r.ocupado then 'Si' else 'NO' end as ocupado, r.fecha_ocupacion, rme.padre_id, ".
+            "ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
+            " from residentes_edificaciones as r ".
+            " join residentes_mapa_edificaciones as rme on (r.id_edificacion = rme.id ".$whereSQL.") ".
+            " join residentes_edificaciones_tipo as ret on (rme.padre_tipo = ret.id) ".
+            " join residentes_edificaciones_tipo as ret2 on (rme.id_tipo = ret2.id) ".
+            " left join clientes as c on (r.codcliente = c.codcliente) ".
+            " order by ".$sort." ".$order;
+        if ($todo) {
+            $data = $this->db->select($sql);
+        } else {
+            $data = $this->db->select_limit($sql, $limit, $offset);
+        }
+
+        $sql_cantidad = "select count(r.id) as total from residentes_edificaciones as r";
+        if ($whereSQL) {
+            $sql_cantidad.=" WHERE r.codigo!='' ".$whereSQL;
+        }
+        $data_cantidad = $this->db->select($sql_cantidad);
+        return array($data, $data_cantidad[0]['total']);
+    }
+
+    /**
+     * @param false $todo
+     * @param string $whereSQL
+     * @param string $sort
+     * @param string $order
+     * @param integer $limit
+     * @param integer $offset
+     * @return array
+     */
+    public function listaCobros(
+        $todo = false,
+        $whereSQL = '',
+        $sort = 'r.codigo, r.numero',
+        $order = 'ASC',
+        $limit = FS_ITEM_LIMIT,
+        $offset = 0
+    )
+    {
+        $sql = "select r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
+            "sum(f1.total) as pagado, sum(f2.total) as pendiente ".
+            " from residentes_edificaciones as r ".
+            " join clientes as c on (r.codcliente = c.codcliente ".$whereSQL.") ".
+            " left join (select codcliente,anulada,pagada, sum(total) as total ".
+            "from facturascli group by codcliente,anulada, pagada ) as f1 on ".
+            "(r.codcliente = f1.codcliente and f1.anulada = false and f1.pagada = true) ".
+            " left join (select codcliente,anulada,pagada, sum(total) as total ".
+            "from facturascli group by codcliente,anulada, pagada ) as f2 on ".
+            "(r.codcliente = f2.codcliente and f2.anulada = false and f2.pagada = false) ".
+            " group by r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
+            " order by ".$sort." ".$order;
+        if ($todo) {
+            $data = $this->db->select($sql);
+        } else {
+            $data = $this->db->select_limit($sql, $limit, $offset);
+        }
+
+        $sql_cantidad = "select count(r.id) as total ".
+            " from residentes_edificaciones as r".
+            " where r.codcliente != '' ".$whereSQL;
+        $data_cantidad = $this->db->select($sql_cantidad);
+        return array($data, $data_cantidad[0]['total']);
+    }
 }

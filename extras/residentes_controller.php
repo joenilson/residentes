@@ -38,6 +38,11 @@ class residentes_controller extends fs_controller
         $this->init();
     }
 
+    public function generar_tipo_doc($tipo_documento)
+    {
+        return ucfirst(str_replace('_', ' ', $tipo_documento));
+    }
+
     /**
      * @throws Exception
      */

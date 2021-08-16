@@ -31,7 +31,6 @@ class documentos_residentes extends residentes_controller
     public $archivo;
     public $cliente_residente;
     public $documento;
-    public $numpaginas;
     public $pagado;
     public $pendiente;
     public $tipo_accion;

@@ -45,6 +45,7 @@ class informe_residentes extends residentes_controller
     public $clientes;
     public $desde;
     public $hasta;
+    public $resultado;
     public $resultados;
     public $tipo;
     public $residentes;
@@ -53,6 +54,8 @@ class informe_residentes extends residentes_controller
     public $total_resultado;
     public $lista;
     public $vehiculos;
+    public $mapa;
+    public $padre;
     public $codigo_edificacion;
     public $edificaciones_tipo;
     public $edificaciones_mapa;
@@ -66,6 +69,7 @@ class informe_residentes extends residentes_controller
     public $sort;
     public $archivo = 'Residentes';
     public $archivoXLSX;
+    public $fileXLSX;
     public $archivoXLSXPath;
     public $documentosDir;
     public $exportDir;
@@ -162,7 +166,6 @@ class informe_residentes extends residentes_controller
             $l->cantidad = $inmuebles;
             $this->resultado[] = $l;
         }
-
         //Verificamos los que están ocupados
         $this->inmuebles_libres = $inmuebles-$inmuebles_ocupados;
         $this->inmuebles_ocupados = $inmuebles_ocupados;
@@ -255,138 +258,58 @@ class informe_residentes extends residentes_controller
 
     public function datosInformacion()
     {
-        //Cantidad de Edificaciones
-        $sql_edificaciones = "SELECT ret.id,ret.descripcion, count(rme.id) as total " .
-            "FROM residentes_edificaciones_tipo as ret " .
-            " join residentes_mapa_edificaciones as rme on (rme.id_tipo = ret.id) " .
-            " group by ret.id,ret.descripcion " .
-            " order by ret.padre;";
-        $data_edificaciones = $this->db->select($sql_edificaciones);
-        //cantidad de Inmuebles
-        $sql_inmuebles = "select count(*) as total from residentes_edificaciones;";
-        $data_inmuebles = $this->db->select($sql_inmuebles);
-        //cantidad de Inmuebles Ocupados
-        $sql_inmuebles_ocupados = "select count(*) as total from residentes_edificaciones WHERE ocupado = true;";
-        $data_inmuebles_ocupados = $this->db->select($sql_inmuebles_ocupados);
-        //cantidad de Vehiculos
-        $sql_vehiculos = "select count(*) as total from residentes_vehiculos;";
-        $data_vehiculos = $this->db->select($sql_vehiculos);
-
-        return array(
-            $data_edificaciones,
-            $data_inmuebles[0]['total'],
-            $data_vehiculos[0]['total'],
-            $data_inmuebles_ocupados[0]['total']
-        );
+        $ret = new residentes_edificaciones_tipo();
+        return $ret->datosInformacion();
     }
 
+    /**
+     * @throws JsonException
+     */
     public function procesarLista($lista)
     {
         $this->template = false;
+        $resultados = [];
+        $cantidad = 0;
         switch ($lista) {
             case 'informe_residentes':
-                [$resultados, $cantidad] = $this->lista_residentes();
+                [$resultados, $cantidad] = $this->edificaciones->listaResidentes(
+                    false,
+                    $this->where_code,
+                    $this->sort,
+                    $this->order,
+                    $this->limit,
+                    $this->offset
+                );
                 break;
             case 'informe_inmuebles':
-                [$resultados, $cantidad] = $this->lista_inmuebles();
+                [$resultados, $cantidad] = $this->edificaciones->listaInmuebles(
+                    false,
+                    $this->where_code,
+                    $this->sort,
+                    $this->order,
+                    $this->limit,
+                    $this->offset
+                );
                 break;
             case 'informe_cobros':
-                [$resultados, $cantidad] = $this->lista_cobros();
+                [$resultados, $cantidad] = $this->edificaciones->listaCobros(
+                    false,
+                    $this->where_code,
+                    $this->sort,
+                    $this->order,
+                    $this->limit,
+                    $this->offset
+                );
                 break;
             default:
                 break;
         }
         header('Content-Type: application/json');
+        $data = [];
         $data['rows'] = $resultados;
         $data['total'] = $cantidad;
         echo json_encode($data, JSON_THROW_ON_ERROR);
     }
-
-    public function lista_residentes ($todo = false)
-    {
-        $sql = " select r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, codigo, numero, fecha_ocupacion ".
-            " from residentes_edificaciones as r, clientes as c ".
-            " where r.codcliente = c.codcliente ".$this->where_code.
-            " order by ".$this->sort." ".$this->order;
-        if ($todo) {
-            $data = $this->db->select($sql);
-        } else {
-            $data = $this->db->select_limit($sql, $this->limit, $this->offset);
-        }
-        $sql_cantidad = "select count(r.id) as total from residentes_edificaciones as r ".
-            " where r.codcliente != '' ".$this->where_code;
-        $data_cantidad = $this->db->select($sql_cantidad);
-        return array($data, $data_cantidad[0]['total']);
-    }
-
-    public function lista_inmuebles($todo = false)
-    {
-        $sql = "select r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
-            "case when r.ocupado then 'Si' else 'NO' end as ocupado, r.fecha_ocupacion, rme.padre_id, ".
-            "ret.descripcion as padre_desc, rme.codigo_padre, ret2.descripcion as edif_desc, codigo_edificacion ".
-            " from residentes_edificaciones as r ".
-            " join residentes_mapa_edificaciones as rme on (r.id_edificacion = rme.id ".$this->where_code.") ".
-            " join residentes_edificaciones_tipo as ret on (rme.padre_tipo = ret.id) ".
-            " join residentes_edificaciones_tipo as ret2 on (rme.id_tipo = ret2.id) ".
-            " left join clientes as c on (r.codcliente = c.codcliente) ".
-            " order by ".$this->sort." ".$this->order;
-        if ($todo) {
-            $data = $this->db->select($sql);
-        } else {
-            $data = $this->db->select_limit($sql, $this->limit, $this->offset);
-        }
-
-        $sql_cantidad = "select count(r.id) as total from residentes_edificaciones as r";
-        if ($this->where_code) {
-            $sql_cantidad.=" WHERE r.codigo!='' ".$this->where_code;
-        }
-        $data_cantidad = $this->db->select($sql_cantidad);
-        return array($data, $data_cantidad[0]['total']);
-    }
-
-    public function lista_cobros($todo = false)
-    {
-        $sql = "select r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
-            "sum(f1.total) as pagado, sum(f2.total) as pendiente ".
-            " from residentes_edificaciones as r ".
-            " join clientes as c on (r.codcliente = c.codcliente ".$this->where_code.") ".
-            " left join (select codcliente,anulada,pagada, sum(total) as total ".
-            "from facturascli group by codcliente,anulada, pagada ) as f1 on ".
-            "(r.codcliente = f1.codcliente and f1.anulada = false and f1.pagada = true) ".
-            " left join (select codcliente,anulada,pagada, sum(total) as total ".
-            "from facturascli group by codcliente,anulada, pagada ) as f2 on ".
-            "(r.codcliente = f2.codcliente and f2.anulada = false and f2.pagada = false) ".
-            " group by r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
-            " order by ".$this->sort." ".$this->order;
-        if ($todo) {
-            $data = $this->db->select($sql);
-        } else {
-            $data = $this->db->select_limit($sql, $this->limit, $this->offset);
-        }
-
-        $sql_cantidad = "select count(r.id) as total ".
-            " from residentes_edificaciones as r".
-            " where r.codcliente != '' ".$this->where_code;
-        $data_cantidad = $this->db->select($sql_cantidad);
-        return array($data, $data_cantidad[0]['total']);
-    }
-
-//    public function informacion_interna($id)
-//    {
-//        $lista_tipo = $this->edificaciones_tipo->get_by_field('padre', $id);
-//        if ($lista_tipo) {
-//            foreach ($lista_tipo as $linea) {
-//                $l = new stdClass();
-//                $l->descripcion = $linea->descripcion;
-//                $l->cantidad = count($this->edificaciones_mapa->get_by_field('id_tipo', $linea->id));
-//                $this->resultado[] = $l;
-//                $this->total_resultado++;
-//                $this->informacion_interna($linea->id);
-//            }
-//        } else {
-//            return true;
-//        }
-//    }
 
     /**
      * Función para devolver un valor u otro dependiendo si está presente
@@ -408,7 +331,7 @@ class informe_residentes extends residentes_controller
     /**
      * Función para devolver el valor que no esté vacio
      * @param string $valor1
-     * @param string $valor2
+     * @param string|boolean $valor2
      * @return string
      */
     public function confirmarValor($valor1, $valor2)
