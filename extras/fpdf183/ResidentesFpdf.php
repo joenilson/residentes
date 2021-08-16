@@ -287,14 +287,7 @@ class ResidentesFpdf extends FPDF
         $arrayAnchoLineas = [95, 15, 20, 20, 20, 20];
         //Cabeceras
         $this->SetXY($x, $y);
-        $this->SetFont($this->font, 'B', 8);
-        $cantidadLineas = count($arrayDatosLineas);
-        for ($i = 0; $i < $cantidadLineas; $i++) {
-            $this->Cell($arrayAnchoLineas[$i], 5, utf8_decode($arrayDatosLineas[$i]), 0, 0, 'C');
-            if (isset($arrayLineas[$i])) {
-                $this->SetXY($arrayLineas[$i], $y);
-            }
-        }
+        $this->setDocumentInternalLines($arrayDatosLineas, $arrayAnchoLineas, $arrayLineas, $y);
     }
 
     public function setDocumentLinesInfo($documentLines, $pageNumber, $numberOfPages)
@@ -390,9 +383,6 @@ class ResidentesFpdf extends FPDF
     public function createDocument($companyInformation, $documentHeader, $documentLines, $customerInfo)
     {
         $numberOfPages = (int) ceil(count($documentLines)/$this->max_lines);
-//        var_dump($this->max_lines);
-//        var_dump(count($documentLines));
-//        var_dump($numberOfPages);
         for ($pageNumber=0; $pageNumber < $numberOfPages; $pageNumber++) {
             $this->AddPage();
             $this->setPdfLogo();
@@ -427,19 +417,10 @@ class ResidentesFpdf extends FPDF
             $this->Line($lineaX, $y, $lineaX, $y+($this->max_lines*7));
         }
         $arrayDatosLineas = array('item' , 'fecha', 'vence', 'importe', 'descto.', 'total', 'atraso');
-        //$arrayDatosLineas = ["Descripción", "Cantidad", "Precio", "Descuento", FS_IVA, "Importe"];
         $arrayAnchoLineas = [80, 20, 20, 15, 15, 20, 20];
         //Cabeceras
         $this->SetXY($x+10, $y);
-        //$this->SetFillColor(255, 255, 255);
-        $this->SetFont($this->font, 'B', 8);
-        $cantidadLineas = count($arrayDatosLineas);
-        for ($i = 0; $i < $cantidadLineas; $i++) {
-            $this->Cell($arrayAnchoLineas[$i], 5, utf8_decode($arrayDatosLineas[$i]), 0, 0, 'C');
-            if (isset($arrayLineas[$i])) {
-                $this->SetXY($arrayLineas[$i], $y);
-            }
-        }
+        $this->setDocumentInternalLines($arrayDatosLineas, $arrayAnchoLineas, $arrayLineas, $y);
     }
 
     public function addEstadoCuentaLineasData($documentLines, $pageNumber, $numberOfPages)
@@ -486,6 +467,24 @@ class ResidentesFpdf extends FPDF
                 $this->addEstadoCuentaLineasData($listaDocumentos, $pageNumber+1, $numberOfPages);
             }
 
+        }
+    }
+
+    /**
+     * @param array $arrayDatosLineas
+     * @param array $arrayAnchoLineas
+     * @param array $arrayLineas
+     * @param $y
+     */
+    public function setDocumentInternalLines(array $arrayDatosLineas, array $arrayAnchoLineas, array $arrayLineas, $y): void
+    {
+        $this->SetFont($this->font, 'B', 8);
+        $cantidadLineas = count($arrayDatosLineas);
+        for ($i = 0; $i < $cantidadLineas; $i++) {
+            $this->Cell($arrayAnchoLineas[$i], 5, utf8_decode($arrayDatosLineas[$i]), 0, 0, 'C');
+            if (isset($arrayLineas[$i])) {
+                $this->SetXY($arrayLineas[$i], $y);
+            }
         }
     }
 }
