@@ -202,7 +202,7 @@ class informe_residentes extends residentes_controller
             'codigo'=>'Ubicación',
             'numero'=>'Inmueble',
             'fecha_ocupacion'=>'Fecha Ocupación');
-        $dataResidentes = $this->lista_residentes(true);
+        $dataResidentes = $this->edificaciones->listaResidentes(true);
         $this->crearXLSX($writer, 'Residentes', $headerR, $headerTextR, $dataResidentes[0]);
         $headerI = array(
             'Pertenece'=>'string',
@@ -228,7 +228,7 @@ class informe_residentes extends residentes_controller
             'numero'=>'Inmueble Nro',
             'fecha_ocupacion'=>'Fecha Ocupación',
             'ocupado'=>'Ocupado');
-        $dataInmuebles = $this->lista_inmuebles(true);
+        $dataInmuebles = $this->edificaciones->listaInmuebles(true);
         $this->crearXLSX($writer, 'Inmuebles', $headerI, $headerTextI, $dataInmuebles[0]);
         $headerC = array(
             'Código'=>'string',
@@ -250,7 +250,7 @@ class informe_residentes extends residentes_controller
             'numero'=>'Inmueble',
             'pagado'=>'Pagado',
             'pendiente'=>'Pendiente');
-        $dataCobros = $this->lista_cobros(true);
+        $dataCobros = $this->edificaciones->listaCobros(true);
         $this->crearXLSX($writer, 'Cobros', $headerC, $headerTextC, $dataCobros[0]);
         $writer->writeToFile($this->archivoXLSXPath);
         $this->fileXLSX = $this->archivoXLSXPath;
