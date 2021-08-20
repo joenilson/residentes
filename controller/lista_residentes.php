@@ -415,5 +415,4 @@ class lista_residentes extends residentes_controller
             return array();
         }
     }
-
 }

@@ -62,7 +62,8 @@ class edificaciones extends residentes_controller
         $this->residentes_setup = $this->fsvar->array_get(
             array(
             'residentes_nombre_edificacion' => 'Inmueble',
-            ), false
+            ),
+            false
         );
 
         $this->nombre_edificacion = $this->residentes_setup['residentes_nombre_edificacion'];
@@ -156,11 +157,11 @@ class edificaciones extends residentes_controller
         $id = \filter_input(INPUT_GET, 'id');
         $edificacion = $this->edificaciones->get($id);
         if ($edificacion->ocupado) {
-            $edificacion->ocupado = FALSE;
+            $edificacion->ocupado = false;
             $edificacion->iddireccion = 0;
             $edificacion->codcliente = '';
-            $edificacion->fecha_disponibilidad = NULL;
-            $edificacion->fecha_ocupacion = NULL;
+            $edificacion->fecha_disponibilidad = null;
+            $edificacion->fecha_ocupacion = null;
             try{
                 $edificacion->save();
                 $this->new_message('Inmueble desocupado exitosamente.');
@@ -211,7 +212,7 @@ class edificaciones extends residentes_controller
     {
         $dato = $this->edificaciones_mapa->get($id);
         $codigo[] = ($unir)?'"'.$dato->id_tipo.'":"'.$dato->codigo_edificacion.'"':$dato->codigo_edificacion;
-        if ($dato->padre_id==0) {
+        if ($dato->padre_id === 0) {
             return $codigo;
         } else {
             $this->buscar_padre($dato->padre_id, $codigo, $unir);

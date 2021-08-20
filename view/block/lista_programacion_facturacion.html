@@ -28,6 +28,7 @@ MA 02110-1301  USA
                 <a class="btn btn-sm btn-primary" href="{$fsc->url()}" title="Regresar al Listado">
                     <span class="fa fa-arrow-left fa-fw"></span>Regresar
                 </a>
+                <button type="button" data-toggle="tooltip" title="Enviar Facturas" class="btn btn-sm btn-info" onClick="enviarFacturas({$fsc->idProg})"><span><i class="fa fa-envelope fa-fw"></i></span><span>Enviar Facturas</span></button>
             </div>
 
             <div class="btn-group">
@@ -48,7 +49,7 @@ MA 02110-1301  USA
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th><input type='checkbox' name='marcar_edificacion' onchange='procesar_checkboxs(this)'></th>
+                        <th><input type='checkbox' name='facturacion[]' onchange='procesar_checkboxs(this)'></th>
                         <th class="text-left">Codigo</th>
                         <th class="text-left">Residente</th>
                         <th class="text-left">Edificaci&oacute;n</th>
@@ -63,7 +64,11 @@ MA 02110-1301  USA
                 <tbody>
                     {loop="$fsc->lista_programaciones"}
                     <tr>
-                        <td><input type="checkbox" name="facturacion[]" value="{$value->idfactura}" class="input-xs"></td>
+                        <td>
+                            {if="$value->email!='' AND !$value->femail"}
+                            <input type="checkbox" name="facturacion[]" value="{$value->idfactura}" class="input-xs">
+                            {/if}
+                        </td>
                         <td>{$value->codcliente}</td>
                         <td class="text-left">{$value->nombre_residente} <br/><small>{$value->email}</small></td>
                         <td class="text-center">{$value->codigo} {$value->numero}</td>
@@ -107,6 +112,7 @@ MA 02110-1301  USA
 <form class="form" role="form" name="f_enviar_email" action="{#FS_PATH#}index.php?page=documentos_residentes" method="post" enctype="multipart/form-data">
     <input type="hidden" name="codcliente" id="enviar_codcliente" value=""/>
     <input type="hidden" name="idfactura" id="enviar_idfactura" value=""/>
+    <input type="hidden" name="envio_masivo" id="envio_masivo" value="false"/>
     <input type="hidden" name="tipo_documento" value="factura_residente_detallada">
     <input type="hidden" name="idprogramacion" value="{$fsc->idProg}">
     <div class="modal" id="modal_enviar">
@@ -193,12 +199,51 @@ MA 02110-1301  USA
 <script>
     function enviarFactura(codCliente, emailCliente, idFactura)
     {
-        if(!$('#enviar_codcliente') == '') {
+        if(!$('#enviar_codcliente') === '') {
             $('#enviar_codcliente').val(codCliente);
             $('#enviar_idfactura').val(idFactura);
             $('#enviar_email').val(emailCliente);
+            $('#envio_masivo').val('false');
             $('#modal_enviar').modal('show');
         }
+    }
+
+    function enviarFacturas(idProgramacion)
+    {
+        if(document.querySelectorAll('input[name="facturacion[]"]:checked').length === 0) {
+            bootbox.alert('Debes elegir primero una o varias facturas a enviar.');
+            return false;
+        }
+
+        idFacturas = [];
+        document.querySelectorAll('input[name="facturacion[]"]:checked').forEach((inputField) =>
+        {
+            if (inputField.value !== "on" ) {
+                idFacturas.push(inputField.value);
+            }
+        });
+        bootbox.confirm({
+            message: "¿Está seguro de querer enviar las facturas?",
+            buttons: {
+                confirm: {
+                    label: 'Si',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    $('#enviar_codcliente').val('');
+                    $('#enviar_idfactura').val(idFacturas.toString());
+                    $('#enviar_email').val('');
+                    $('#envio_masivo').val('true');
+                    $('#modal_enviar').modal('show');
+                }
+            }
+        });
     }
 
     function verFactura(codCliente, idFactura)
@@ -214,12 +259,11 @@ MA 02110-1301  USA
             .appendTo('#mostrar_factura_residente_body');
     }
 
+    function procesar_checkboxs(inputCheckbox) {
+        $('input:checkbox').prop('checked', inputCheckbox.checked);
+    }
+
     $(document).ready(function() {
-
-        function procesar_checkboxs(inputCheckbox) {
-            $('input:checkbox').prop('checked', inputCheckbox.checked);
-        }
-
         function attach_delete() {
             $('.delete').off();
             $('.delete').click(function () {

@@ -134,19 +134,20 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
         return false;   
     }
     
-    public function get_lista_edificaciones($idProg) {
+    public function get_lista_edificaciones($idProg)
+    {
         $sql = "select * from ".$this->table_name." WHERE idprogramacion = ".$this->intval($idProg)." ORDER BY id";
         $data = $this->db->select($sql);
         $lista = array();
-        if($data) {
-            foreach($data as $d) {
+        if ($data) {
+            foreach ($data as $d) {
                  $item = new residentes_facturacion_programada_edificaciones($d);
                  $this->infoAdicional($item);
                  $lista[] = $item;
             }
             return $lista;
         }
-        return false; 
+        return false;
     }
     
     public function infoAdicional(&$item)
@@ -185,13 +186,37 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
                 ." AND "."estado = ".$this->var2str($status)." ORDER BY idprogramacion, id";
         $data = $this->db->select($sql);
         $lista = array();
-        if($data) {
-            foreach($data as $d) {
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new residentes_facturacion_programada_edificaciones($d);
             }
             return $lista;
         }
-        return false;   
+        return false;
+    }
+
+    /**
+     * @param int $idProgramacion
+     * @param int $limit
+     * @return array|false
+     */
+    public function getFacturasPorEnviar(int $idProgramacion, int $limit = 0)
+    {
+        $sql = "SELECT t1.*, t2.femail FROM ".$this->table_name." as t1, facturascli as t2 ".
+            "WHERE idprogramacion = ".$this->intval($idProgramacion) .
+            " AND t2.femail = ".$this->str2bool("FALSE") .
+            " AND t1.idfactura = t2.idfactura "
+            ." AND "."estado = ".$this->var2str($status)." ORDER BY id, idfactura" .
+            " LIMIT " . $limit;
+        $data = $this->db->select($sql);
+        $lista = array();
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new residentes_facturacion_programada_edificaciones($d);
+            }
+            return $lista;
+        }
+        return false;
     }
     
     public function all()
@@ -199,22 +224,22 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
         $sql = "select * from ".$this->table_name." ORDER BY idprogramacion, id";
         $data = $this->db->select($sql);
         $lista = array();
-        if($data) {
-            foreach($data as $d) {
+        if ($data) {
+            foreach ($data as $d) {
                 $lista[] = new residentes_facturacion_programada_edificaciones($d);
             }
             return $lista;
         }
-        return false;   
+        return false;
     }
     
     public function delete()
     {
         $sql = "DELETE from ".$this->table_name." WHERE id = ".$this->intval($this->id);
         $data = $this->db->exec($sql);
-        if($data) {
+        if ($data) {
             return true;
         }
-        return false;   
+        return false;
     }
 }

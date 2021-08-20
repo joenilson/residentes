@@ -74,15 +74,16 @@ class residentes_controller extends fs_controller
             $this->CRM_plugin = true;
         }
 
-        if (in_array('republica_dominicana', $GLOBALS['plugins'], true) && !in_array('republica_dominicana', $disabled, true)) {
+        if (in_array('republica_dominicana', $GLOBALS['plugins'], true)
+            && !in_array('republica_dominicana', $disabled, true)) {
             $this->RD_plugin = true;
         }
     }
 
     /**
      * Función para devolver el valor de una variable pasada ya sea por POST o GET
-     * @param type string
-     * @return type string
+     * @param string $nombre
+     * @return string|boolean
      */
     public function filter_request($nombre)
     {
@@ -91,6 +92,10 @@ class residentes_controller extends fs_controller
         return ($nombre_post) ?: $nombre_get;
     }
 
+    /**
+     * @param string $nombre
+     * @return string|boolean
+     */
     public function filter_request_array($nombre)
     {
         $nombre_post = \filter_input(INPUT_POST, $nombre, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
@@ -106,6 +111,10 @@ class residentes_controller extends fs_controller
         $this->existe_tesoreria();
     }
 
+    /**
+     * @param string $codcliente
+     * @throws JsonException
+     */
     public function mostrar_direcciones_residente($codcliente)
     {
         $cli = new cliente();

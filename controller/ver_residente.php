@@ -30,7 +30,6 @@ require_once 'plugins/residentes/extras/residentes_controller.php';
  */
 class ver_residente extends residentes_controller
 {
-
     public $cliente;
     public $cliente_data;
     public $articulos;
@@ -42,24 +41,25 @@ class ver_residente extends residentes_controller
     public $residente;
     public $forma_pago;
     public $lista_notas;
-    public function __construct() 
+
+    public function __construct()
     {
-        parent::__construct(__CLASS__, 'Residente', 'residentes', FALSE, FALSE);
+        parent::__construct(__CLASS__, 'Residente', 'residentes', false, false);
     }
     
-    public function initVars() 
+    public function initVars()
     {
         $this->cliente = new cliente();
         $this->facturas = array();
         $this->impuesto = new impuesto();
         $this->forma_pago = new forma_pago();
-        $this->residente = FALSE;
+        $this->residente = false;
         $this->articulos = new articulo();
         $this->familias = new familia();
         $this->familia = $this->familias->get('RESIDENT');
     }
 
-    protected function private_core() 
+    protected function private_core()
     {
         $this->initVars();
 
@@ -69,7 +69,7 @@ class ver_residente extends residentes_controller
             $this->cliente_data = $this->cliente->get($this->residente->codcliente);
             $this->cliente_data->codcontacto = '';
             
-            if(class_exists('contacto_cliente')) {
+            if (class_exists('contacto_cliente')) {
                 $concli = new contacto_cliente();
                 $infoCRM = $concli->all_from_cliente($this->residente->codcliente);
                 $this->cliente_data->codcontacto = $infoCRM[0]->codcontacto;
@@ -81,20 +81,18 @@ class ver_residente extends residentes_controller
             if ($accion == 'generar_factura') {
                 $this->nueva_factura();
             }
-            
             $this->informacionResidente();
-            
         } else {
             $this->new_error_msg('Residente no encontrado.');
         }
     }
 
-    public function url() 
+    public function url()
     {
         if (\filter_input(INPUT_GET, 'id')) {
             return $this->residente->url();
-        } else
-            return parent::url();
+        }
+        return parent::url();
     }
     
     public function informacionResidente()
@@ -120,15 +118,14 @@ class ver_residente extends residentes_controller
         $this->generarArticulosCobrables($articulos_cobrados);
     }
     
-    public function validarArticulos(&$articulos_cobrados, &$fac, &$linea) 
+    public function validarArticulos(&$articulos_cobrados, &$fac, &$linea)
     {
-        if(!$fac->idfacturarect) {
+        if (!$fac->idfacturarect) {
             $rectificativas = $fac->get_rectificativas();
             $articulosDevueltos = array();
-            
             $this->validarDevoluciones($articulosDevueltos, $rectificativas);
             
-            if(!isset($articulosDevueltos[$linea->referencia])) {
+            if (!isset($articulosDevueltos[$linea->referencia])) {
                 $articulos_cobrados[$linea->referencia] = 1;
             }
         }
@@ -136,9 +133,9 @@ class ver_residente extends residentes_controller
     
     public function validarDevoluciones(&$articulosDevueltos, $rectificativas)
     {
-        foreach($rectificativas as $rectificativa) {
+        foreach ($rectificativas as $rectificativa) {
             $lineas_r = $rectificativa->get_lineas();
-            foreach($lineas_r as $linea_r) {
+            foreach ($lineas_r as $linea_r) {
                 $articulosDevueltos[$linea_r->referencia] = 1;
             }
         }
@@ -146,14 +143,14 @@ class ver_residente extends residentes_controller
     
     public function generarArticulosCobrables($articulos_cobrados)
     {
-        foreach($this->familia->get_articulos(0, 1000) as $art) {
-            if(!isset($articulos_cobrados[$art->referencia]) AND $art->bloqueado == 0) {
+        foreach ($this->familia->get_articulos(0, 1000) as $art) {
+            if (!isset($articulos_cobrados[$art->referencia]) && $art->bloqueado == 0) {
                 $this->articulos_cobrables[] = $art;
             }
         }
     }
 
-    private function nueva_factura() 
+    private function nueva_factura()
     {
         $cliente = $this->cliente->get($this->residente->codcliente);
         if ($cliente) {
@@ -174,7 +171,6 @@ class ver_residente extends residentes_controller
                 $this->lineasLibresFactura($factura, 'otro2');
 
                 $this->totalFactura($factura);
-                
             } else {
                 $this->new_error_msg('Imposible guardar la factura.');
             }
@@ -185,7 +181,7 @@ class ver_residente extends residentes_controller
     
     private function cabeceraFactura(&$factura, $cliente)
     {
-        $factura->codserie = ($cliente->codserie) ? $cliente->codserie : $this->empresa->codserie;
+        $factura->codserie = ($cliente->codserie) ?: $this->empresa->codserie;
         $factura->codagente = $this->user->codagente;
         $factura->codpago = \filter_input(INPUT_POST, 'forma_pago');
         $factura->codalmacen = $this->empresa->codalmacen;
@@ -213,8 +209,8 @@ class ver_residente extends residentes_controller
         }
 
         $forma_pago = $this->forma_pago->get($factura->codpago);
-        if ($forma_pago->genrecibos == 'Pagados') {
-            $factura->pagada = TRUE;
+        if ($forma_pago->genrecibos === 'Pagados') {
+            $factura->pagada = true;
         }
     }
     
@@ -247,7 +243,7 @@ class ver_residente extends residentes_controller
             $importe = \filter_input(INPUT_POST, 'importe_' . $x);
             $impuesto = \filter_input(INPUT_POST, 'impuesto_' . $x);
             $art = $art0->get($referencia);
-            if (floatval($importe)) {
+            if ((float)$importe) {
                 $linea = new linea_factura_cliente();
                 $linea->idfactura = $factura->idfactura;
                 $linea->referencia = $referencia;
@@ -271,24 +267,26 @@ class ver_residente extends residentes_controller
     
     private function lineasLibresFactura(&$factura, $linea_nombre)
     {
-        if (\filter_input(INPUT_POST,'desc_'.$linea_nombre) != '') {
+        if (\filter_input(INPUT_POST, 'desc_'.$linea_nombre) !== '') {
             $art0 = new articulo();
             $linea = new linea_factura_cliente();
             $linea->idfactura = $factura->idfactura;
-            $linea->descripcion = \filter_input(INPUT_POST,'desc_'.$linea_nombre);
+            $linea->descripcion = \filter_input(INPUT_POST, 'desc_'.$linea_nombre);
             $linea->cantidad = 1;
-            $imp = $this->impuesto->get(\filter_input(INPUT_POST,'impuesto_'.$linea_nombre));
+            $imp = $this->impuesto->get(\filter_input(INPUT_POST, 'impuesto_'.$linea_nombre));
             if ($imp) {
                 $linea->codimpuesto = $imp->codimpuesto;
                 $linea->iva = $imp->iva;
-                $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario = (100 * floatval(\filter_input(INPUT_POST,$linea_nombre))) / (100 + $imp->iva);
+                $linea->pvpsindto = $linea->pvptotal = $linea->pvpunitario =
+                    (100 * (float)\filter_input(INPUT_POST, $linea_nombre)) / (100 + $imp->iva);
                 
-                $articulo = (\filter_input(INPUT_POST,'ref_'.$linea_nombre))?$art0->get(\filter_input(INPUT_POST,'ref_'.$linea_nombre)):'';
+                $articulo = (\filter_input(INPUT_POST, 'ref_'.$linea_nombre))
+                    ? $art0->get(\filter_input(INPUT_POST, 'ref_'.$linea_nombre))
+                    : '';
                 if ($articulo !== '') {
                     $linea->referencia = $articulo->referencia;
                     $articulo->sum_stock($this->empresa->codalmacen, -1);
                 }
-
                 if ($linea->save()) {
                     $factura->neto += $linea->pvptotal;
                     $factura->totaliva += $linea->pvpunitario * $linea->iva / 100;
@@ -306,16 +304,17 @@ class ver_residente extends residentes_controller
         $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
         $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
 
-        if (abs(floatval(\filter_input(INPUT_POST, 'total_importe')) - $factura->total) > .01) {
-            $this->new_error_msg("El total difiere entre la vista y el controlador (" . \filter_input(INPUT_POST,'total_importe') .
-                    " frente a " . $factura->total . "). Debes informar del error.");
+        if (abs((float)(\filter_input(INPUT_POST, 'total_importe')) - $factura->total) > .01) {
+            $this->new_error_msg("El total difiere entre la vista y el controlador (" .
+                \filter_input(INPUT_POST, 'total_importe') .
+                " frente a " . $factura->total . "). Debes informar del error.");
             $factura->delete();
-        } else if ($factura->save()) {
+        } elseif ($factura->save()) {
             $this->generar_asiento($factura);
             /// Función de ejecución de tareas post guardado correcto de la factura
             fs_documento_post_save($factura);
             $this->new_message("<a href='" . $factura->url() . "'>Factura</a> guardada correctamente.");
-            $this->new_change('Factura Cliente ' . $factura->codigo, $factura->url(), TRUE);
+            $this->new_change('Factura Cliente ' . $factura->codigo, $factura->url(), true);
         } else {
             $this->new_error_msg("¡Imposible actualizar la <a href='" . $factura->url() . "'>Factura</a>!");
         }
@@ -325,7 +324,8 @@ class ver_residente extends residentes_controller
      * Genera el asiento para la factura, si procede
      * @param factura_cliente $factura
      */
-    private function generar_asiento(&$factura) {
+    private function generar_asiento(&$factura)
+    {
         if ($this->empresa->contintegrada) {
             $asiento_factura = new asiento_factura();
             $asiento_factura->generar_asiento_venta($factura);
@@ -335,9 +335,10 @@ class ver_residente extends residentes_controller
         }
     }
 
-    private function buscar_referencia() {
+    private function buscar_referencia()
+    {
         /// desactivamos la plantilla HTML
-        $this->template = FALSE;
+        $this->template = false;
 
         $articulo = new articulo();
         $json = array();
@@ -345,14 +346,13 @@ class ver_residente extends residentes_controller
             $json[] = array(
                 'value' => $art->referencia,
                 'data' => $art->referencia,
-                'pvpi' => $art->pvp_iva(FALSE),
+                'pvpi' => $art->pvp_iva(false),
                 'codimpuesto' => $art->codimpuesto,
                 'descripcion' => $art->descripcion
             );
         }
 
         header('Content-Type: application/json');
-        echo json_encode(array('query' => $_REQUEST['buscar_referencia'], 'suggestions' => $json));
+        echo json_encode(array('query' => $_REQUEST['buscar_referencia'], 'suggestions' => $json), JSON_THROW_ON_ERROR);
     }
-
 }

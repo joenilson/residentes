@@ -131,7 +131,11 @@ class residentes_facturacion_programada extends \fs_model
             }
         }
     }
-    
+
+    /**
+     * @param integer $id
+     * @return residentes_facturacion_programada|false
+     */
     public function get($id)
     {
         $sql = "select * from ".$this->table_name." WHERE id = ".$this->intval($id);
@@ -142,10 +146,34 @@ class residentes_facturacion_programada extends \fs_model
         }
         return false;
     }
-    
+
+    /**
+     * @param string $date
+     * @return array|false
+     */
     public function get_by_date($date)
     {
         $sql = "select * from ".$this->table_name." WHERE fecha_envio = ".$this->var2str($date).
+            " ORDER BY fecha_envio, hora_envio";
+        $data = $this->db->select($sql);
+        $lista = array();
+        if ($data) {
+            foreach ($data as $d) {
+                $lista[] = new residentes_facturacion_programada($d);
+            }
+            return $lista;
+        }
+        return false;
+    }
+
+    /**
+     * @param integer $id
+     * @param string $status
+     * @return array|false
+     */
+    public function get_by_id_and_status($id, $status = 'CONCLUIDO')
+    {
+        $sql = "select * from ".$this->table_name." WHERE ESTADO = ".$this->var2str($status).
             " ORDER BY fecha_envio, hora_envio";
         $data = $this->db->select($sql);
         $lista = array();

@@ -31,11 +31,17 @@ class mapa_edificaciones extends fs_controller
     public $edificacion_padre;
     public $edificacion_info;
     public $edificacion_interior;
-    public function __construct() {
-        parent::__construct(__CLASS__, 'Mapa de Edificaciones', 'residentes', FALSE, FALSE, FALSE);
+
+    public function __construct()
+    {
+        parent::__construct(__CLASS__, 'Mapa de Edificaciones', 'residentes', false, false, false);
     }
 
-    protected function private_core() {
+    /**
+     * @throws JsonException
+     */
+    protected function private_core()
+    {
         $this->edificaciones_tipo = new residentes_edificaciones_tipo();
         $this->edificaciones_mapa = new residentes_edificaciones_mapa();
         $tipos = $this->edificaciones_tipo->all();
@@ -43,7 +49,7 @@ class mapa_edificaciones extends fs_controller
 
         $accion_p = \filter_input(INPUT_POST, 'accion');
         $accion_g = \filter_input(INPUT_GET, 'accion');
-        $accion = ($accion_p)?$accion_p:$accion_g;
+        $accion = ($accion_p)?:$accion_g;
         if ($accion === 'agregar_base') {
             $this->agregar($this->padre);
         } elseif ($accion === 'agregar_hijo') {
@@ -71,7 +77,6 @@ class mapa_edificaciones extends fs_controller
         if ($tipo === 'select-hijos') {
             $this->obtener_hijos();
         }
-
         $inmuebles = \filter_input(INPUT_GET, 'inmuebles');
         if (!empty($inmuebles)) {
             $this->inmuebles = $inmuebles;
@@ -94,11 +99,11 @@ class mapa_edificaciones extends fs_controller
         $inmuebles = 0;
         $error = 0;
         $linea = 0;
-        if ($inicio == $final) {
+        if ($inicio === $final) {
             $this->edificacion($inicio, $inmuebles, $error, $objeto);
             $linea++;
         } else {
-            foreach (range($inicio,$final) as $item) {
+            foreach (range($inicio, $final) as $item) {
                 $this->edificacion($item, $inmuebles, $error, $objeto);
                 $linea++;
             }

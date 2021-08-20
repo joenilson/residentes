@@ -332,7 +332,7 @@ class informe_residentes extends residentes_controller
      * Función para devolver el valor que no esté vacio
      * @param string $valor1
      * @param string|boolean $valor2
-     * @return string
+     * @return string|boolean
      */
     public function confirmarValor($valor1, $valor2)
     {

@@ -1,13 +1,15 @@
 {include="header2"}
 
-{if="$fsc->cliente_residente"}
+{if="$fsc->tipo_accion"}
 <script type="text/javascript">
    function recargar()
    {
       {if="$fsc->tipo_accion=='informacion_cobros'"}
       url = '{#FS_PATH#}index.php?page=lista_residentes&accion=mostrar_informacion_residente&codcliente={$fsc->cliente_residente->codcliente}';
-      {elseif="$fsc->tipo_accion='factura_residente_detallada'"}
+      {elseif="$fsc->tipo_accion=='factura_residente_detallada' AND $fsc->idfactura==''"}
       url = '{#FS_PATH#}index.php?page=facturacion_residentes&accion=lista_programacion&idprogramacion={$fsc->idprogramacion}';
+      {elseif="$fsc->tipo_accion=='factura_residente_detallada' AND $fsc->envio_masivo and $fsc->idfactura!=''"}
+      url = '{#FS_PATH#}index.php?page=documentos_residentes&info_accion=enviar&tipo_documento=factura_residente_detallada&idprogramacion={$fsc->idprogramacion}&idfactura={$fsc->facturas}';
       {/if}
       window.location.href = url;
    }
@@ -28,10 +30,14 @@
          <a href="{#FS_PATH#}index.php?page=facturacion_residentes&accion=lista_programacion&idprogramacion={$fsc->idprogramacion}" class="btn btn-default">
             <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp; Volver
          </a>
+         {elseif="$fsc->tipo_accion=='factura_residente_detallada' AND $fsc->envio_masivo"}
+         <a href="{#FS_PATH#}index.php?page=documentos_residentes&info_accion=enviar&tipo_documento=factura_residente_detallada&idprogramacion={$fsc->idprogramacion}&idfactura={$fsc->facturas}" class="btn btn-default">
+            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp; Volver
+         </a>
          {/if}
          <div class="page-header">
             <h1>
-               Recargando... <i class="fa fa-refresh fa-spin"></i>
+               Enviando documento(s)... <i class="fa fa-refresh fa-spin"></i>
             </h1>
          </div>
       </div>
