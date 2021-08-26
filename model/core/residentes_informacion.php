@@ -222,9 +222,9 @@ class residentes_informacion extends \fs_model{
 
     /**
      * //Retornamos un punto del mapa en particular
-     * @param type $codcliente integer
-     * @param type $codigo_edificacion varchar(6)
-     * @param type $padre_tipo integer
+     * @param string $codcliente
+     * @param string $codigo_edificacion
+     * @param integer $padre_tipo
      * @return \FacturaScripts\model\residentes_informacion|boolean
      */
     public function get($codcliente){
@@ -241,8 +241,8 @@ class residentes_informacion extends \fs_model{
 
     /**
      * //Si queremos buscar por codcliente o codigo_interno o numero
-     * @param type $field string
-     * @param type $value string
+     * @param string $field
+     * @param string $value
      * @return boolean|\FacturaScripts\model\residentes_informacion
      */
     public function get_by_field($field,$value){
@@ -329,7 +329,7 @@ class residentes_informacion extends \fs_model{
 
     /**
      * Función para realizar buquedas en la mayor cantidad de información del residente
-     * @param type $query string/integer
+     * @param string|integer $query
      */
     public function search($busqueda, $offset = 0) {
         $clilist = array();

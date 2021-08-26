@@ -115,7 +115,6 @@ class documentos_residentes extends residentes_controller
             return;
         }
         $this->getFacturaProgramadaPendiente($facturas);
-        //$this->crearFactura();
     }
 
     /**
@@ -281,9 +280,9 @@ class documentos_residentes extends residentes_controller
             $mail->FromName = $this->user->get_agente_fullname();
             $email = (trim($this->filter_request('email')) !== '')
                 ? $this->filter_request('email')
-                : $this->cliente_residente->informacion->email;
+                : $this->cliente_residente->email;
             $this->new_message('Enviando factura a: '.$email);
-            $mail->addAddress($email, $this->cliente_residente->informacion->nombre);
+            $mail->addAddress($email, $this->cliente_residente->nombre);
 
             $elSubject = ($tipo_documento === 'informacion_cobros')
                 ? ': Su Estado de cuenta al '. \date('d-m-Y')
@@ -301,12 +300,12 @@ class documentos_residentes extends residentes_controller
                 if ($this->filter_request('cco') !== null) {
                     $mail->addBCC(
                         trim($this->filter_request('email_copia')),
-                        $this->cliente_residente->informacion->nombre
+                        $this->cliente_residente->nombre
                     );
                 } else {
                     $mail->addCC(
                         trim($this->filter_request('email_copia')),
-                        $this->cliente_residente->informacion->nombre
+                        $this->cliente_residente->nombre
                     );
                 }
             }
@@ -314,7 +313,7 @@ class documentos_residentes extends residentes_controller
             $mail->isHTML(true);
             $mail->addAttachment('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
 
-            if (is_uploaded_file($_FILES['adjunto']['tmp_name'])) {
+            if (isset($_FILES['adjunto']) && is_uploaded_file($_FILES['adjunto']['tmp_name'])) {
                 $mail->aºddAttachment($_FILES['adjunto']['tmp_name'], $_FILES['adjunto']['name']);
             }
             if ($this->empresa->mail_connect($mail) && $mail->send()) {
@@ -328,48 +327,6 @@ class documentos_residentes extends residentes_controller
             }
 
             unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
-
-//            $mail = $this->empresa->new_mail();
-//            $mail->FromName = $this->user->get_agente_fullname();
-//            $mailDe = $this->filter_request('de');
-//            if ($_POST['de'] !== $mail->From) {
-//                $mail->addReplyTo($_POST['de'], $mail->FromName);
-//            }
-//            $email = ($this->filter_request('email') !== '')
-//                ? $this->filter_request('email')
-//                : $this->cliente_residente->email;
-//            $mail->addAddress($email, $this->cliente_residente->nombre);
-//            if ($_POST['email_copia']) {
-//                if (isset($_POST['cco'])) {
-//                    $mail->addBCC($_POST['email_copia'], $this->cliente_residente->nombre);
-//                } else {
-//                    $mail->addCC($_POST['email_copia'], $this->cliente_residente->nombre);
-//                }
-//            }
-//
-//            $mail->Subject = $this->empresa->nombre . ': ' . $tipo_doc;
-//
-//            if ($this->is_html($_POST['mensaje'])) {
-//                $mail->AltBody = strip_tags($_POST['mensaje']);
-//                $mail->msgHTML($_POST['mensaje']);
-//                $mail->isHTML(true);
-//            } else {
-//                $mail->Body = $_POST['mensaje'];
-//            }
-//
-//            $mail->addAttachment('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
-//            if (is_uploaded_file($_FILES['adjunto']['tmp_name'])) {
-//                $mail->addAttachment($_FILES['adjunto']['tmp_name'], $_FILES['adjunto']['name']);
-//            }
-//
-//            if ($this->empresa->mail_connect($mail) && $mail->send()) {
-//                $this->new_message('Mensaje enviado correctamente.');
-//                $this->empresa->save_mail($mail);
-//            } else {
-//                $this->new_error_msg("Error al enviar el email: " . $mail->ErrorInfo);
-//            }
-//
-//            unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
         } else {
             $this->new_error_msg('Imposible generar el PDF.');
         }
@@ -398,12 +355,8 @@ class documentos_residentes extends residentes_controller
         return $txt !== strip_tags($txt);
     }
 
-//    public function url()
-//    {
-//        return parent::url();
-//    }
     /**
-     * @param $factura
+     *
      */
     private function crearFactura(): void
     {

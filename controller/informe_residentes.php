@@ -345,8 +345,8 @@ class informe_residentes extends residentes_controller
 
     /**
      * Función para devolver el valor de una variable pasada ya sea por POST o GET
-     * @param type string
-     * @return type string
+     * @param string $nombre
+     * @return string|boolean
      */
     public function filter_request($nombre)
     {

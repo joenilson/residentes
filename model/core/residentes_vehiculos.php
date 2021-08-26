@@ -23,7 +23,8 @@ namespace FacturaScripts\model;
  *
  * @author Joe Nilson <joenilson at gmail.com>
  */
-class residentes_vehiculos extends \fs_model{
+class residentes_vehiculos extends \fs_model
+{
     /**
      * El Id del vehiculo
      * @var integer serial

@@ -212,9 +212,9 @@ class residentes_edificaciones extends \fs_model{
     }
 
     /**
-     * //Si queremos buscar por codigo o codigo_interno o codcliente o numero
-     * @param type $field string
-     * @param type $value string
+     * Si queremos buscar por codigo o codigo_interno o codcliente o numero
+     * @param string $field
+     * @param string $value
      * @return boolean|\FacturaScripts\model\residentes_edificaciones
      */
     public function get_by_field($field,$value){

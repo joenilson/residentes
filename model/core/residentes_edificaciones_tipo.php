@@ -81,9 +81,9 @@ class residentes_edificaciones_tipo extends \fs_model{
     }
 
     /**
-     * //Si queremos buscar por descripcion o padre
-     * @param type $field string
-     * @param type $value string or integer
+     * Si queremos buscar por descripcion o padre
+     * @param string $field
+     * @param string|integer $value
      * @return boolean|\FacturaScripts\model\residentes_edificaciones_tipo
      */
     public function get_by_field($field,$value){

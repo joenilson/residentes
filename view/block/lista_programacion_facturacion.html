@@ -199,13 +199,13 @@ MA 02110-1301  USA
 <script>
     function enviarFactura(codCliente, emailCliente, idFactura)
     {
-        if(!$('#enviar_codcliente') === '') {
+        //if($('#enviar_codcliente') === '') {
             $('#enviar_codcliente').val(codCliente);
             $('#enviar_idfactura').val(idFactura);
             $('#enviar_email').val(emailCliente);
             $('#envio_masivo').val('false');
             $('#modal_enviar').modal('show');
-        }
+        //}
     }
 
     function enviarFacturas(idProgramacion)

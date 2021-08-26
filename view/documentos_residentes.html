@@ -6,6 +6,8 @@
    {
       {if="$fsc->tipo_accion=='informacion_cobros'"}
       url = '{#FS_PATH#}index.php?page=lista_residentes&accion=mostrar_informacion_residente&codcliente={$fsc->cliente_residente->codcliente}';
+      {elseif="$fsc->tipo_accion=='factura_residente_detallada' AND !$fsc->envio_masivo"}
+      url = '{#FS_PATH#}index.php?page=facturacion_residentes&accion=lista_programacion&idprogramacion={$fsc->idprogramacion}';
       {elseif="$fsc->tipo_accion=='factura_residente_detallada' AND $fsc->idfactura==''"}
       url = '{#FS_PATH#}index.php?page=facturacion_residentes&accion=lista_programacion&idprogramacion={$fsc->idprogramacion}';
       {elseif="$fsc->tipo_accion=='factura_residente_detallada' AND $fsc->envio_masivo and $fsc->idfactura!=''"}
