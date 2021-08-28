@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require_once 'plugins/residentes/extras/residentes_pdf.php';
-require_once 'plugins/residentes/extras/fpdf183/ResidentesFpdf.php';
-require_once 'extras/phpmailer/class.phpmailer.php';
-require_once 'extras/phpmailer/class.smtp.php';
+require_once 'plugins/residentes/extras/residentesFacturaDetallada.php';
+require_once 'plugins/residentes/extras/residentesEstadoCuenta.php';
+require_once 'plugins/residentes/extras/residentesEnviarMail.php';
+
 require_once 'plugins/residentes/extras/residentes_controller.php';
 
 /**
@@ -97,7 +97,6 @@ class documentos_residentes extends residentes_controller
                 $this->crearEstadoCuenta();
                 break;
             case 'factura_residente_detallada':
-                //$this->verificarCantidadFacturas();
                 $this->crearFacturaDetallada();
                 break;
             default:
@@ -110,11 +109,9 @@ class documentos_residentes extends residentes_controller
     {
 
         $facturas = $this->filter_request('idfactura');
-        if ($facturas === '') {
-            $this->new_message('No hay facturas para enviar.');
-            return;
+        if ($facturas !== null) {
+            $this->getFacturaProgramadaPendiente($facturas);
         }
-        $this->getFacturaProgramadaPendiente($facturas);
     }
 
     /**
@@ -132,140 +129,32 @@ class documentos_residentes extends residentes_controller
             $this->contador_facturas = 0;
             $this->facturas = '';
         }
-
-
         $facturasCliente = new factura_cliente();
         $f = $facturasCliente->get($this->idfactura);
         $this->factura = $f;
         $this->obtenerInformacionResidente($f->codcliente);
     }
 
-    private function datosFactura()
-    {
-        $datosFacturaCabecera = [];
-        $datosFacturaDetalle = [];
-        if ($this->idfactura !== '') {
-            $facturas = new factura_cliente();
-            $factura = $facturas->get($this->idfactura);
-            $datosFacturaCabecera = (array) $factura;
-            if ($this->RD_plugin) {
-                $ncf = new ncf_ventas();
-                $ncfTipo = $ncf->get($this->empresa->id, $factura->numero2);
-                $datosFacturaCabecera['tiponcf'] = $ncfTipo[0]->tipo_descripcion;
-                $datosFacturaCabecera['vencimientoncf'] = $ncfTipo[0]->fecha_vencimiento;
-            }
-            $lineas = $factura->get_lineas();
-            $totalAntesDescuento = 0;
-            $totalDescuento = 0;
-            foreach ($lineas as $linea) {
-                $totalAntesDescuento += $linea->pvpsindto;
-                $totalDescuento += ($linea->pvpsindto - $linea->pvptotal);
-                $datosFacturaDetalle[] = (array) $linea;
-            }
-            $datosFacturaCabecera['total_antes_descuento'] = $totalAntesDescuento;
-            $datosFacturaCabecera['total_descuento'] = $totalDescuento;
-        }
-        return [$datosFacturaCabecera, $datosFacturaDetalle];
-    }
     public function crearEstadoCuenta()
     {
-        $this->documento = new residentes_pdf('letter', 'portrait');
-        $this->documento->cliente_residente = $this->cliente_residente;
-        $this->documento->pdf->addInfo('Title', 'Pagos Residente ' .
-            $this->cliente_residente->codcliente);
-        $this->documento->pdf->addInfo('Subject', 'Pagos del Residente ' .
-            $this->cliente_residente->codcliente);
-        $this->documento->pdf->addInfo('Author', $this->empresa->nombre);
-        $this->documento->pdf->ezSetMargins(10, 10, 10, 10);
-        $this->crear_documento_cobros();
+        $info_accion = $this->filter_request('info_accion');
+        $estadoCuentaGenerador = new ResidentesEstadoCuenta(
+            $this->empresa,
+            $this->cliente_residente,
+            $this->user,
+            $this->archivo,
+            $info_accion
+        );
+        $pendientes = $this->pagosFactura();
+        $pagado = $this->pagosFactura(true);
+        $estadoCuentaGenerador->crearEstadoCuenta($pendientes, $pagado);
     }
 
     public function crearFacturaDetallada()
     {
-        $customerInfo = (array) $this->cliente_residente;
-        $customerInfo['direccion'] = trim($this->cliente_residente->inmueble->codigo_externo()) . ' numero '
-            . $this->cliente_residente->inmueble->numero;
-        $datosFactura = $this->datosFactura();
-        $datosEmpresa = (array) $this->empresa;
-        $this->documento = new ResidentesFpdf('L', 'mm', 'A5');
-//        $this->documento = new ResidentesFpdf('P', 'mm', 'letter');
-        $this->documento->createDocument($datosEmpresa, $datosFactura[0], $datosFactura[1], $customerInfo);
-        $this->pendiente = $this->pagosFactura(false);
-        $this->documento->addEstadoCuentaPendiente($this->pendiente);
-
-        if ($this->filter_request('info_accion') === 'enviar') {
-            $this->documento->Output(
-                'F',
-                'tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo,
-                true
-            );
-        } else {
-            $this->documento->Output(
-                'I',
-                'factura_' .$datosFactura[0]['numero2']. '_' . \date('dmYhis') . '.pdf'
-            );
-        }
-    }
-
-    public function crear_documento_cobros()
-    {
-        $this->pendiente = $this->pagosFactura(false);
-        $this->pagado = $this->pagosFactura(true);
-
-        $linea_actual = 0;
-        $pagina = 1;
-        $lppag = 32; /// líneas por página
-        while ($linea_actual < count($this->pendiente)) {
-            /// salto de página
-            if ($linea_actual > 0) {
-                $this->documento->pdf->ezNewPage();
-            }
-            $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
-            $this->documento->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
-            $this->documento->generar_pdf_lineas(
-                $this->documento,
-                $this->pendiente,
-                $linea_actual,
-                $lppag,
-                'pendiente'
-            );
-            $this->documento->set_y($this->documento->pdf->y - 16);
-        }
-
-        $linea_actual2 = 0;
-        while ($linea_actual2 < count($this->pagado)) {
-            if ($linea_actual2 > 0) {
-                $this->documento->pdf->ezNewPage();
-            } elseif ($linea_actual === 0) {
-                $this->documento->generar_pdf_cabecera($this->empresa, $lppag);
-                $this->documento->generar_datos_residente($this->documento, 'informe_cobros', $lppag);
-            }
-            $this->documento->generar_pdf_lineas(
-                $this->documento,
-                $this->pagado,
-                $linea_actual2,
-                $lppag,
-                'pagado'
-            );
-            $pagina++;
-        }
-        $this->documento->set_y(80);
-        if ($this->empresa->pie_factura) {
-            $this->documento->pdf->addText(20, 40, 8, fs_fix_html('<b>Generado por:</b> ' .
-                $this->user->get_agente_fullname()), 0);
-            $this->documento->pdf->addText(
-                10,
-                30,
-                8,
-                $this->documento->center_text(fs_fix_html($this->empresa->pie_factura), 180)
-            );
-        }
-
-        if ($this->filter_request('info_accion') == 'enviar') {
-            $this->documento->save('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
-        } else {
-            $this->documento->show('documento_cobros_' . \date('dmYhis') . '.pdf');
-        }
+        $infoAccion = $this->filter_request('info_accion');
+        $this->documento = new residentesFacturaDetallada('L', 'mm', 'A5', $infoAccion, $this->archivo, $this->user);
+        $this->documento->crearFactura($this->empresa, $this->factura, $this->cliente_residente);
     }
 
     /**
@@ -274,62 +163,59 @@ class documentos_residentes extends residentes_controller
     public function enviar_documento($tipo_documento)
     {
         $this->crear_documento($tipo_documento);
-        $tipo_doc = $this->generar_tipo_doc($tipo_documento);
-        if (file_exists('tmp/'.FS_TMP_NAME.'enviar/'.$this->archivo)) {
-            $mail = $this->empresa->new_mail();
-            $mail->FromName = $this->user->get_agente_fullname();
-            $email = (trim($this->filter_request('email')) !== '')
-                ? $this->filter_request('email')
-                : $this->cliente_residente->email;
-            $this->new_message('Enviando factura a: '.$email);
-            $mail->addAddress($email, $this->cliente_residente->nombre);
-
-            $elSubject = ($tipo_documento === 'informacion_cobros')
-                ? ': Su Estado de cuenta al '. \date('d-m-Y')
-                : ': Su factura ' . $this->factura->codigo . ' ' . $this->factura->numero2;
-
-            $mail->Subject = fs_fix_html($this->empresa->nombre) . $elSubject;
-            $mail->AltBody = ($tipo_documento === 'informacion_cobros')
-                ? strip_tags($_POST['mensaje'])
-                : plantilla_email(
-                    'factura',
-                    $this->factura->codigo . ' ' . $this->factura->numero2,
-                    $this->empresa->email_config['mail_firma']
-                );
-            if (trim($this->filter_request('email_copia')) !== '') {
-                if ($this->filter_request('cco') !== null) {
-                    $mail->addBCC(
-                        trim($this->filter_request('email_copia')),
-                        $this->cliente_residente->nombre
-                    );
-                } else {
-                    $mail->addCC(
-                        trim($this->filter_request('email_copia')),
-                        $this->cliente_residente->nombre
-                    );
-                }
-            }
-            $mail->msgHTML(nl2br($mail->AltBody));
-            $mail->isHTML(true);
-            $mail->addAttachment('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
-
-            if (isset($_FILES['adjunto']) && is_uploaded_file($_FILES['adjunto']['tmp_name'])) {
-                $mail->aºddAttachment($_FILES['adjunto']['tmp_name'], $_FILES['adjunto']['name']);
-            }
-            if ($this->empresa->mail_connect($mail) && $mail->send()) {
-                $this->factura->femail = $this->today();
-                $this->factura->save();
-
-                $this->empresa->save_mail($mail);
-                $done = true;
-            } else {
-                $this->new_error_msg("Error al enviar el email: " . $mail->ErrorInfo);
-            }
-
-            unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
-        } else {
-            $this->new_error_msg('Imposible generar el PDF.');
-        }
+//        $tipo_doc = $this->generar_tipo_doc($tipo_documento);
+//        if (file_exists('tmp/'.FS_TMP_NAME.'enviar/'.$this->archivo) && (1 === 2)) {
+//            $mail = $this->empresa->new_mail();
+//            $mail->FromName = $this->user->get_agente_fullname();
+//            $email = (trim($this->filter_request('email')) !== '')
+//                ? $this->filter_request('email')
+//                : $this->cliente_residente->email;
+//            $this->new_message('Enviando factura a: '.$email);
+//            $mail->addAddress($email, $this->cliente_residente->nombre);
+//            $elSubject = ($tipo_documento === 'informacion_cobros')
+//                ? ': Su Estado de cuenta al '. \date('d-m-Y')
+//                : ': Su Factura ' . $this->factura->codigo . ' ' . $this->factura->numero2;
+//            $mail->Subject = fs_fix_html($this->empresa->nombre) . $elSubject;
+//            $mail->AltBody = ($tipo_documento === 'informacion_cobros')
+//                ? strip_tags($_POST['mensaje'])
+//                : plantilla_email(
+//                    'factura',
+//                    $this->factura->codigo . ' ' . $this->factura->numero2,
+//                    $this->empresa->email_config['mail_firma']
+//                );
+//            if (trim($this->filter_request('email_copia')) !== '') {
+//                if ($this->filter_request('cco') !== null) {
+//                    $mail->addBCC(
+//                        trim($this->filter_request('email_copia')),
+//                        $this->cliente_residente->nombre
+//                    );
+//                } else {
+//                    $mail->addCC(
+//                        trim($this->filter_request('email_copia')),
+//                        $this->cliente_residente->nombre
+//                    );
+//                }
+//            }
+//            $mail->msgHTML(nl2br($mail->AltBody));
+//            $mail->isHTML(true);
+//            $mail->addAttachment('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
+//
+//            if (isset($_FILES['adjunto']) && is_uploaded_file($_FILES['adjunto']['tmp_name'])) {
+//                $mail->aºddAttachment($_FILES['adjunto']['tmp_name'], $_FILES['adjunto']['name']);
+//            }
+//            if ($this->empresa->mail_connect($mail) && $mail->send()) {
+//                $this->factura->femail = $this->today();
+//                $this->factura->save();
+//
+//                $this->empresa->save_mail($mail);
+//                $done = true;
+//            } else {
+//                $this->new_error_msg("Error al enviar el email: " . $mail->ErrorInfo);
+//            }
+//            unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
+//        } else {
+//            //$this->new_error_msg('Imposible generar el PDF.');
+//        }
     }
 
     public function imprimir_documento($tipo_documento)
@@ -353,13 +239,5 @@ class documentos_residentes extends residentes_controller
     public function is_html($txt)
     {
         return $txt !== strip_tags($txt);
-    }
-
-    /**
-     *
-     */
-    private function crearFactura(): void
-    {
-        $this->crearFacturaDetallada();
     }
 }

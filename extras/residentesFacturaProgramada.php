@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require_once 'base/fs_model.php';
+require_once 'plugins/residentes/extras/residentesFacturaDetallada.php';
 
 class residentesFacturaProgramada extends fs_model
 {
@@ -52,7 +53,16 @@ class residentesFacturaProgramada extends fs_model
     {
         $clienteTable = new cliente();
         $empresaTable = new empresa();
+        $cliente_residente = $clienteTable->get($residenteProg->codcliente);
+        $residenteInformacion = new residentes_informacion();
+        $informacion = $residenteInformacion->get($residenteProg->codcliente);
+        $residenteEdificacion = new residentes_edificaciones();
+        $residenteEdif = $residenteEdificacion->get_by_field('codcliente', $residenteProg->codcliente);
+        $cliente_residente->inmueble = $residenteEdif[0];
+        $cliente_residente->informacion = $informacion;
+
         $residente = $clienteTable->get($residenteProg->codcliente);
+
         if ($residente) {
             $factura = new factura_cliente();
             $this->nuevaCabeceraFactura($factura, $residente, $empresaTable, $jobDisponible);
@@ -63,6 +73,11 @@ class residentesFacturaProgramada extends fs_model
                 $this->nuevoDetalleFactura($factura, $residente, $listaArticulos);
 
                 $this->nuevoTotalFactura($factura, $residenteProg, $empresaTable);
+                if ($cliente_residente->email !== null) {
+                    $archivo = $factura->codigo . '_' . $factura->numero2 . '.pdf';
+                    $documento = new residentesFacturaDetallada('L', 'mm', 'A5', 'enviar', $archivo, 'cron');
+                    $documento->crearFactura($empresaTable, $factura, $cliente_residente);
+                }
                 ++$jobDisponible->facturas_generadas;
                 $jobDisponible->save();
             } else {
