@@ -164,7 +164,7 @@ class facturacion_residentes extends residentes_controller
     {
         $estado = false;
         $idProgramacion = $this->filter_request('idprogramacion');
-        if ($this->user->allow_delete_on(__CLASS__) && isset($idProgramacion) && $idProgramacion != '') {
+        if ($this->user->allow_delete_on(__CLASS__) && isset($idProgramacion) && $idProgramacion !== '') {
             $programaciones = new residentes_facturacion_programada();
             $programa = $programaciones->get($idProgramacion);
             if ($programa) {
@@ -182,7 +182,7 @@ class facturacion_residentes extends residentes_controller
     {
         $estado = false;
         $idProgramacion = $this->filter_request('idprogramacion');
-        if ($this->user->allow_delete_on(__CLASS__) && isset($idProgramacion) && $idProgramacion != '') {
+        if ($this->user->allow_delete_on(__CLASS__) && isset($idProgramacion) && $idProgramacion !== '') {
             $programaciones = new residentes_facturacion_programada();
             $programa = $programaciones->get($idProgramacion);
             if ($programa) {
@@ -217,13 +217,15 @@ class facturacion_residentes extends residentes_controller
         //Cabecera de Programacion
         $id = $this->filter_request('id');
         $descripcion = $this->filter_request('descripcion');
+        $tipo_programacion = $this->filter_request('tipo_programacion');
         $forma_pago = $this->filter_request('forma_pago');
         $fecha_envio = $this->filter_request('fecha_envio');
         $hora_envio = $this->filter_request('hora_envio');
         
         $rfp = new residentes_facturacion_programada();
-        $rfp->id = (isset($id) && $id != '')?$id:null;
+        $rfp->id = (isset($id) && $id !== '') ? $id : null;
         $rfp->descripcion = htmlentities(trim($descripcion));
+        $rfp->tipo_programacion = $tipo_programacion;
         $rfp->forma_pago = $forma_pago;
         $rfp->fecha_envio = $fecha_envio;
         $rfp->hora_envio = $hora_envio;
@@ -317,6 +319,5 @@ class facturacion_residentes extends residentes_controller
                 $listaResidentes[$codcliente][] = $referencia;
             }
         }
-
     }
 }

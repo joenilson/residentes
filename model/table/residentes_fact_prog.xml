@@ -17,6 +17,11 @@
         <nulo>NO</nulo>
     </columna>
     <columna>
+        <nombre>tipo_programacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
         <nombre>forma_pago</nombre>
         <tipo>character varying(6)</tipo>
         <nulo>NO</nulo>

@@ -49,6 +49,22 @@ class residentesFacturaProgramada extends fs_model
         return false;
     }
 
+    public function tratamientoPosteriorFactura(&$cliente_residente, &$empresaTable, &$factura, $tratamiento)
+    {
+        switch ($tratamiento) {
+            case "enviar":
+
+                break;
+            case "imprimir":
+
+                break;
+            case "generar":
+
+                break;
+        }
+
+    }
+
     public function nuevaFactura($residenteProg, &$jobDisponible)
     {
         $clienteTable = new cliente();
@@ -73,9 +89,9 @@ class residentesFacturaProgramada extends fs_model
                 $this->nuevoDetalleFactura($factura, $residente, $listaArticulos);
 
                 $this->nuevoTotalFactura($factura, $residenteProg, $empresaTable);
-                if ($cliente_residente->email !== null) {
+                if (!in_array($cliente_residente->email, [null, ''], true) && $jobDisponible->tipo_programacion === 'enviar') {
                     $archivo = $factura->codigo . '_' . $factura->numero2 . '.pdf';
-                    $documento = new residentesFacturaDetallada('L', 'mm', 'A5', 'enviar', $archivo, 'cron');
+                    $documento = new residentesFacturaDetallada('L', 'mm', 'A5', $jobDisponible->tipo_programacion, $archivo, 'cron');
                     $documento->crearFactura($empresaTable, $factura, $cliente_residente);
                 }
                 ++$jobDisponible->facturas_generadas;

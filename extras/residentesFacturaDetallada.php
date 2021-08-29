@@ -29,7 +29,7 @@ class residentesFacturaDetallada
     public $user;
     public $log;
     private $residentesController;
-    public function __construct($orientation = 'L', $um = 'mm', $size = 'A5', $output = 'enviar', $archivo, $user)
+    public function __construct($orientation = 'L', $um = 'mm', $size = 'A5', $output = 'enviar', $archivo = 'doc.pdf', $user = 'cron')
     {
         $this->archivo = ($archivo) ?: \date('dmYHis') . ".pdf";
         $this->output = $output;
@@ -74,7 +74,7 @@ class residentesFacturaDetallada
     {
         $datosFacturaDetalle = [];
         $datosFacturaCabecera = (array) $invoice;
-        if ($this->residentesController->RD_plugin) {
+        if (class_exists('ncf_ventas')) {
             $ncf = new ncf_ventas();
             $ncfTipo = $ncf->get($empresa->id, $invoice->numero2);
             $datosFacturaCabecera['tiponcf'] = $ncfTipo[0]->tipo_descripcion;

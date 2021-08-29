@@ -53,11 +53,11 @@ class ResidentesEnviarMail
                 $invoice->save();
                 $companyInformation->save_mail($mail);
             } else {
-                $this->log->new_error_msg("Error al enviar el email: " . $mail->ErrorInfo);
+                $this->log->new_error("Error al enviar el email: " . $mail->ErrorInfo);
             }
             unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $archivo);
         } else {
-            $this->log->new_error_msg('Imposible generar el PDF.');
+            $this->log->new_error('Imposible generar el PDF.');
         }
     }
 
@@ -105,7 +105,7 @@ class ResidentesEnviarMail
         if ($empresa->mail_connect($mail) && $mail->send()) {
             $empresa->save_mail($mail);
         } else {
-            $this->log->new_error_msg("Error al enviar el email: " . $mail->ErrorInfo);
+            $this->log->new_error("Error al enviar el email: " . $mail->ErrorInfo);
         }
         unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $archivo);
     }

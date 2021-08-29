@@ -29,6 +29,7 @@ class residentes_facturacion_programada extends \fs_model
 {
     public $id;
     public $descripcion;
+    public $tipo_programacion;
     public $forma_pago;
     public $formato_factura;
     public $fecha_envio;
@@ -49,6 +50,7 @@ class residentes_facturacion_programada extends \fs_model
         if ($t) {
             $this->id = $t['id'];
             $this->descripcion = $t['descripcion'];
+            $this->tipo_programacion = $t['tipo_programacion'];
             $this->forma_pago = $t['forma_pago'];
             $this->formato_factura = $t['formato_factura'];
             $this->fecha_envio = $t['fecha_envio'];
@@ -63,6 +65,7 @@ class residentes_facturacion_programada extends \fs_model
         } else {
             $this->id = null;
             $this->descripcion = '';
+            $this->tipo_programacion = 'generar';
             $this->forma_pago = '';
             $this->formato_factura = 'plantillas_pdf';
             $this->fecha_envio = null;
@@ -97,6 +100,7 @@ class residentes_facturacion_programada extends \fs_model
         if ($this->exists()) {
             $sql = "UPDATE ".$this->table_name." SET ".
             "descripcion = ".$this->var2str($this->descripcion).", ".
+            "tipo_programacion = ".$this->var2str($this->tipo_programacion).", ".
             "forma_pago = ".$this->var2str($this->forma_pago).", ".
             "formato_factura = ".$this->var2str($this->formato_factura).", ".
             "fecha_envio = ".$this->var2str($this->fecha_envio).", ".
@@ -111,9 +115,10 @@ class residentes_facturacion_programada extends \fs_model
             return $data;
         } else {
             $sql = "INSERT INTO ".$this->table_name.
-            " (descripcion, forma_pago, formato_factura, fecha_envio, hora_envio, residentes_facturar, ".
+            " (descripcion, tipo_programacion, forma_pago, formato_factura, fecha_envio, hora_envio, residentes_facturar, ".
                 "facturas_generadas, usuario_creacion, fecha_creacion, estado) VALUES (".
             $this->var2str($this->descripcion).", ".
+            $this->var2str($this->tipo_programacion).", ".
             $this->var2str($this->forma_pago).", ".
             $this->var2str($this->formato_factura).", ".
             $this->var2str($this->fecha_envio).", ".
@@ -241,6 +246,7 @@ class residentes_facturacion_programada extends \fs_model
     
     public function delete()
     {
+        $this->eliminar_facturas();
         $sql = "DELETE from ".$this->table_name." WHERE id = ".$this->intval($this->id);
         $data = $this->db->exec($sql);
         if ($data) {

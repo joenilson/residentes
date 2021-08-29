@@ -55,11 +55,15 @@ MA 02110-1301  USA
                 <div class="col-sm-2">
                     Descripci&oacute;n:
                 </div>
-                <div class="col-sm-8">
+                <div class="col-sm-6">
                     <input type="text" name="descripcion" id='descripcion' placeholder="Breve descripción de esta facturación" value="" required class="form-control input-sm" autocomplete="off"/>
                 </div>
-                <div class="col-sm-2">
-                    
+                <div class="col-sm-4">
+                    <select name="tipo_programacion" id="tipo_programacion" class="form-control input-sm selectpicker" required>
+                        <option value="">Tipo Programación</option>
+                        <option value="generar">Generar Facturas</option>
+                        <option value="enviar">Enviar Facturas</option>
+                    </select>
                 </div>
             </div>
             <div class="col-sm-12" style='margin-top: 10px;'>
