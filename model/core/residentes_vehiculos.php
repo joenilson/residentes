@@ -98,15 +98,73 @@ class residentes_vehiculos extends \fs_model
         return "";
     }
 
-    public function info_adicional($i)
+    public function info_adicional(&$i)
     {
+        $residente = new residentes_edificaciones();
+        $residente_informacion = new residentes_informacion();
         $data = $this->cliente->get($i->codcliente);
+        $data_residente = $residente->get_by_field('codcliente', $i->codcliente)[0];
+        $data_info = $residente_informacion->get($i->codcliente);
         $i->nombre = $data->nombre;
         $i->telefono1 = $data->telefono1;
         $i->telefono2 = $data->telefono2;
         $i->email = $data->email;
         $i->observaciones = $data->observaciones;
+        $i->ca_nombres = $data_info->ca_nombres;
+        $i->ca_apellidos = $data_info->ca_apellidos;
+        $i->codigo = $data_residente->codigo_externo();
+        $i->numero = $data_residente->numero;
+        $i->propietario = $data_info->ca_propietario;
+        $i->id = $data_residente->id;
+        $i->fecha_ocupacion = $data_residente->fecha_ocupacion;
+        $i->edificacion = $data_residente->codigo_externo();
         return $i;
+    }
+
+    public function listByEdificacion($where = "", $order = "", $sort = "", $limit = FS_ITEM_LIMIT, $offset = 0)
+    {
+        $sql = "select ".
+            "v.*, r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
+            ",i.propietario, i.ca_nombres, i.ca_apellidos, r.fecha_ocupacion ".
+//            ", count(v.idvehiculo) as cantidad_vehiculos".
+            "from residentes_vehiculos as v ".
+            "RIGHT join residentes_edificaciones as r ON (r.codcliente = v.codcliente AND v.codcliente IS NOT NULL) ".
+            "left join clientes as c on (c.codcliente = r.codcliente) ".
+            "left join residentes_informacion as i ON (i.codcliente  = v.codcliente) ".
+
+            $where.
+//            " group by ".
+//            "v.idcliente, r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
+//            "i.propietario, i.ca_nombres, i.ca_apellidos, r.fecha_ocupacion ".
+            " order by ".trim($order)." ".$sort;
+
+        $sql_count = "SELECT count(v.idvehiculo) as total ".
+            "from residentes_vehiculos as v ".
+            "RIGHT join residentes_edificaciones as r ON (r.codcliente = v.codcliente AND v.codcliente IS NOT NULL) ".
+            "left join clientes as c on (c.codcliente = r.codcliente) ".
+            "left join residentes_informacion as i ON (i.codcliente  = v.codcliente) ".
+            $where;
+        $data_total = $this->db->select($sql_count);
+
+//        $sql = "SELECT  re.codigo_interno, rv.* FROM ".$this->table_name." as rv " .
+//                " RIGHT JOIN residentes_edificaciones as re ON (re.codcliente = rv.codcliente) " .
+//                " WHERE rv.codcliente IS NOT NULL " .
+//                " ORDER BY re.codigo_interno, rv.codcliente, rv.idvehiculo ";
+        //echo "<br><br><br>";
+        //echo $sql;
+        $data = $this->db->select_limit($sql, $limit, $offset);
+        //$data = $this->db->select($sql);
+        if ($data) {
+            $lista = array();
+            foreach ($data as $d) {
+                //$item = new residentes_vehiculos($d);
+                //$item = $this->info_adicional($item);
+                $lista[] = (object) $d;
+            }
+            return [$lista, $data_total[0]['total']];
+        } else {
+            return false;
+        }
     }
 
     public function all()
@@ -117,8 +175,10 @@ class residentes_vehiculos extends \fs_model
             $lista = array();
             foreach ($data as $d) {
                 $item = new residentes_vehiculos($d);
+                //$item = $this->info_adicional($item);
                 $lista[] = $item;
             }
+            ksort($lista, );
             return $lista;
         } else {
             return false;
@@ -131,7 +191,8 @@ class residentes_vehiculos extends \fs_model
             " AND idvehiculo = ".$this->intval($id).";";
         $data = $this->db->select($sql);
         if ($data) {
-            return new residentes_vehiculos($data[0]);
+            $item = new residentes_vehiculos($data[0]);
+            return $item;
         } else {
             return false;
         }
@@ -152,6 +213,7 @@ class residentes_vehiculos extends \fs_model
             $lista = array();
             foreach ($data as $d) {
                 $item = new residentes_vehiculos($d);
+                //$item = $this->info_adicional($item);
                 $lista[] = $item;
             }
             return $lista;

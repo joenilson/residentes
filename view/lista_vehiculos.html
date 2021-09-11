@@ -1,0 +1,249 @@
+{include="header"}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#b_nuevo_residente").click(function (event) {
+            event.preventDefault();
+            $("#modal_cliente").modal('show');
+            document.f_nuevo_residente.ac_cliente.focus();
+        });
+        $('#modal_info_residente').on('hidden.bs.modal', function () {
+            window.location.assign("{$fsc->url()}");
+        });
+        $("#ac_inmueble").autocomplete({
+            serviceUrl: '{$fsc->url()}',
+            paramName: 'buscar_inmueble',
+            onSelect: function (suggestion) {
+                if (suggestion)
+                {
+                    if (document.f_nuevo_residente_inmueble.id_edificacion.value != suggestion.data)
+                    {
+                        document.f_nuevo_residente_inmueble.id_edificacion.value = suggestion.data;
+                    }
+                }
+            }
+        });
+
+        $("#ac_cliente_inmueble").autocomplete({
+            serviceUrl: '{$fsc->url()}',
+            paramName: 'buscar_cliente',
+            onSelect: function (suggestion) {
+                if (suggestion) {
+                    if (document.f_nuevo_residente_inmueble.codcliente.value != suggestion.data) {
+                        document.f_nuevo_residente_inmueble.codcliente.value = suggestion.data;
+                        llenar_select_direcciones(suggestion.data,'iddireccion_inmueble');
+                    }
+                }
+            }
+        });
+    });
+    function informacionResidente(cod,tipo){
+        $('#modal_info_residente').modal('show');
+        $("#info_residente").detach();
+        $("<iframe id='info_residente' />")
+          .attr('src', '{#FS_PATH#}index.php?page=clientes_'+tipo+'&cod='+cod)
+          .attr('width', '100%')
+          .attr('height', '400')
+          .appendTo('#modal_body_info_residente');
+    }
+
+    function showDataResidente(codcliente) {
+        $('#modal_cobros_residente').modal('show');
+        $("#mostrar_informacion_residente").detach();
+        $("<iframe id='mostrar_informacion_residente' />")
+          .attr('src', '{$fsc->url()}&accion=mostrar_informacion_residente&codcliente='+codcliente+'&'+$("#f_informe_residentes").serialize())
+          .attr('width', '100%')
+          .attr('height', '500')
+          .appendTo('#modal_cobros_residente_body');
+    }
+
+</script>
+<div class="container-fluid" style="margin-top: 10px;">
+    <div class="row">
+        <div class="col-sm-7">
+            <div class="btn-group hidden-xs">
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </a>
+                {if="$fsc->page->is_default()"}
+                <a class="btn btn-sm btn-default active" href="{$fsc->url()}&amp;default_page=FALSE" title="desmarcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {else}
+                <a class="btn btn-sm btn-default" href="{$fsc->url()}&amp;default_page=TRUE" title="marcar como página de inicio">
+                    <span class="glyphicon glyphicon-home"></span>
+                </a>
+                {/if}
+            </div>
+            <div class="btn-group">
+                <a class="btn btn-sm btn-success"  data-toggle="modal" data-target="#nuevoResidenteInmueble" role="button">
+                    <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
+                </a>
+                {loop="$fsc->extensions"}
+                {if="$value->type=='button'"}
+                <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                {/if}
+                {/loop}
+            </div>
+        </div>
+        <div class="col-sm-5 text-right">
+            <h2 style="margin-top: 0px;"><span class="fa fa-car"></span>&nbsp;Vehiculos</h2>
+        </div>
+    </div>
+    <div class="row">
+        <form role="form" class="form" action="{$fsc->url()}" method="POST">
+            <div class="col-sm-3">
+                <div class="input-group">
+                    <input class="form-control" type="text" name="query_r" value="{$fsc->query_r}" autocomplete="off" placeholder="Buscar por Residente">
+                    <span class="input-group-btn hidden-sm">
+                        <button class="btn btn-primary" type="submit">
+                            <span class="fa fa-search fa-fw"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="input-group">
+                    <input class="form-control" type="text" name="query_v" value="{$fsc->query_v}" autocomplete="off" placeholder="Buscar por Vehiculo">
+                    <span class="input-group-btn hidden-sm">
+                        <button class="btn btn-primary" type="submit">
+                            <span class="fa fa-search fa-fw"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="input-group">
+                    <input class="form-control" type="text" name="query_i" value="{$fsc->query_i}" autocomplete="off" placeholder="Buscar por Inmueble">
+                    <span class="input-group-btn hidden-sm">
+                        <button class="btn btn-primary" type="submit">
+                            <span class="fa fa-search fa-fw"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="col-sm-3">
+
+            </div>
+        </form>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th class="text-left">Residente</th>
+                <th class="text-left">Teléfono</th>
+                <th class="text-left">C. Adicional</th>
+                <th class="text-center">Dpto.</th>
+                <th class="text-left">Propietario</th>
+                <th class="text-center">Vehiculo</th>
+                <th class="text-center">Tarjeta</th>
+                <th class="text-center">Fecha Ocupación</th>
+            </tr>
+        </thead>
+        {loop="$fsc->resultados"}
+        <tr {if="$value->codcliente == ''"}class="bg-warning"{/if}>
+            <td>{if="$value->codcliente"}<a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a>{else}<button onClick="$('#id_edificacion_residente').val({$value->id})" data-toggle="modal" data-target="#nuevoResidente" class="btn btn-sm btn-warning"><span class="fa fa-plus fa-fw"></span><span aria-hidden="true">Disponible</span></button>{/if}</td>
+            <td class="text-center">{$value->telefono1}</td>
+            <td class="text-left">{if="$value->ca_nombres"}{$value->ca_nombres} {$value->ca_apellidos}{/if}</td>
+            <td class="text-left">{$value->codigo} {$value->numero}</td>
+            <td class="text-left"><a href='#' {if="$value->codcliente"}onclick="informacionResidente('{$value->codcliente}','informacion')"{/if}>{if="$value->ca_nombres"}{if="$value->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
+            <td class="text-left">{$value->vehiculo_marca} {$value->vehiculo_modelo} {$value->vehiculo_tipo} {$value->vehiculo_placa} {$value->vehiculo_color}</td>
+            <td class="text-left">{$value->codigo_tarjeta}</td>
+            <td class="text-center">{$value->fecha_ocupacion}</td>
+        </tr>
+        {else}
+        <tr class="bg-warning">
+            <td colspan="8">Sin resultados.</td>
+        </tr>
+        {/loop}
+    </table>
+</div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12 text-center">
+            <ul class="pagination">
+                {loop="$fsc->paginas()"}
+                <li{if="$value['actual']"} class="active"{/if}>
+                    <a href="{$value['url']}">{$value['num']}</a>
+                </li>
+                {/loop}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo hijo -->
+<div class="modal fade" id="nuevoResidenteInmueble" tabindex="-1" role="dialog" aria-labelledby="nuevoResidenteInmuebleTitulo">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form class="form" role="form" name="f_nuevo_residente_inmueble" id="f_nuevo_residente_inmueble" action="{$fsc->url()}" method="POST">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" onClick="this.form.reset();" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="nuevoResidenteInmuebleTitulo"><span class="fa fa-users"></span>&nbsp;Nuevo Residente</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="campos_residente">
+                        <div class="col-sm-2">
+                            Inmueble
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <input type="hidden" id="id_edificacion_residente_inmueble" name="id_edificacion" value="">
+                            <input type="text" name="ac_inmueble" id="ac_inmueble" value="" placeholder="Inmueble a ocupar" class="form-control"/>
+                        </div>
+                        <div class="col-sm-2">
+                            Residente
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <input type="hidden" id="codcliente" name="codcliente" value="">
+                            <input type="text" name="ac_cliente" id="ac_cliente_inmueble" value="" placeholder="Nombre del cliente" class="form-control"/>
+                        </div>
+                        <div class="col-sm-2">
+                            Dirección
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <select id='iddireccion_inmueble' class='from-control input-sm' name='iddireccion'>
+
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <input type="text" name="fecha_ocupacion" id="fecha_ocupacion_inmueble" value="" placeholder="Fecha Ocupación" class="form-control datepicker"/>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <input type="text" name="fecha_disponibilidad" id="fecha_disponibilidad_inmueble" value="" placeholder="Fecha Disponibilidad" class="form-control datepicker"/>
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <span id="helpBlock1" class="help-block text-justify">
+                                La fecha de Ocupación es la fecha en la que el inquilino ocupó el Inmueble
+                            </span>
+                            <span id="helpBlock2" class="help-block text-justify">
+                                La fecha de Disponibilidad es la fecha en la que termina el contrato del residente en caso de no ser propietario del Inmueble
+                            </span>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" onClick="this.form.reset();" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" name="accion" id="agregar_residente_inmueble" value="agregar_residente" class="btn btn-primary">Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal" id="modal_info_residente">
+    <div class="modal-dialog" style="width: 99%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="">&times;</button>
+                <h4 class="modal-title">Información del Residente</h4>
+            </div>
+            <div class="modal-body" id='modal_body_info_residente'>
+
+            </div>
+        </div>
+    </div>
+</div>
+{include="modal_informacion_residente"}
+{include="mapa/nuevo_residente"}
+{include="footer"}
