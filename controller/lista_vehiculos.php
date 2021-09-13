@@ -209,7 +209,8 @@ class lista_vehiculos extends residentes_controller
                 . " OR vehiculo_placa LIKE '%" . $param . "%'"
                 . " OR CAST(idvehiculo AS CHAR) LIKE '" . $param . "%'"
                 . " OR telefono2 LIKE '" . $param . "%'"
-                . " OR observaciones LIKE '%" . $param . "%')";
+                . " OR observaciones LIKE '%" . $param . "%'"
+                . " OR codigo_tarjeta LIKE '%" . $param . "%')";
         } else {
             $buscar = str_replace(' ', '%', $param);
             $where = "(lower(vehiculo_marca) LIKE '%" . $buscar . "%'"

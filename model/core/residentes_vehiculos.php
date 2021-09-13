@@ -125,17 +125,12 @@ class residentes_vehiculos extends \fs_model
     {
         $sql = "select ".
             "v.*, r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero ".
-            ",i.propietario, i.ca_nombres, i.ca_apellidos, r.fecha_ocupacion ".
-//            ", count(v.idvehiculo) as cantidad_vehiculos".
+            ",i.propietario, i.ca_nombres, i.ca_apellidos, i.ca_telefono, r.fecha_ocupacion ".
             "from residentes_vehiculos as v ".
             "RIGHT join residentes_edificaciones as r ON (r.codcliente = v.codcliente AND v.codcliente IS NOT NULL) ".
             "left join clientes as c on (c.codcliente = r.codcliente) ".
             "left join residentes_informacion as i ON (i.codcliente  = v.codcliente) ".
-
             $where.
-//            " group by ".
-//            "v.idcliente, r.id, r.codcliente, c.nombre, c.cifnif, c.telefono1, c.email, r.codigo, r.numero, ".
-//            "i.propietario, i.ca_nombres, i.ca_apellidos, r.fecha_ocupacion ".
             " order by ".trim($order)." ".$sort;
 
         $sql_count = "SELECT count(v.idvehiculo) as total ".
@@ -145,15 +140,7 @@ class residentes_vehiculos extends \fs_model
             "left join residentes_informacion as i ON (i.codcliente  = v.codcliente) ".
             $where;
         $data_total = $this->db->select($sql_count);
-
-//        $sql = "SELECT  re.codigo_interno, rv.* FROM ".$this->table_name." as rv " .
-//                " RIGHT JOIN residentes_edificaciones as re ON (re.codcliente = rv.codcliente) " .
-//                " WHERE rv.codcliente IS NOT NULL " .
-//                " ORDER BY re.codigo_interno, rv.codcliente, rv.idvehiculo ";
-        //echo "<br><br><br>";
-        //echo $sql;
         $data = $this->db->select_limit($sql, $limit, $offset);
-        //$data = $this->db->select($sql);
         if ($data) {
             $lista = array();
             foreach ($data as $d) {

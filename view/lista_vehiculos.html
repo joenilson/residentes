@@ -75,9 +75,6 @@
                 {/if}
             </div>
             <div class="btn-group">
-                <a class="btn btn-sm btn-success"  data-toggle="modal" data-target="#nuevoResidenteInmueble" role="button">
-                    <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
-                </a>
                 {loop="$fsc->extensions"}
                 {if="$value->type=='button'"}
                 <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
@@ -145,7 +142,7 @@
         <tr {if="$value->codcliente == ''"}class="bg-warning"{/if}>
             <td>{if="$value->codcliente"}<a href="{#FS_PATH#}index.php?page=ver_residente&id={$value->id}">{$value->nombre}</a>{else}<button onClick="$('#id_edificacion_residente').val({$value->id})" data-toggle="modal" data-target="#nuevoResidente" class="btn btn-sm btn-warning"><span class="fa fa-plus fa-fw"></span><span aria-hidden="true">Disponible</span></button>{/if}</td>
             <td class="text-center">{$value->telefono1}</td>
-            <td class="text-left">{if="$value->ca_nombres"}{$value->ca_nombres} {$value->ca_apellidos}{/if}</td>
+            <td class="text-left">{if="$value->ca_nombres"}{$value->ca_nombres} {$value->ca_apellidos} {$value->ca_telefono}{/if}</td>
             <td class="text-left">{$value->codigo} {$value->numero}</td>
             <td class="text-left"><a href='#' {if="$value->codcliente"}onclick="informacionResidente('{$value->codcliente}','informacion')"{/if}>{if="$value->ca_nombres"}{if="$value->propietario"}SI{else}NO{/if}{else}Información Incompleta{/if}</a></td>
             <td class="text-left">{$value->vehiculo_marca} {$value->vehiculo_modelo} {$value->vehiculo_tipo} {$value->vehiculo_placa} {$value->vehiculo_color}</td>
