@@ -100,9 +100,6 @@ class ver_residente extends residentes_controller
         $this->page->title = 'Residente ' . $this->residente->nombre;
         $factura = new factura_cliente();
         $factura->all();
-        //$facts = $factura->all_from_cliente($this->residente->codcliente);
-        //$sql = "codcliente = '{$this->residente->codcliente}'";
-        //$facts = $factura->all_from($sql, 0, $limit = 100000);
         $facts = $factura->all_desde('2001-01-01', date('Y-m-d'), null, null, $this->residente->codcliente, null);
         $this->facturas = array();
         $articulos_cobrados = array();
