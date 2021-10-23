@@ -99,7 +99,11 @@ class ver_residente extends residentes_controller
     {
         $this->page->title = 'Residente ' . $this->residente->nombre;
         $factura = new factura_cliente();
-        $facts = $factura->all_from_cliente($this->residente->codcliente);
+        $factura->all();
+        //$facts = $factura->all_from_cliente($this->residente->codcliente);
+        //$sql = "codcliente = '{$this->residente->codcliente}'";
+        //$facts = $factura->all_from($sql, 0, $limit = 100000);
+        $facts = $factura->all_desde('2001-01-01', date('Y-m-d'), null, null, $this->residente->codcliente, null);
         $this->facturas = array();
         $articulos_cobrados = array();
         
@@ -143,8 +147,9 @@ class ver_residente extends residentes_controller
     
     public function generarArticulosCobrables($articulos_cobrados)
     {
-        foreach ($this->familia->get_articulos(0, 1000) as $art) {
-            if (!isset($articulos_cobrados[$art->referencia]) && $art->bloqueado == 0) {
+        $articulos = $this->familia->get_articulos(0, 1000);
+        foreach ($articulos as $art) {
+            if (isset($articulos_cobrados[$art->referencia]) === false && !$art->bloqueado) {
                 $this->articulos_cobrables[] = $art;
             }
         }
