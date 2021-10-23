@@ -143,8 +143,9 @@ class ver_residente extends residentes_controller
     
     public function generarArticulosCobrables($articulos_cobrados)
     {
-        foreach ($this->familia->get_articulos(0, 1000) as $art) {
-            if (!isset($articulos_cobrados[$art->referencia]) && $art->bloqueado == 0) {
+        $articulos = $this->familia->get_articulos(0, 1000);
+        foreach ($articulos as $art) {
+            if (isset($articulos_cobrados[$art->referencia]) === false && !$art->bloqueado) {
                 $this->articulos_cobrables[] = $art;
             }
         }
