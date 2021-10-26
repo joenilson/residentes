@@ -41,6 +41,8 @@ class ver_residente extends residentes_controller
     public $residente;
     public $forma_pago;
     public $lista_notas;
+    public $total_facturas = 0;
+    public $offset = 0;
 
     public function __construct()
     {
@@ -68,7 +70,8 @@ class ver_residente extends residentes_controller
             $this->residente = $res0->get(\filter_input(INPUT_GET, 'id'));
             $this->cliente_data = $this->cliente->get($this->residente->codcliente);
             $this->cliente_data->codcontacto = '';
-            
+            $this->total_facturas = $this->residente->totalFacturas();
+            $this->offset = \filter_input(INPUT_GET, 'offset') ?? 0;
             if (class_exists('contacto_cliente')) {
                 $concli = new contacto_cliente();
                 $infoCRM = $concli->all_from_cliente($this->residente->codcliente);
@@ -99,27 +102,33 @@ class ver_residente extends residentes_controller
     {
         $this->page->title = 'Residente ' . $this->residente->nombre;
         $factura = new factura_cliente();
-        $factura->all();
-        $facts = $factura->all_desde('2001-01-01', date('Y-m-d'), null, null, $this->residente->codcliente, null);
-        $this->facturas = array();
-        $articulos_cobrados = array();
-        
-        foreach ($facts as $fac) {
-            $fac->referencias = "";
-            foreach ($fac->get_lineas() as $linea) {
-                if ($linea->referencia) {
-                    $fac->referencias .= $linea->referencia . " ";
-                    $this->validarArticulos($articulos_cobrados, $fac, $linea);
-                } else {
-                    $fac->referencias .= $linea->descripcion . " ";
-                }
-            }
-            $this->facturas[] = $fac;
+        $totalFacturas = $this->residente->totalFacturas();
+        $cantidadGrupos = ceil($totalFacturas/FS_ITEM_LIMIT);
+        $facts = [];
+        for($i = 0; $i < $cantidadGrupos; $i++ ) {
+            $documentos = $factura->all_from_cliente($this->residente->codcliente, FS_ITEM_LIMIT * $i);
+            $facts = array_merge($facts, $documentos);
         }
-        $this->generarArticulosCobrables($articulos_cobrados);
+        $this->facturas = array();
+        $articulosCobrados = array();
+        foreach ($facts as $fac) {
+            if(!$fac->anulada) {
+                $fac->referencias = "";
+                foreach ($fac->get_lineas() as $linea) {
+                    if ($linea->referencia) {
+                        $fac->referencias .= $linea->referencia . " ";
+                        $this->validarArticulos($articulosCobrados, $fac, $linea);
+                    } else {
+                        $fac->referencias .= $linea->descripcion . " ";
+                    }
+                }
+                $this->facturas[] = $fac;
+            }
+        }
+        $this->generarArticulosCobrables($articulosCobrados);
     }
     
-    public function validarArticulos(&$articulos_cobrados, &$fac, &$linea)
+    public function validarArticulos(&$articulosCobrados, &$fac, &$linea)
     {
         if (!$fac->idfacturarect) {
             $rectificativas = $fac->get_rectificativas();
@@ -127,7 +136,7 @@ class ver_residente extends residentes_controller
             $this->validarDevoluciones($articulosDevueltos, $rectificativas);
             
             if (!isset($articulosDevueltos[$linea->referencia])) {
-                $articulos_cobrados[$linea->referencia] = 1;
+                $articulosCobrados[$linea->referencia] = 1;
             }
         }
     }
@@ -356,5 +365,50 @@ class ver_residente extends residentes_controller
 
         header('Content-Type: application/json');
         echo json_encode(array('query' => $_REQUEST['buscar_referencia'], 'suggestions' => $json), JSON_THROW_ON_ERROR);
+    }
+
+    public function paginas()
+    {
+        $url = $this->url();
+
+        $paginas = array();
+        $i = 0;
+        $num = 0;
+        $actual = 1;
+
+        /// añadimos todas la página
+        while ($num < $this->total_facturas) {
+            $paginas[$i] = array(
+                'url' => $url . "&offset=" . ($i * FS_ITEM_LIMIT),
+                'num' => $i + 1,
+                'actual' => ($num == $this->offset)
+            );
+
+            if ($num == $this->offset) {
+                $actual = $i;
+            }
+
+            $i++;
+            $num += FS_ITEM_LIMIT;
+        }
+
+        /// ahora descartamos
+        foreach ($paginas as $j => $value) {
+            $enmedio = (int)($i / 2);
+
+            /**
+             * descartamos todo excepto la primera, la última, la de enmedio,
+             * la actual, las 5 anteriores y las 5 siguientes
+             */
+            if (($j>1 && $j<$actual-5 && $j !== $enmedio) || ($j > $actual + 5 && $j < $i - 1 && $j !== $enmedio)) {
+                unset($paginas[$j]);
+            }
+        }
+
+        if (count($paginas) > 1) {
+            return $paginas;
+        } else {
+            return array();
+        }
     }
 }

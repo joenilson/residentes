@@ -239,7 +239,7 @@
 <div role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active">
-            <a href="#home" aria-controls="home" role="tab" data-toggle="tab">Facturas del cliente</a>
+            <a href="#home" aria-controls="home" role="tab" data-toggle="tab">Facturas del cliente ({$fsc->total_facturas})</a>
         </li>
         <li role="presentation">
             <a href="#nuevaf" aria-controls="nuevaf" role="tab" data-toggle="tab">
@@ -306,6 +306,19 @@
                     </tbody>
                 </table>
             </div>
+<!--            <div class="container-fluid">-->
+<!--                <div class="row">-->
+<!--                    <div class="col-sm-12 text-center">-->
+<!--                        <ul class="pagination">-->
+<!--                            {loop="$fsc->paginas()"}-->
+<!--                            <li{if="$value['actual']"} class="active"{/if}>-->
+<!--                            <a href="{$value['url']}">{$value['num']}</a>-->
+<!--                            </li>-->
+<!--                            {/loop}-->
+<!--                        </ul>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
         </div>
         <div role="tabpanel" class="tab-pane" id="nuevaf">
             <form name="f_nueva_factura" class="form" action="{$fsc->url()}" method="post" onSubmit="return verificarTotalImporte();">

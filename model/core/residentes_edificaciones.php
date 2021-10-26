@@ -560,4 +560,12 @@ class residentes_edificaciones extends \fs_model{
         $data_cantidad = $this->db->select($sql_cantidad);
         return array($data, $data_cantidad[0]['total']);
     }
+
+    public function totalFacturas()
+    {
+        $sql = "SELECT count(idfactura) as total from facturascli where codcliente = ". $this->codcliente .";";
+        $data = $this->db->select($sql);
+
+        return $data[0]['total'];
+    }
 }
