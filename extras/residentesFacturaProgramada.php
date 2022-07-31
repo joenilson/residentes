@@ -171,6 +171,7 @@ class residentesFacturaProgramada extends fs_model
         $factura->totalirpf = round($factura->totalirpf, FS_NF0);
         $factura->totalrecargo = round($factura->totalrecargo, FS_NF0);
         $factura->total = $factura->neto + $factura->totaliva - $factura->totalirpf + $factura->totalrecargo;
+        $factura->vencimiento = $this->residentesFactProg->fecha_vencimiento;
         if ($factura->save()) {
             $this->generar_asiento($factura, $empresaTable);
             /// Función de ejecución de tareas post guardado correcto de la factura
