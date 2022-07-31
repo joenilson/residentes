@@ -130,10 +130,7 @@ MA 02110-1301  USA
                         <div class="input-group">
                             <span class="input-group-addon">De</span>
                             <select name="de" class="form-control">
-                                {if="$fsc->user->email"}
-                                <option>{$fsc->user->email}</option>
-                                {/if}
-                                <option>{$fsc->empresa->email}</option>
+                                <option>{$fsc->configuracionEmail->apisenderemail}</option>
                             </select>
                         </div>
                     </div>
@@ -154,7 +151,7 @@ MA 02110-1301  USA
                         </div>
                     </div>
                     <div class="form-group">
-                        <textarea class="form-control" name="mensaje" rows="6">Estimado vecino, ver anexo su factura detallada. {function="chr(13)"}{function="chr(13)"} Cordialmente, {function="chr(13)"}{function="chr(13)"} {$fsc->empresa->email_config['mail_firma']}</textarea>
+                        <textarea class="form-control" name="mensaje" rows="6">{function="htmlspecialchars_decode($fsc->configuracionEmail->emailsubject)"}</textarea>
                         <p class="help-block">
                             <a href="index.php?page=admin_empresa#email">Editar la firma</a>
                         </p>

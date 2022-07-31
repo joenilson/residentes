@@ -32,6 +32,7 @@ class residentes_facturacion_programada extends \fs_model
     public $tipo_programacion;
     public $forma_pago;
     public $formato_factura;
+    public $fecha_vencimiento;
     public $fecha_envio;
     public $hora_envio;
     public $residentes_facturar;
@@ -53,6 +54,7 @@ class residentes_facturacion_programada extends \fs_model
             $this->tipo_programacion = $t['tipo_programacion'];
             $this->forma_pago = $t['forma_pago'];
             $this->formato_factura = $t['formato_factura'];
+            $this->fecha_vencimiento = $t['fecha_vencimiento'];
             $this->fecha_envio = $t['fecha_envio'];
             $this->hora_envio = $t['hora_envio'];
             $this->residentes_facturar = $t['residentes_facturar'];
@@ -98,11 +100,12 @@ class residentes_facturacion_programada extends \fs_model
     public function save()
     {
         if ($this->exists()) {
-            $sql = "UPDATE ".$this->table_name." SET ".
+            $sql = "UPDATE " . $this->table_name . " SET ".
             "descripcion = ".$this->var2str($this->descripcion).", ".
             "tipo_programacion = ".$this->var2str($this->tipo_programacion).", ".
             "forma_pago = ".$this->var2str($this->forma_pago).", ".
             "formato_factura = ".$this->var2str($this->formato_factura).", ".
+            "fecha_vencimiento = ".$this->var2str($this->fecha_vencimiento).", ".
             "fecha_envio = ".$this->var2str($this->fecha_envio).", ".
             "hora_envio = ".$this->var2str($this->hora_envio).", ".
             "residentes_facturar = ".$this->intval($this->residentes_facturar).", ".
@@ -115,12 +118,13 @@ class residentes_facturacion_programada extends \fs_model
             return $data;
         } else {
             $sql = "INSERT INTO ".$this->table_name.
-            " (descripcion, tipo_programacion, forma_pago, formato_factura, fecha_envio, hora_envio, residentes_facturar, ".
-                "facturas_generadas, usuario_creacion, fecha_creacion, estado) VALUES (".
+            " (descripcion, tipo_programacion, forma_pago, formato_factura, fecha_vencimiento, fecha_envio, hora_envio, ".
+                "residentes_facturar, facturas_generadas, usuario_creacion, fecha_creacion, estado) VALUES (".
             $this->var2str($this->descripcion).", ".
             $this->var2str($this->tipo_programacion).", ".
             $this->var2str($this->forma_pago).", ".
             $this->var2str($this->formato_factura).", ".
+            $this->var2str($this->fecha_vencimiento).", ".
             $this->var2str($this->fecha_envio).", ".
             $this->var2str($this->hora_envio).", ".
             $this->intval($this->residentes_facturar).", ".

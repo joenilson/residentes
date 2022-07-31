@@ -42,10 +42,10 @@ class residentes_facturacion_programada_conceptos extends \fs_model
             $this->id = $t['id'];
             $this->idprogramacion = $t['idprogramacion'];
             $this->referencia = $t['referencia'];
-            $this->pvp = floatval($t['pvp']);
-            $this->cantidad = floatval($t['cantidad']);
+            $this->pvp = (float) ($t['pvp']);
+            $this->cantidad = (float) ($t['cantidad']);
             $this->codimpuesto = $t['codimpuesto'];
-            $this->importe = floatval($t['importe']);
+            $this->importe = (float) ($t['importe']);
         }else{
             $this->id = null;
             $this->idprogramacion = null;

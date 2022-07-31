@@ -38,7 +38,10 @@ MA 02110-1301  USA
 
             <div class="btn-group">
                 <a class="btn btn-sm btn-success" href="{$fsc->url()}&accion=nueva_programacion">
-                   Nueva Programaci&oacute;n<span class="fa fa-calendar fa-fw"></span>
+                    <i class="fa fa-calendar fa-fw"></i><span>Nueva Programaci&oacute;n</span>
+                </a>
+                <a class="btn btn-sm btn-info" href="{$fsc->url()}&accion=configurar_metodo_envio">
+                    <i class="fa fa-gear fa-fw"></i><span>Configurar Env&iacute;o</span>
                 </a>
                 {loop="$fsc->extensions"}
                 {if="$value->type=='button'"}

@@ -1,0 +1,179 @@
+{include="header"}
+<!--
+Copyright (C) 2019 joenilson.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301  USA
+-->
+    <div id="loader"></div>
+    <div class="container-fluid" style="margin-top: 10px;">
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="btn-group hidden-xs">
+                    <a class="btn btn-sm btn-default" href="{$fsc->url()}&accion=configurar_metodo_envio" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    <a class="btn btn-sm btn-primary" href="{$fsc->url()}" title="Regresar al Listado">
+                        <span class="fa fa-arrow-left fa-fw"></span>Regresar
+                    </a>
+                </div>
+
+                <div class="btn-group">
+                    {loop="$fsc->extensions"}
+                    {if="$value->type=='button'"}
+                    <a href="index.php?page={$value->from}" class="btn btn-sm btn-default">{$value->text}</a>
+                    {/if}
+                    {/loop}
+                </div>
+            </div>
+            <div class="col-sm-4 text-right">
+                <h2 style="margin-top: 0px;"><span class="fa fa-gear fa-fw"></span>Método de Envío</h2>
+            </div>
+            <hr/>
+        </div>
+        <div class='row'>
+            <form name="f_configurar_envio" class="form-horizontal" id='f_configurar_envio' action="{$fsc->url()}" method="post">
+                <div class="col-sm-12">
+                    <span class="help-block text-justify">
+                        <span class="fa fa-info-circle fa-fw"></span><small>Muchos Hostings no permiten el envío masivo de correos electrónicos, puede contratar servicios de SendGrid o MailJet para estos envíos, los cuales debe configurarlos en esta secci&oacute;n</small>
+                    </span>
+                </div>
+                <div class="col-sm-12" style='margin-top: 10px;'>
+                    <div class="form-group col-sm-12">
+                        <div class="col-sm-3">
+                            <label for="tiposervicio">Tipo de servicio:</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="hidden" name="id" id='id' value="{$fsc->configuracionEmail->id}"/>
+                            <select name="tiposervicio" id="tiposervicio" class="col-sm-6 form-control input-sm selectpicker" required>
+                                <option value="">Tipo de Servicio</option>
+                                <option value="interno"{if="$fsc->configuracionEmail->tiposervicio == 'interno'"} selected{/if}>Correo Interno</option>
+                                <option value="sendgrid"{if="$fsc->configuracionEmail->tiposervicio == 'sendgrid'"} selected{/if}>SendGrid</option>
+                                <option value="mailjet"{if="$fsc->configuracionEmail->tiposervicio == 'mailjet'"} selected{/if}>MailJet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div class="col-sm-3">
+                            <label for="apikey">API Key:</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="password" name="apikey" id='apikey' placeholder="API KEY Service" value="{$fsc->configuracionEmail->apikey}" required class="form-control input-sm" autocomplete="off"/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div class="col-sm-3">
+                            <label for="apisecret">Secret:</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="password" name="apisecret" id='apisecret' placeholder="Secret" value="{$fsc->configuracionEmail->apisecret}" class="form-control input-sm" autocomplete="off"/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div class="col-sm-3">
+                            <label for="apisenderemail">Correo registrado para Envios:</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="text" name="apisenderemail" id='apisenderemail' placeholder="Correo configurado para envíos" value="{$fsc->configuracionEmail->apisenderemail}" class="form-control input-sm" autocomplete="off"/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div class="col-sm-3">
+                            <label for="apisendername">Nombre para salir en los envíos:</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="text" name="apisendername" id='apisendername' placeholder="Nombre para salir en los envíos" value="{$fsc->configuracionEmail->apisendername}" required class="form-control input-sm" autocomplete="off"/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div class="col-sm-3">
+                            <label for="emailsubject">Mensaje a enviar con las facturas:</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <textarea name="emailsubject" id="emailsubject" style="width: 100%;">
+                            {$fsc->configuracionEmail->emailsubject}
+                            </textarea>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 text-right" style='margin-top: 10px;'>
+                        <button class="btn btn-sm btn-success" type="submit" name="accion" value="guardar_configuracion_envio">
+                            <span class="fa fa-save fa-fw"></span>Guardar Programaci&oacute;n
+                        </button>
+                        <button class="btn btn-sm btn-info" type="button" name="accion" value="probar_configuracion" onclick="testEmail()">
+                            <span class="fa fa-send fa-fw"></span>Probar Configuracion
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
+        function testEmail()
+        {
+            $.ajax({
+                type: "GET",
+                url: "{$fsc->url()}",
+                data: "accion=test_email",
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (er) {
+                    bootbox.alert(er);
+                }
+            });
+        }
+
+        $('#emailsubject').wysihtml5({
+                toolbar: {
+                    "font-styles": true, //Font styling, e.g. h1, h2, etc. Default true
+                    "emphasis": true, //Italics, bold, etc. Default true
+                    "lists": true, //(Un)ordered lists, e.g. Bullets, Numbers. Default true
+                    "html": true, //Button which allows you to edit the generated HTML. Default false
+                    "link": true, //Button to insert a link. Default true
+                    "image": true, //Button to insert an image. Default true,
+                    "color": true, //Button to change color of font
+                    "blockquote": true, //Blockquote
+                    "size": 'xs' //default: none, other options are xs, sm, lg
+                }
+            });
+
+    </script>
+    <style>
+        .list-group-scroll{
+            max-height: 450px;
+            margin-bottom: 10px;
+            overflow:scroll;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-option {
+            font-size: 11px;
+        }
+
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.75) url('{#FS_PATH#}plugins/residentes/view/images/loading_spinner.gif') no-repeat center center;
+            z-index: 10000;
+        }
+    </style>
+
+{include="footer"}

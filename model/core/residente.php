@@ -37,9 +37,9 @@ class residente extends \fs_model
             $this->nombre = $i['nombre'];
             $this->piso = $i['piso'];
             $this->bloque = $i['bloque'];
-            $this->mensualidad = floatval($i['mensualidad']);
-            $this->agua = floatval($i['agua']);
-            $this->gas = floatval($i['gas']);
+            $this->mensualidad = (float) ($i['mensualidad']);
+            $this->agua = (float) ($i['agua']);
+            $this->gas = (float) ($i['gas']);
             $this->observaciones = $i['observaciones'];
 
             $this->fechaagua = null;
@@ -54,7 +54,7 @@ class residente extends \fs_model
 
             $this->deudas = 0;
             if (isset($i['deudas'])) {
-                $this->deudas = floatval($i['deudas']);
+                $this->deudas = (float) ($i['deudas']);
             }
         } else {
             $this->id = null;

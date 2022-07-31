@@ -163,59 +163,6 @@ class documentos_residentes extends residentes_controller
     public function enviar_documento($tipo_documento)
     {
         $this->crear_documento($tipo_documento);
-//        $tipo_doc = $this->generar_tipo_doc($tipo_documento);
-//        if (file_exists('tmp/'.FS_TMP_NAME.'enviar/'.$this->archivo) && (1 === 2)) {
-//            $mail = $this->empresa->new_mail();
-//            $mail->FromName = $this->user->get_agente_fullname();
-//            $email = (trim($this->filter_request('email')) !== '')
-//                ? $this->filter_request('email')
-//                : $this->cliente_residente->email;
-//            $this->new_message('Enviando factura a: '.$email);
-//            $mail->addAddress($email, $this->cliente_residente->nombre);
-//            $elSubject = ($tipo_documento === 'informacion_cobros')
-//                ? ': Su Estado de cuenta al '. \date('d-m-Y')
-//                : ': Su Factura ' . $this->factura->codigo . ' ' . $this->factura->numero2;
-//            $mail->Subject = fs_fix_html($this->empresa->nombre) . $elSubject;
-//            $mail->AltBody = ($tipo_documento === 'informacion_cobros')
-//                ? strip_tags($_POST['mensaje'])
-//                : plantilla_email(
-//                    'factura',
-//                    $this->factura->codigo . ' ' . $this->factura->numero2,
-//                    $this->empresa->email_config['mail_firma']
-//                );
-//            if (trim($this->filter_request('email_copia')) !== '') {
-//                if ($this->filter_request('cco') !== null) {
-//                    $mail->addBCC(
-//                        trim($this->filter_request('email_copia')),
-//                        $this->cliente_residente->nombre
-//                    );
-//                } else {
-//                    $mail->addCC(
-//                        trim($this->filter_request('email_copia')),
-//                        $this->cliente_residente->nombre
-//                    );
-//                }
-//            }
-//            $mail->msgHTML(nl2br($mail->AltBody));
-//            $mail->isHTML(true);
-//            $mail->addAttachment('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
-//
-//            if (isset($_FILES['adjunto']) && is_uploaded_file($_FILES['adjunto']['tmp_name'])) {
-//                $mail->aºddAttachment($_FILES['adjunto']['tmp_name'], $_FILES['adjunto']['name']);
-//            }
-//            if ($this->empresa->mail_connect($mail) && $mail->send()) {
-//                $this->factura->femail = $this->today();
-//                $this->factura->save();
-//
-//                $this->empresa->save_mail($mail);
-//                $done = true;
-//            } else {
-//                $this->new_error_msg("Error al enviar el email: " . $mail->ErrorInfo);
-//            }
-//            unlink('tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo);
-//        } else {
-//            //$this->new_error_msg('Imposible generar el PDF.');
-//        }
     }
 
     public function imprimir_documento($tipo_documento)

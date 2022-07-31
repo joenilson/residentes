@@ -21,6 +21,8 @@ require_once 'plugins/residentes/extras/residentes_pdf.php';
 require_once 'extras/phpmailer/class.phpmailer.php';
 require_once 'extras/phpmailer/class.smtp.php';
 require_once 'plugins/residentes/extras/residentes_controller.php';
+require_once 'plugins/residentes/extras/residentesEnviarMail.php';
+
 
 /**
  * Description of facturacion_residentes
@@ -31,6 +33,7 @@ require_once 'plugins/residentes/extras/residentes_controller.php';
 class facturacion_residentes extends residentes_controller 
 {
     public $printExtensions;
+    public $configuracionEmail;
     public $edificaciones_tipo;
     public $edificaciones_mapa;
     public $familia;
@@ -58,7 +61,9 @@ class facturacion_residentes extends residentes_controller
         parent::private_core();
         $this->shared_functions();
         $this->tratarAccion();
-        
+
+        $eCfg = new residentes_email_config();
+        $this->configuracionEmail = $eCfg->currentConfig();
         $this->programaciones = new residentes_facturacion_programada();
         $this->programaciones_conceptos = new residentes_facturacion_programada_conceptos();
         $this->programaciones_edificaciones = new residentes_facturacion_programada_edificaciones();
@@ -94,7 +99,7 @@ class facturacion_residentes extends residentes_controller
                 'page_from' => __CLASS__,
                 'page_to' => __CLASS__,
                 'type' => 'head',
-                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="'.FS_PATH.
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH .
                             'plugins/residentes/view/css/bootstrap-select.min.css"/>',
                 'params' => ''
             ),
@@ -116,7 +121,34 @@ class facturacion_residentes extends residentes_controller
                             'plugins/residentes/view/js/i18n/defaults-es_ES.min.js" type="text/javascript"></script>',
                 'params' => ''
             ),
-            
+            array(
+                'name' => '004_facturacion_residentes',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.
+                            'plugins/residentes/view/js/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '005_facturacion_residentes',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<script src="'.FS_PATH.
+                            'plugins/residentes/view/js/bootstrap-wysihtml5/locales/bootstrap-wysihtml5.es-ES.js" type="text/javascript"></script>',
+                'params' => ''
+            ),
+            array(
+                'name' => '006_facturacion_residentes',
+                'page_from' => __CLASS__,
+                'page_to' => __CLASS__,
+                'type' => 'head',
+                'text' => '<link rel="stylesheet" type="text/css" media="screen" href="' . FS_PATH .
+                    'plugins/residentes/view/js/bootstrap-wysihtml5/bootstrap3-wysihtml5.css"/>',
+                'params' => ''
+            ),
+
         );
 
         foreach ($extensiones as $ext) {
@@ -134,6 +166,12 @@ class facturacion_residentes extends residentes_controller
             case "nueva_programacion":
                 $this->template = 'block/nueva_programacion_facturacion';
                 break;
+            case "configurar_metodo_envio":
+                $this->template = 'block/configurar_metodo_envio';
+                break;
+            case "guardar_configuracion_envio":
+                $this->guardarConfiguracionMetodoEnvio();
+                break;
             case "guardar_programacion":
                 $this->guardarProgramacion();
                 break;
@@ -145,6 +183,9 @@ class facturacion_residentes extends residentes_controller
                 break;
             case "lista_programacion":
                 $this->listaProgramacion();
+                break;
+            case "test_email":
+                $this->testEmail();
                 break;
             default:
                 break;
@@ -198,6 +239,53 @@ class facturacion_residentes extends residentes_controller
             $this->new_error_msg('La Programaci&oacute;n no pudo ser reiniciada, verifique los datos o sus permisos.');
         }
     }
+
+    public function guardarConfiguracionMetodoEnvio()
+    {
+        $this->template = 'block/configurar_metodo_envio';
+        $id = $this->filter_request('id');
+        $tiposervicio = $this->filter_request('tiposervicio');
+        $apikey = $this->filter_request('apikey');
+        $apisecret = $this->filter_request('apisecret');
+        $apisenderemail = $this->filter_request('apisenderemail');
+        $apisendername = $this->filter_request('apisendername');
+        $emailsubject = stripslashes(htmlentities($this->filter_request('emailsubject')));
+        $remcfg = new residentes_email_config();
+        $remcfg->id = $id;
+        $remcfg->tiposervicio = $tiposervicio;
+        $remcfg->apikey = $apikey;
+        $remcfg->apisecret = $apisecret;
+        $remcfg->apisenderemail = $apisenderemail;
+        $remcfg->apisendername = $apisendername;
+        $remcfg->emailsubject = $emailsubject;
+        $remcfg->fecha_creacion = \date('Y-m-d h:i:s');
+        $remcfg->usuario_creacion = $this->user->nick;
+        $remcfg->fecha_modificacion = \date('Y-m-d h:i:s');
+        $remcfg->usuario_modificacion = $this->user->nick;
+        return $remcfg->save();
+        $this->new_message('Configuración de envio guardada.');
+    }
+
+    public function testEmail()
+    {
+        $this->template = false;
+        header('Content-Type: application/json');
+        $cfg = new residentes_email_config();
+        $actualConfig = $cfg->currentConfig();
+        $envioMails = new ResidentesEnviarMail();
+        switch($actualConfig->tiposervicio) {
+            case "mailjet":
+                echo $envioMails->mailjetEmailTest();
+                break;
+            case "sendgrid":
+                echo $envioMails->sendgridEmailTest();
+                break;
+            case "interno": default:
+                echo $envioMails->internalEmailTest();
+                break;
+        }
+
+    }
     
     public function guardarProgramacion()
     {
@@ -219,6 +307,7 @@ class facturacion_residentes extends residentes_controller
         $descripcion = $this->filter_request('descripcion');
         $tipo_programacion = $this->filter_request('tipo_programacion');
         $forma_pago = $this->filter_request('forma_pago');
+        $fecha_vencimiento = $this->filter_request('fecha_vencimiento');
         $fecha_envio = $this->filter_request('fecha_envio');
         $hora_envio = $this->filter_request('hora_envio');
         
@@ -227,6 +316,7 @@ class facturacion_residentes extends residentes_controller
         $rfp->descripcion = htmlentities(trim($descripcion));
         $rfp->tipo_programacion = $tipo_programacion;
         $rfp->forma_pago = $forma_pago;
+        $rfp->fecha_vencimiento = $fecha_vencimiento;
         $rfp->fecha_envio = $fecha_envio;
         $rfp->hora_envio = $hora_envio;
         $rfp->residentes_facturar = $cantidadResidentesProcesar;

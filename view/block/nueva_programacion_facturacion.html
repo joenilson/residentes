@@ -70,16 +70,29 @@ MA 02110-1301  USA
                 <div class="col-sm-2">
                     <a href="{$fsc->forma_pago->url()}">Forma de pago</a>:
                 </div>
-                <div class="col-sm-2">
+                <div class="col-sm-4">
                     <select name="forma_pago" id="forma_pago" class="form-control input-sm selectpicker" required>
                         <option value="">Elije una Forma de pago</option>
                         {loop="$fsc->forma_pago->all()"}
                         <option value="{$value->codpago}">{$value->descripcion}</option>
                         {/loop}
                     </select>
-                </div>              
+                </div>
                 <div class="col-sm-2">
-                Fecha de envio:
+                    Fecha de Vencimiento:
+                </div>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <span class="fa fa-calendar fa-fw"></span>
+                        </span>
+                        <input type="text" name="fecha_vencimiento" value="{$fsc->today()}" class="form-control datepicker input-sm" style='width:120px;' required="" autocomplete="off"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12" style='margin-top: 10px;'>
+                <div class="col-sm-2">
+                Fecha y Hora de env&iacute;o:
                 </div>
                 <div class="col-sm-2">
                     <div class="input-group">
@@ -88,9 +101,6 @@ MA 02110-1301  USA
                         </span>
                         <input type="text" name="fecha_envio" value="{$fsc->today()}" class="form-control datepicker input-sm" style='width:120px;' required="" autocomplete="off"/>
                     </div>
-                </div>
-                <div class="col-sm-2">
-                Hora de envio:
                 </div>
                 <div class="col-sm-2">
                     <select class="form-control input-sm col-xs-2 selectpicker" data-live-search='true'  data-width="80px" name='hora_envio' style="width: 80px;">
@@ -113,17 +123,17 @@ MA 02110-1301  USA
                 </div>
                 <div class="col-sm-4 text-right" style='margin-top: 10px;'>
                     <button class="btn btn-sm btn-success" type="submit">
-                        <span class="fa fa-save fa-fw"></span>Guardar Programaci&oacute;n
+                        <span class="fa fa-save fa-fw"></span>Guardar Programaci&oacute&oacute;n
                     </button>
                 </div>
             </div>
             <div class="col-sm-12" style='margin-top: 10px;'>
-                <div class="col-sm-8" style='margin-top: 10px;'>
+                <div class="col-sm-9" style='margin-top: 10px;'>
                     <div class='dynamic-stuff'></div>
                     <!-- Dynamic element will be cloned here -->
                     <!-- You can call clone function once if you want it to show it a first element-->
                 </div>
-                <div class="col-sm-4" style='margin-top: 10px;'>
+                <div class="col-sm-3" style='margin-top: 10px;'>
                     <ul class="list-group col-sm-12 list-group-scroll">
                         <li class="list-group-item active text-center">
                             Elegir el alcance de la facturaci&oacute;n
@@ -150,12 +160,12 @@ MA 02110-1301  USA
         $('.add-one').click(function(){
             var addto = ".dynamic-stuff";
             next = next + 1;
-            var newIn = '<div class="form-group col-sm-12">' +
+            var newIn = '<div class="col-sm-12">' +
                 '<div class="col-sm-4 campo-referencia">' +
                 '   <select name="referencia[]" id="referencia_'+next+'" class="form-control input-xs" onchange="actualizarPrecio('+next+')">' +
                 '       <option value="">Referencia</option>' +
                         {loop="$fsc->familias->get_articulos(0,1000)"}
-                '       <option value="{$value->referencia}">{$value->descripcion}</option>' +
+                '       <option value="{$value->referencia}">{$value->referencia} - {$value->descripcion}</option>' +
                         {/loop}
                 '   </select>' +
                 '</div>' +
@@ -314,6 +324,11 @@ MA 02110-1301  USA
             overflow:scroll;
             -webkit-overflow-scrolling: touch;
         }
+
+        .filter-option {
+            font-size: 11px;
+        }
+
         #loader {
             display: none;
             position: fixed;

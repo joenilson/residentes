@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : residentes_email_config.xml
+    Description:
+        Estructura de la tabla residentes_email_config.xml
+-->
+<tabla>
+    <columna>
+        <nombre>id</nombre>
+        <tipo>serial</tipo>
+        <nulo>NO</nulo>
+        <defecto>nextval('residentes_emailconfig_id_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>tiposervicio</nombre>
+        <tipo>character varying(32)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>apikey</nombre>
+        <tipo>character varying(120)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>apisecret</nombre>
+        <tipo>character varying(120)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>apisenderemail</nombre>
+        <tipo>character varying(80)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>apisendername</nombre>
+        <tipo>character varying(80)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>emailsubject</nombre>
+        <tipo>text</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>usuario_creacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>YES</nulo>
+    </columna>  
+    <columna>
+        <nombre>usuario_modificacion</nombre>
+        <tipo>character varying(12)</tipo>
+        <nulo>YES</nulo>
+    </columna>  
+    <columna>
+        <nombre>fecha_creacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>fecha_modificacion</nombre>
+        <tipo>timestamp without time zone</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <restriccion>
+        <nombre>residentes_emailconfig_pkey</nombre>
+        <consulta>PRIMARY KEY (id)</consulta>
+    </restriccion>
+</tabla>

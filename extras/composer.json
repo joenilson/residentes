@@ -1,0 +1,7 @@
+{
+    "require": {
+        "guzzlehttp/guzzle": "^7.0",
+        "mailjet/mailjet-apiv3-php": "^1.5",
+        "sendgrid/sendgrid": "^8.0"
+    }
+}

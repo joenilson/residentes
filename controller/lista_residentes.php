@@ -193,7 +193,7 @@ class lista_residentes extends residentes_controller
                     . " OR c.telefono1 LIKE '" . $param . "%'"
                     . " OR c.telefono2 LIKE '" . $param . "%'"
                     . " OR ca_telefono LIKE '" . $param . "%'"
-                    . " OR r.observaciones LIKE '%" . $param . "%')";
+                    . " OR c.observaciones LIKE '%" . $param . "%')";
         } else {
             $buscar = str_replace(' ', '%', $param);
             $where = "(lower(nombre) LIKE '%" . $buscar . "%'"
