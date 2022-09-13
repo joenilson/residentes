@@ -30,7 +30,7 @@ require_once 'plugins/residentes/extras/residentesEnviarMail.php';
  * @author joenilson
  */
 
-class facturacion_residentes extends residentes_controller 
+class facturacion_residentes extends residentes_controller
 {
     public $printExtensions;
     public $configuracionEmail;
