@@ -61,6 +61,9 @@ class residentesFacturaDetallada
                 'tmp/' . FS_TMP_NAME . 'enviar/' . $this->archivo,
                 true
             );
+            if(isset($_POST['email']) && $_POST['email'] !== '') {
+                $customer->email = $_POST['email'];
+            }
             $this->emailHelper->invoiceEmail($companyInformation, $invoice, $customer, $this->user, $this->archivo);
         } else {
             $this->document->Output(
