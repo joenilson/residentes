@@ -18,7 +18,7 @@
 require_once 'base/fs_controller.php';
 require_once 'plugins/residentes/extras/residentes_controller.php';
 require_once 'plugins/residentes/extras/residentesEnviarMail.php';
-require_once 'plugins/residentes/extras/fpdf183/residentesFpdf.php';
+require_once 'plugins/residentes/extras/fpdf183/ResidentesFpdf.php';
 
 class residentesFacturaDetallada
 {
