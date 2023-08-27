@@ -81,7 +81,7 @@ class ver_residente extends residentes_controller
         
         if ($this->residente) {
             $accion = \filter_input(INPUT_POST, 'accion');
-            if ($accion == 'generar_factura') {
+            if ($accion === 'generar_factura') {
                 $this->nueva_factura();
             }
             $this->informacionResidente();

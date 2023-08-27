@@ -82,6 +82,7 @@ class residentesFacturaDetallada
             $ncfTipo = $ncf->get($empresa->id, $invoice->numero2);
             $datosFacturaCabecera['tiponcf'] = $ncfTipo[0]->tipo_descripcion;
             $datosFacturaCabecera['vencimientoncf'] = $ncfTipo[0]->fecha_vencimiento;
+            $datosFacturaCabecera['condicion'] = $invoice->pagada ? 'Pagada' : 'Pendiente de pago';
         }
         $lineas = $invoice->get_lineas();
         $totalAntesDescuento = 0;

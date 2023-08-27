@@ -149,6 +149,12 @@ class ResidentesFpdf extends FPDF
         $this->Cell(38, 5, "Fecha de Vencimiento:", 0, 0, 'R');
         $this->Cell(38, 5, $documentFooter['vencimiento'], 0, 0, 'L');
 
+        $this->Rect($x, $y+18, 95, 6, "D");
+        $this->SetXY($x, $y+18);
+        $this->Cell(38, 5, "Condicion Factura:", 0, 0, 'L');
+        $this->Cell(38, 5, $documentFooter['condicion'], 0, 0, 'L');
+
+
         $this->SetFont($this->font, "BU", 8);
         $this->SetXY($x, $y+30);
         $this->Cell($this->GetStringWidth("Observaciones"), 0, "Observaciones", 0, "L");

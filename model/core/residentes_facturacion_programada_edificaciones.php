@@ -165,6 +165,7 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
         $item->fecha = '';
         $item->importe = 0;
         $item->forma_pago = '';
+        $item->factura_pagada = '';
         if ($item->idfactura) {
             $fact = new factura_cliente();
             $infoFact = $fact->get($item->idfactura);
@@ -174,8 +175,9 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
                 $item->fecha = $infoFact->fecha;
                 $item->importe = $infoFact->total;
                 $fp = new forma_pago();
-                $infoFP = $fp->get($fact->codpago);
+                $infoFP = $fp->get($infoFact->codpago);
                 $item->forma_pago = $infoFP->descripcion;
+                $item->factura_pagada = ($infoFact->pagada) ? 'Si' : 'No';
             }
         }
     }

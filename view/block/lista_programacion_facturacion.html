@@ -57,6 +57,7 @@ MA 02110-1301  USA
                         <th class="text-center">Factura</th>
                         <th class="text-center">Importe</th>
                         <th class="text-center">Forma Pago</th>
+                        <th class="text-center">Pagada</th>
                         <th>Factura Enviada</th>
                         <th></th>
                     </tr>
@@ -76,6 +77,7 @@ MA 02110-1301  USA
                         <td class="text-center">{$value->idfactura} {$value->numero2}</td>
                         <td class="text-center">{$value->importe}</td>
                         <td class="text-center">{$value->forma_pago}</td>
+                        <td class="text-center">{$value->factura_pagada}</td>
                         <td class="text-center">{if="$value->femail"}<b class="text-success">SI</b>{else}<b class="text-danger">NO</b>{/if}</td>
                         <td>
                             {if="$value->email AND $fsc->empresa->can_send_mail()"}
