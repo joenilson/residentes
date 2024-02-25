@@ -121,23 +121,37 @@ function createPDFObject(orientacion,page_size,texto,logo,cabecera,cuerpo,pie_pa
     doc.text(20, linea_texto, '{$fsc->factura->numero2}');
     linea_texto+=4;
     doc.setFontStyle('bold');
-    doc.text(5, linea_texto, 'Residente Código: ');
+    doc.text(5, linea_texto, 'Residente: ');
     doc.setFontStyle('normal');
-    doc.text(32, linea_texto, '{function="html_entity_decode($fsc->cliente->codcliente)"}');
+    doc.text(20, linea_texto, '{function="html_entity_decode($fsc->cliente->codcliente)"}');
     doc.setFontStyle('bold');
     linea_texto+=4;
-    doc.text(5, linea_texto, 'Residente Nombre: ');
+    doc.setFontStyle('bold');
+    doc.text(5, linea_texto, 'RNC/Cedula: ');
     doc.setFontStyle('normal');
-    var linea_nombre_residente = doc.splitTextToSize('{function="html_entity_decode($fsc->cliente->nombre)"}', pageWidth-8);
-    doc.text(32, linea_texto, linea_nombre_residente);
+    doc.text(25, linea_texto, '{function="html_entity_decode($fsc->cliente->cifnif)"}');
+    doc.setFontStyle('bold');
     linea_texto+=4;
+    doc.text(5, linea_texto, 'Nombre: ');
+    doc.setFontStyle('normal');
+    var linea_nombre_residente = doc.splitTextToSize('{function="html_entity_decode($fsc->cliente->nombre)"}',60);
+    doc.text(20, linea_texto, linea_nombre_residente);
+    if(linea_nombre_residente.length > 1) {
+        linea_texto+=8;
+    } else {
+        linea_texto+=4;
+    }
     doc.setFontStyle('bold');
     doc.text(5, linea_texto, 'Dirección:');
     linea_texto+=4;
     doc.setFontStyle('normal');
-    var linea_dir_residente = doc.splitTextToSize('{function="html_entity_decode($fsc->factura->direccion)"}', pageWidth-8);
-    doc.text(5, linea_texto, linea_dir_residente);
-    linea_texto+=4;
+    var linea_dir_residente = doc.splitTextToSize('{function="html_entity_decode($fsc->factura->direccion)"}', 60);
+    doc.text(20, linea_texto, linea_dir_residente);
+    if(linea_dir_residente.length > 1) {
+        linea_texto+=8;
+    } else {
+        linea_texto+=4;
+    }
     doc.setFontStyle('bold');
     doc.text(5, linea_texto, 'Teléfono:');
     doc.setFontStyle('normal');

@@ -264,13 +264,15 @@
                         </tr>
                     </thead>
                     <!--{$total=0}-->
+                    <!-- ! -->
                     <tbody>
                     {loop="$fsc->facturas"}
-                    <tr class="clickableRow{if="!$value->pagada"} bg-danger{/if}" href="{$value->url()}">
+                    <tr>
                         <td class="text-center">
                             {if="$value->pagada"}
                             <span class="glyphicon glyphicon-ok" title="La factura está pagada"></span>
                             {else}
+                            <span class="glyphicon glyphicon-bell" title="La factura no está pagada"></span>
                             <!--{$total=$total+$value->total}-->
                             {/if}
                             {if="$value->femail"}

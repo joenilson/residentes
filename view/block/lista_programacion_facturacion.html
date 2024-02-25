@@ -66,7 +66,7 @@ MA 02110-1301  USA
                     {loop="$fsc->lista_programaciones"}
                     <tr>
                         <td>
-                            {if="$value->email!='' AND !$value->femail"}
+                            {if="$value->email!='' AND !$value->femail AND !$value->anulada"}
                             <input type="checkbox" name="facturacion[]" value="{$value->idfactura}" class="input-xs">
                             {/if}
                         </td>
@@ -79,11 +79,14 @@ MA 02110-1301  USA
                         <td class="text-center">{$value->forma_pago}</td>
                         <td class="text-center">{$value->factura_pagada}</td>
                         <td class="text-center">{if="$value->femail"}<b class="text-success">SI</b>{else}<b class="text-danger">NO</b>{/if}</td>
-                        <td>
-                            {if="$value->email AND $fsc->empresa->can_send_mail()"}
-                            <button type="button" data-toggle="tooltip" title="Enviar Documento" class="btn btn-sm btn-default" onClick="enviarFactura('{$value->codcliente}','{$value->email}',{$value->idfactura})"><i class="fa fa-envelope fa-fw"></i><span class="sr-only">Enviar</span></button>
+                        <td>{if="$value->anulada"}
+                                <button type="button" data-toggle="tooltip" title="Anulada" class="btn btn-sm btn-danger" disabled><i class="fa fa-ban fa-fw"></i><span class="sr-only">Anulada</span></button>
+                            {else}
+                                {if="$value->email AND $fsc->empresa->can_send_mail()"}
+                                <button type="button" data-toggle="tooltip" title="Enviar Documento" class="btn btn-sm btn-default" onClick="enviarFactura('{$value->codcliente}','{$value->email}',{$value->idfactura})"><i class="fa fa-envelope fa-fw"></i><span class="sr-only">Enviar</span></button>
+                                {/if}
+                                <button type="button" data-toggle="tooltip" title="Ver Documento" class="btn btn-sm btn-info" onClick="verFactura('{$value->codcliente}',{$value->idfactura})"><i class="fa fa-eye fa-fw"></i><span class="sr-only">Ver</span></button>
                             {/if}
-                            <button type="button" data-toggle="tooltip" title="Ver Documento" class="btn btn-sm btn-info" onClick="verFactura('{$value->codcliente}',{$value->idfactura})"><i class="fa fa-eye fa-fw"></i><span class="sr-only">Ver</span></button>
                         </td>
                     </tr>
                     {else}

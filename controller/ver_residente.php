@@ -97,49 +97,59 @@ class ver_residente extends residentes_controller
         }
         return parent::url();
     }
-    
+
+    /**
+     * @return void
+     */
     public function informacionResidente()
     {
         $this->page->title = 'Residente ' . $this->residente->nombre;
-        $factura = new factura_cliente();
-        $totalFacturas = $this->residente->totalFacturas();
-        $cantidadGrupos = ceil($totalFacturas/FS_ITEM_LIMIT);
-        $facts = [];
-        for($i = 0; $i < $cantidadGrupos; $i++ ) {
-            $documentos = $factura->all_from_cliente($this->residente->codcliente, FS_ITEM_LIMIT * $i);
-            $facts = array_merge($facts, $documentos);
-        }
-        $this->facturas = array();
-        $articulosCobrados = array();
-        foreach ($facts as $fac) {
-            if(!$fac->anulada) {
-                $fac->referencias = "";
-                foreach ($fac->get_lineas() as $linea) {
-                    if ($linea->referencia) {
-                        $fac->referencias .= $linea->referencia . " ";
-                        $this->validarArticulos($articulosCobrados, $fac, $linea);
-                    } else {
-                        $fac->referencias .= $linea->descripcion . " ";
-                    }
-                }
-                $this->facturas[] = $fac;
+        $this->facturas = [];
+        $referencias = [];
+        $articulosCobrados = [];
+        $documentosResidentes = $this->residente->facturas_from_cliente("DESC");
+        foreach($documentosResidentes as $doc) {
+            //convert array $doc to standard object
+            $fac = (object) $doc;
+            if(!isset($referencias[$fac->idfactura]))
+            {
+                $referencias[$fac->idfactura] = "";
             }
+
+            if ($fac->qdadfinal > 0 && $fac->cantidaddev >= 0) {
+                $articulosCobrados[$fac->referencia] = 1;
+            }
+
+            if ($fac->referencia) {
+                $referencias[$fac->idfactura] .= $fac->referencia . " ";
+            } else {
+                $referencias[$fac->idfactura] .= $fac->descripcion . " ";
+            }
+            $this->facturas[$fac->idfactura] = $fac;
+        }
+
+        $facturas = new factura_cliente();
+        foreach ($this->facturas as $factura) {
+            $facturaFinal = $facturas->get($factura->idfactura);
+            $facturaFinal->referencias = $referencias[$factura->idfactura];
+
+            $this->facturas[$factura->idfactura] = $facturaFinal;
         }
         $this->generarArticulosCobrables($articulosCobrados);
     }
-    
-    public function validarArticulos(&$articulosCobrados, &$fac, &$linea)
-    {
-        if (!$fac->idfacturarect) {
-            $rectificativas = $fac->get_rectificativas();
-            $articulosDevueltos = array();
-            $this->validarDevoluciones($articulosDevueltos, $rectificativas);
-            
-            if (!isset($articulosDevueltos[$linea->referencia])) {
-                $articulosCobrados[$linea->referencia] = 1;
-            }
-        }
-    }
+//
+//    public function validarArticulos(&$articulosCobrados, &$fac, &$linea)
+//    {
+//        if (!in_array($fac->idfacturarect, ['', null], true)) {
+//            $rectificativas = $fac->get_rectificativas();
+//            $articulosDevueltos = array();
+//            $this->validarDevoluciones($articulosDevueltos, $rectificativas);
+//
+//            if (!isset($articulosDevueltos[$linea->referencia])) {
+//                $articulosCobrados[$linea->referencia] = 1;
+//            }
+//        }
+//    }
     
     public function validarDevoluciones(&$articulosDevueltos, $rectificativas)
     {

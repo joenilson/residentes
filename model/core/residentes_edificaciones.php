@@ -561,11 +561,53 @@ class residentes_edificaciones extends \fs_model{
         return array($data, $data_cantidad[0]['total']);
     }
 
+    /**
+     * @return array
+     */
     public function totalFacturas()
     {
-        $sql = "SELECT count(idfactura) as total from facturascli where codcliente = ". $this->codcliente .";";
+        $sql = "SELECT count(idfactura) as total from facturascli where codcliente = ". $this->codcliente ." and anulada = false;";
         $data = $this->db->select($sql);
-
         return $data[0]['total'];
+    }
+
+    public function facturas_from_cliente($orden)
+    {
+        $sql = "SELECT ".
+            "fa.codcliente, fa.idfactura, fa.numero2, fa.codigo, fa.fecha, fa.vencimiento, " .
+            "fa.observaciones, fa.idfacturarect, fa.pagada as estadopago, fa.pagada, " .
+            "fa.total, fa.referencia, fa.descripcion, fa.cantidad, fa.pvptotal, " .
+            "d.numero2, d.idfacturarect, " .
+            "COALESCE(d.cantidad,0) as cantidaddev, COALESCE(d.pvptotal,0) as pvptotaldev, " .
+            "(COALESCE(fa.cantidad,0)+COALESCE(d.cantidad,0)) as qdadfinal, " .
+            "(COALESCE(fa.pvptotal,0)+COALESCE(d.pvptotal,0)) as pvpfinal " .
+            "FROM " .
+            "(SELECT f.codcliente, f.idfactura, f.numero2, f.codigo, f.fecha, f.vencimiento, f.observaciones, f.idfacturarect, " .
+            "(CASE WHEN f.pagada = true THEN 'Pagada' ELSE 'Pendiente' END) AS pagada, f.total, " .
+            "lf.referencia, lf.descripcion, lf.cantidad, lf.pvptotal " .
+            "FROM facturascli as f " .
+            "LEFT JOIN lineasfacturascli as lf ON (lf.idfactura = f.idfactura) " .
+            "WHERE f.anulada = false " .
+            "order by f.fecha ". $orden .", f.idfactura ". $orden .") AS fa " .
+            "LEFT OUTER JOIN " .
+            "(SELECT f2.codcliente, f2.idfactura, f2.numero2, f2.codigo, f2.fecha, f2.idfacturarect, " .
+            "(CASE WHEN f2.pagada = true THEN 'Pagada' ELSE 'Pendiente' END) AS pagada, f2.total, " .
+            "lf2.referencia, lf2.descripcion, lf2.cantidad, lf2.pvptotal " .
+            "FROM facturascli as f2 " .
+            "LEFT JOIN lineasfacturascli as lf2 ON (lf2.idfactura = f2.idfactura) " .
+            "WHERE f2.anulada = false and f2.idfacturarect is not null " .
+            ") AS d " .
+            "ON (fa.idfactura = d.idfacturarect AND fa.referencia = d.referencia) " .
+            "WHERE " .
+            "fa.codcliente = '". $this->codcliente ."' " .
+            "order by fa.fecha ". $orden .", fa.idfactura ". $orden .";";
+        $data = $this->db->select($sql);
+        $list = [];
+        if ($data) {
+            foreach ($data as $d) {
+                $list[] = $d;
+            }
+        }
+        return $list;
     }
 }

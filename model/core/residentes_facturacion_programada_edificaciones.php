@@ -166,6 +166,7 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
         $item->importe = 0;
         $item->forma_pago = '';
         $item->factura_pagada = '';
+        $item->anulada = '';
         if ($item->idfactura) {
             $fact = new factura_cliente();
             $infoFact = $fact->get($item->idfactura);
@@ -174,6 +175,7 @@ class residentes_facturacion_programada_edificaciones extends \fs_model
                 $item->femail = $infoFact->femail;
                 $item->fecha = $infoFact->fecha;
                 $item->importe = $infoFact->total;
+                $item->anulada = $infoFact->anulada;
                 $fp = new forma_pago();
                 $infoFP = $fp->get($infoFact->codpago);
                 $item->forma_pago = $infoFP->descripcion;
