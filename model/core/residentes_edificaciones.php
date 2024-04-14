@@ -595,7 +595,7 @@ class residentes_edificaciones extends \fs_model{
             "lf2.referencia, lf2.descripcion, lf2.cantidad, lf2.pvptotal " .
             "FROM facturascli as f2 " .
             "LEFT JOIN lineasfacturascli as lf2 ON (lf2.idfactura = f2.idfactura) " .
-            "WHERE f2.anulada = false and f2.idfacturarect is not null " .
+            "WHERE f2.anulada = false  and f2.codcliente = '". $this->codcliente ."' and f2.idfacturarect is not null " .
             ") AS d " .
             "ON (fa.idfactura = d.idfacturarect AND fa.referencia = d.referencia) " .
             "WHERE " .
