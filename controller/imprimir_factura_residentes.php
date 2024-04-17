@@ -83,7 +83,7 @@ class imprimir_factura_residentes extends fs_controller
         $facturas = $fac->all_from_cliente($this->factura->codcliente);
         if ($facturas) {
             foreach ($facturas as $f) {
-                if (!$f->pagada) {
+                if (!$f->pagada && !$f->anulada) {
                     $this->facturas_pendientes[] = array(
                         'factura'=>$f->codigo,
                         'fecha'=>$f->fecha,
